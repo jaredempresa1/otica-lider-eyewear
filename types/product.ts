@@ -20,6 +20,8 @@ export type ProductInstallments = {
   amount: number;
 };
 
+export type ProductGender = "masculino" | "feminino" | "unissex";
+
 export type Product = {
   id: string;
   slug: string;
@@ -31,6 +33,7 @@ export type Product = {
   compare_at_price: number | null;
   installments?: ProductInstallments | null;
   category: string;
+  gender?: ProductGender;
   images: string[];
   colors: ProductColor[];
   downloads?: ProductDownload[];

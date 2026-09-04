@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
@@ -6,10 +7,15 @@ import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
 import CollectionTiles from "@/components/CollectionTiles";
 import Testimonials from "@/components/Testimonials";
+import GenderFilter from "@/components/GenderFilter";
 
 export const revalidate = 60;
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams?: { genero?: string };
+}) {
   let products: Product[] = [];
   let testimonials: Array<{ id: string; author_name: string; content: string }> = [];
   let collections: Collection[] = [];
@@ -30,9 +36,10 @@ export default async function HomePage() {
   }
 
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
-  const catalogProducts = products.filter(
-    (product) => !featuredProducts.some((featured) => featured.id === product.id)
-  );
+  const genero = searchParams?.genero === "masculino" || searchParams?.genero === "feminino" ? searchParams.genero : null;
+  const catalogProducts = products
+    .filter((product) => !featuredProducts.some((featured) => featured.id === product.id))
+    .filter((product) => !genero || !product.gender || product.gender === "unissex" || product.gender === genero);
 
   return (
     <main>
@@ -65,17 +72,25 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section className={`section-shell py-12 sm:py-16 ${collections.length === 0 ? "border-t border-brand-ink/10" : ""}`}>
-        <div className="mb-7 flex items-end justify-between gap-4">
+      <section id="catalogo" className={`section-shell py-12 sm:py-16 ${collections.length === 0 ? "border-t border-brand-ink/10" : ""}`}>
+        <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Catálogo completo</p>
             <h2 className="section-title">Encontre seu próximo óculos de sol</h2>
           </div>
-          <Link href="/produtos" className="text-link hidden sm:inline-flex">
-            Ver todos <span aria-hidden="true">↗</span>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Suspense fallback={<div className="h-[26px] w-[92px] rounded-full bg-brand-paper" />}>
+              <GenderFilter />
+            </Suspense>
+            <Link href="/produtos" className="text-link hidden sm:inline-flex">
+              Ver todos <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
         </div>
-        <ProductGrid products={catalogProducts.length > 0 ? catalogProducts : products} />
+        <ProductGrid
+          products={catalogProducts.length > 0 ? catalogProducts : genero ? [] : products}
+          emptyMessage={genero ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Veja a coleção completa ou tente outro filtro." } : undefined}
+        />
       </section>
 
       <TrustBadges />

@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Download, MessageCircle, RotateCc
 import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
-import { isProductSoldOut } from "@/lib/productStatus";
+import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { buildWhatsAppInquiryMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 
 function formatBRL(value: number): string {
@@ -179,7 +179,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">
-          <p className="eyebrow">{product.category || "Eyewear"}</p>
+          <p className="eyebrow">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
           <p className="mt-3 font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-sm text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className={`mt-1 text-2xl font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-2 text-sm font-medium text-brand-ink/55">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}</div>

@@ -6,7 +6,7 @@ import { Check, MessageCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
-import { isProductSoldOut } from "@/lib/productStatus";
+import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { buildWhatsAppInquiryMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 
 function formatBRL(value: number): string {
@@ -128,7 +128,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="min-w-0">
           <h3 className="truncate font-heading text-[16px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[18px]">{displayBrand}</h3>
           {displayModel && <p className="mt-0.5 truncate font-body text-[10px] font-medium uppercase tracking-[0.12em] text-brand-ink/55 sm:text-[11px]">{displayModel}</p>}
-          <p className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-brand-ink/45 sm:text-[10px]">{product.category || "Eyewear"}</p>
+          <p className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-brand-ink/45 sm:text-[10px]">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
               {hasDiscount && <span className="block text-[10px] text-brand-ink/40 line-through sm:text-[11px]">{formatBRL(product.compare_at_price as number)}</span>}

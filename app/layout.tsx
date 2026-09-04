@@ -21,7 +21,7 @@ const instrumentSans = Instrument_Sans({
 // TODO: troque pela URL final do site em produção (ex.: "https://oticalidereyewear.com.br").
 // É essa URL que faz a imagem de preview funcionar corretamente quando o link é
 // compartilhado no WhatsApp, Instagram etc.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://oticalidereyewear.com.br";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://otica-lider-eyewear.vercel.app";
 const SITE_TITLE = "Ótica Líder Eyewear — Seu olhar merece uma boa moldura";
 const SITE_DESCRIPTION =
   "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Região Metropolitana.";

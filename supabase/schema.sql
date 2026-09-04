@@ -36,6 +36,11 @@ alter table products add column if not exists sold_out boolean not null default 
 -- simplesmente 1 linha por produto, então nunca repete.
 alter table products add column if not exists collection_slugs jsonb not null default '[]'::jsonb;
 
+-- Público do produto: masculino, feminino ou unissex (aparece nos dois filtros).
+alter table products add column if not exists gender text not null default 'unissex';
+alter table products drop constraint if exists products_gender_check;
+alter table products add constraint products_gender_check check (gender in ('masculino', 'feminino', 'unissex'));
+
 -- Segurança: qualquer visitante pode LER os produtos (catálogo público).
 -- Só usuários autenticados (você, logado no /admin) podem criar/editar/apagar.
 alter table products enable row level security;

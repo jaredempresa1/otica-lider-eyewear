@@ -1,4 +1,14 @@
-import { Product, ProductColor } from "@/types/product";
+import { Product, ProductColor, ProductGender } from "@/types/product";
+
+const GENDER_LABELS: Record<ProductGender, string> = {
+  masculino: "Masculino",
+  feminino: "Feminino",
+  unissex: "Unissex",
+};
+
+export function genderLabel(gender?: string): string {
+  return GENDER_LABELS[(gender as ProductGender) ?? "unissex"] ?? GENDER_LABELS.unissex;
+}
 
 /**
  * Um produto é considerado totalmente esgotado quando:
