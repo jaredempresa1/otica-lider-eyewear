@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+/** Direção visual: controles maiores e logotipo destacado, preservando o cabeçalho creme, verde e dourado da marca. */
 import Link from "next/link";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
@@ -9,7 +9,6 @@ import { useCart } from "./CartContext";
 export default function Header() {
   const { totalItems } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [logoError, setLogoError] = useState(false);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -17,33 +16,25 @@ export default function Header() {
 
   return (
     <header className="border-b border-brand-ink/10 bg-brand-cream/95 backdrop-blur-md">
-      <div className="section-shell flex h-[72px] items-center justify-between gap-5">
+      <div className="section-shell flex h-[80px] items-center justify-between gap-5">
         <button
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
           onClick={() => setMenuOpen((value) => !value)}
           aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
           aria-expanded={menuOpen}
         >
-          {menuOpen ? <X size={18} strokeWidth={1.7} /> : <Menu size={19} strokeWidth={1.7} />}
+          {menuOpen ? <X size={23} strokeWidth={1.8} /> : <Menu size={25} strokeWidth={1.8} />}
         </button>
 
         <Link href="/" className="group flex min-w-0 items-center" onClick={closeMenu} aria-label="Ótica Líder Eyewear — início">
-          {logoError ? (
-            <span className="font-heading text-[18px] font-semibold tracking-[-0.03em] text-brand-ink">Ótica Líder</span>
-          ) : (
-            <Image
-              src="/logo.png"
-              alt="Ótica Líder Eyewear"
-              width={190}
-              height={52}
-              priority
-              onError={() => setLogoError(true)}
-              className="h-10 w-auto max-w-[145px] object-contain object-left sm:max-w-[190px]"
-            />
-          )}
+          <span aria-hidden="true" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-brand-gold bg-brand-ink sm:h-12 sm:w-12"><span className="h-4 w-7 rounded-full border border-brand-paper/90" /><span className="absolute h-[2px] w-4 bg-brand-gold" /></span>
+          <span className="ml-2 leading-none">
+            <span className="block font-heading text-[21px] font-semibold tracking-[-0.04em] text-brand-ink">Ótica Líder</span>
+            <span className="mt-1 block font-body text-[10px] font-semibold uppercase tracking-[0.19em] text-brand-gold">Eyewear</span>
+          </span>
         </Link>
 
-        <nav className="hidden items-center gap-8 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/65 sm:flex">
+        <nav className="hidden items-center gap-8 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-ink/65 sm:flex">
           <Link href="/" className="transition-colors hover:text-brand-gold">
             Início
           </Link>
@@ -54,15 +45,15 @@ export default function Header() {
 
         <Link
           href="/sacola"
-          className="relative flex h-10 items-center gap-2 rounded-full border border-brand-ink/10 px-3 text-brand-ink transition-colors hover:border-brand-gold sm:px-4"
+          className="relative flex h-12 items-center gap-2.5 rounded-full border border-brand-ink/10 px-4 text-brand-ink transition-colors hover:border-brand-gold sm:px-5"
           aria-label="Abrir sacola"
         >
-          <ShoppingBag size={17} strokeWidth={1.7} />
-          <span className="hidden font-body text-[10px] font-semibold uppercase tracking-[0.15em] sm:inline">
+          <ShoppingBag size={22} strokeWidth={1.8} />
+          <span className="hidden font-body text-[12px] font-semibold uppercase tracking-[0.15em] sm:inline">
             Sacola
           </span>
           {totalItems > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold text-brand-paper">
+            <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-brand-gold px-1 text-[11px] font-bold text-brand-paper">
               {totalItems}
             </span>
           )}

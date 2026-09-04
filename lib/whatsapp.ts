@@ -1,14 +1,27 @@
 import { CartItem } from "@/types/product";
 import { ShippingResult } from "./shipping";
 
+export type PaymentSelection = {
+  method: "pix" | "card";
+  installments: number;
+};
+
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function paymentDescription(payment: PaymentSelection, total: number): string {
+  if (payment.method === "pix") return "Pix à vista";
+
+  const installmentValue = total / payment.installments;
+  return `Cartão de crédito — ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`;
 }
 
 export function buildWhatsAppOrderMessage(
   items: CartItem[],
   cep: string,
-  shipping: ShippingResult
+  shipping: ShippingResult,
+  payment: PaymentSelection,
 ): string {
   const lines: string[] = [];
 
@@ -20,12 +33,13 @@ export function buildWhatsAppOrderMessage(
     const lineTotal = item.price * item.quantity;
     subtotal += lineTotal;
     lines.push(
-      `• ${item.quantity}x ${item.name} (${item.colorName}) — ${formatBRL(lineTotal)}`
+      `• ${item.quantity}x ${item.name} (${item.colorName}) — ${formatBRL(lineTotal)}`,
     );
   }
 
   lines.push("");
   lines.push(`Subtotal: ${formatBRL(subtotal)}`);
+  lines.push(`Forma de pagamento: ${paymentDescription(payment, subtotal)}`);
 
   if (cep) {
     lines.push(`CEP de entrega: ${cep}`);
@@ -37,7 +51,7 @@ export function buildWhatsAppOrderMessage(
   }
 
   lines.push("");
-  lines.push("Aguardo o retorno para combinar pagamento e entrega. Obrigado(a)!");
+  lines.push("Aguardo o retorno para confirmar pagamento e entrega. Obrigado(a)!");
 
   return lines.join("\n");
 }
@@ -68,7 +82,7 @@ export function buildWhatsAppInquiryMessage(product: {
   lines.push(
     options.wholeProductSoldOut
       ? "Vi que está esgotado no momento. Vocês têm previsão de reposição ou conseguem separar uma unidade para mim?"
-      : "Vi que essa cor está esgotada no momento. Vocês têm previsão de reposição ou têm outra cor parecida?"
+      : "Vi que essa cor está esgotada. Vocês têm previsão de reposição ou outra cor parecida?",
   );
 
   return lines.join("\n");

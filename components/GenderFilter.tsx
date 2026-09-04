@@ -1,5 +1,6 @@
 "use client";
 
+/** Direção visual: filtro em formato de pílula maior para leitura e toque, coerente com a linguagem acolhedora da vitrine. */
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -20,15 +21,11 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
 
   useEffect(() => {
     function handlePointerDown(event: PointerEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+      if (!containerRef.current?.contains(event.target as Node)) setIsOpen(false);
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
+      if (event.key === "Escape") setIsOpen(false);
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -41,11 +38,8 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
 
   function handleChange(value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set("genero", value);
-    } else {
-      params.delete("genero");
-    }
+    if (value) params.set("genero", value);
+    else params.delete("genero");
 
     const query = params.toString();
     const hash = anchor ? `#${anchor}` : "";
@@ -61,12 +55,12 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label={`Filtrar por público: ${selected.label}`}
-        className="flex h-8 items-center gap-2 rounded-full border border-brand-ink/10 bg-brand-paper px-3 font-body text-[11px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
+        className="flex h-10 items-center gap-2.5 rounded-full border border-brand-ink/10 bg-brand-paper px-4 font-body text-[13px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
       >
         <span className="font-semibold normal-case sm:hidden">{selected.short}</span>
         <span className="hidden normal-case sm:inline">{selected.desktopLabel}</span>
-        <span aria-hidden="true" className={`text-brand-ink/45 transition-transform ${isOpen ? "rotate-180" : ""}`}>
-         ⌄
+        <span aria-hidden="true" className={`text-[16px] leading-none text-brand-ink/45 transition-transform ${isOpen ? "rotate-180" : ""}`}>
+          ⌄
         </span>
       </button>
 
@@ -74,7 +68,7 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
         <div
           role="listbox"
           aria-label="Filtrar óculos por público"
-          className="absolute left-0 top-10 z-20 min-w-[168px] overflow-hidden rounded-2xl border border-brand-ink/10 bg-brand-cream p-1.5 shadow-soft sm:left-auto sm:right-0"
+          className="absolute left-0 top-12 z-20 min-w-[180px] overflow-hidden rounded-2xl border border-brand-ink/10 bg-brand-cream p-1.5 shadow-soft sm:left-auto sm:right-0"
         >
           {FILTERS.map((filter) => {
             const isSelected = filter.value === selected.value;
@@ -85,7 +79,7 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
                 role="option"
                 aria-selected={isSelected}
                 onClick={() => handleChange(filter.value)}
-                className={`flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left font-body text-xs normal-case transition-colors ${
+                className={`flex w-full items-center gap-2 rounded-xl px-3 py-3 text-left font-body text-[13px] normal-case transition-colors ${
                   isSelected
                     ? "bg-brand-gold/10 font-semibold text-brand-ink"
                     : "text-brand-ink/65 hover:bg-brand-paper hover:text-brand-ink"

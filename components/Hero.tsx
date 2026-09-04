@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+/** Direção visual: fotografia editorial de óculos em destaque, em diálogo com o verde-musgo e dourado proprietários da marca. */
 // As 3 fotos do mosaico (arquivos reais em /public):
 // 1) hero-praia-curtindo.jpg — foto principal (tile grande): casal curtindo a praia
 // 2) hero-ciclista-profissional.jpg — ciclista pedalando, óculos de sol no rosto

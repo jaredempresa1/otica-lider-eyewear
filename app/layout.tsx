@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Piazzolla, Instrument_Sans } from "next/font/google";
+import { Piazzolla } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import Header from "@/components/Header";
@@ -10,12 +10,6 @@ const piazzolla = Piazzolla({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   variable: "--font-piazzolla",
-});
-
-const instrumentSans = Instrument_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-instrument-sans",
 });
 
 // TODO: troque pela URL final do site em produção (ex.: "https://oticalidereyewear.com.br").
@@ -56,7 +50,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${piazzolla.variable} ${instrumentSans.variable}`}>
+    <html lang="pt-BR" className={piazzolla.variable}>
       <body className="font-body">
         <CartProvider>
           <div className="sticky top-0 z-50">
