@@ -1,6 +1,7 @@
 "use client";
 
-/** Direção visual: controles maiores e logotipo destacado, preservando o cabeçalho creme, verde e dourado da marca. */
+/** Direção visual: controles maiores e a logo oficial destacada, preservando o cabeçalho creme, verde e dourado da marca. */
+import Image from "next/image";
 import Link from "next/link";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
@@ -27,11 +28,14 @@ export default function Header() {
         </button>
 
         <Link href="/" className="group flex min-w-0 items-center" onClick={closeMenu} aria-label="Ótica Líder Eyewear — início">
-          <span aria-hidden="true" className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-brand-gold bg-brand-ink sm:h-12 sm:w-12"><span className="h-4 w-7 rounded-full border border-brand-paper/90" /><span className="absolute h-[2px] w-4 bg-brand-gold" /></span>
-          <span className="ml-2 leading-none">
-            <span className="block font-heading text-[21px] font-semibold tracking-[-0.04em] text-brand-ink">Ótica Líder</span>
-            <span className="mt-1 block font-body text-[10px] font-semibold uppercase tracking-[0.19em] text-brand-gold">Eyewear</span>
-          </span>
+          <Image
+            src="/logo.png"
+            alt="Ótica Líder Eyewear"
+            width={230}
+            height={72}
+            priority
+            className="h-12 w-auto max-w-[176px] object-contain object-left sm:h-14 sm:max-w-[230px]"
+          />
         </Link>
 
         <nav className="hidden items-center gap-8 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-ink/65 sm:flex">
@@ -61,7 +65,7 @@ export default function Header() {
       </div>
 
       {menuOpen && (
-        <nav className="border-t border-brand-ink/10 bg-brand-paper px-5 py-5 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink sm:hidden">
+        <nav className="border-t border-brand-ink/10 bg-brand-paper px-5 py-5 font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-brand-ink sm:hidden">
           <div className="section-shell flex flex-col gap-5 !px-0">
             <Link href="/" onClick={closeMenu}>
               Início
