@@ -122,7 +122,7 @@ export default function SacolaPage() {
               <div className="flex items-center justify-between text-brand-paper/65"><span>Frete</span><span>{isFreeShipping ? "Grátis" : "A combinar"}</span></div>
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper/45" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/35 focus:border-brand-gold" />
-              {shipping && <p className="mt-2 font-body text-[12px] leading-5 text-brand-paper/60">{isFreeShipping ? `Frete grátis para ${shipping.regionLabel}.` : "Para este CEP, combinaremos o frete pelo WhatsApp."}</p>}
+              {shipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/60 sm:text-[14px]">{isFreeShipping ? `Frete grátis para ${shipping.regionLabel}.` : "Para este CEP, combinaremos o frete pelo WhatsApp."}</p>}
             </div>
           </div>
 

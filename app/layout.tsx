@@ -19,6 +19,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://otica-lider-eyewea
 const SITE_TITLE = "Ótica Líder Eyewear — Seu olhar merece uma boa moldura";
 const SITE_DESCRIPTION =
   "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Região Metropolitana.";
+const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: OG_IMAGE,
         width: 1561,
         height: 1008,
         alt: "Ótica Líder — Há 25 anos cuidando da visão",
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/og-image.png"],
+    images: [OG_IMAGE],
   },
 };
 

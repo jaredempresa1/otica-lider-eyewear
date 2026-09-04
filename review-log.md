@@ -21,3 +21,8 @@ A primeira tentativa de compilação herdou uma variável `NODE_ENV` não padron
 
 Os cards tiveram apenas a escala dos textos de marca/modelo, público, preço e parcelamento aumentada. Na sacola, foram ampliados apenas o valor do item, o parcelamento e os números/textos principais do resumo do pedido. A checagem de TypeScript e a compilação de produção passaram após esses ajustes. A sessão visual isolada não manteve o item de teste no armazenamento local durante esta revisão, então a conferência final da sacola foi feita pelo código renderizado e pela compilação, sem alterar outras áreas do layout.
 
+
+## Home e prévia do link
+
+As frases da hero foram ampliadas para 13/14px na linha de localização, 16/18px na descrição e 12/13px no frete, conforme a referência mobile enviada. A mensagem de frete combinada para CEP fora da área gratuita passou para 13/14px. A página servida confirmou as tags `og:title`, `og:description`, `og:url`, `og:image` e `twitter:image`, apontando para `https://otica-lider-eyewear.vercel.app/og-image.png`, imagem Open Graph existente com a logo oficial e fotos editoriais da coleção.
+

@@ -22,3 +22,11 @@ Use este arquivo apenas como controle interno da próxima revisão da logo.
 - [x] Aumentar discretamente letras e números do resumo do pedido.
 - [x] Validar que nenhum outro elemento visual foi alterado.
 
+
+## Revisão final de home, frete e prévia do link
+
+- [x] Aumentar as três frases da área principal da home.
+- [x] Aumentar a mensagem de frete para CEP fora de Goiana e João Pessoa.
+- [x] Configurar título, descrição e imagem de prévia para compartilhamento do link.
+- [x] Validar responsividade e compilação final.
+
