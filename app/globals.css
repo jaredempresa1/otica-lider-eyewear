@@ -4,14 +4,13 @@
 
 :root {
   --ease-premium: cubic-bezier(0.23, 1, 0.32, 1);
-  color-scheme: light;
 }
 
 html {
   scroll-behavior: smooth;
   background: #f4f1ea;
-  color-scheme: light;
 }
+
 body {
   background-color: #f4f1ea;
   color: #1e211d;
@@ -20,16 +19,6 @@ body {
 ::selection {
   background: #b88a45;
   color: #fbfaf7;
-}
-/* Reforço contra "modo escuro forçado" de navegadores (ex: Samsung Internet)
-   que reescrevem cores mesmo com color-scheme: light já declarado.
-   Isso trava as cores de fundo e texto nos elementos-chave do site. */
-@media (prefers-color-scheme: dark) {
-  html,
-  body {
-    background-color: #f4f1ea !important;
-    color: #1e211d !important;
-  }
 }
 
 button,

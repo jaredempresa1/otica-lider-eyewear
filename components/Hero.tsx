@@ -19,20 +19,19 @@ export default function Hero() {
         <div className="absolute -bottom-32 left-1/3 h-80 w-80 rounded-full border border-brand-gold/20" />
 
         <div className="relative z-10 flex flex-col justify-end px-6 pb-8 pt-16 sm:px-12 sm:pb-12 lg:justify-center lg:py-16">
-          <p className="eyebrow text-brand-gold">Desde 1999 · João Pessoa</p>
+          <p className="eyebrow text-brand-gold">Desde 1999 · Paraíba e Pernambuco</p>
           <h1 className="mt-5 max-w-xl font-heading text-[2.1rem] font-medium leading-[0.98] tracking-[-0.04em] text-brand-paper sm:text-6xl lg:text-[4.2rem]">
-            Seu olhar merece uma boa moldura.
+            Óculos para viver ao ar livre.
           </h1>
           <p className="mt-6 max-w-md font-body text-sm leading-6 text-brand-paper/65 sm:text-base">
-            Óculos de sol e óculos esportivos escolhidos para atravessar o tempo
-            com você. Curadoria, proteção e personalidade em cada detalhe.
+            Proteção e estilo para o sol da praia, o pedal e a corrida.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Link href="/produtos" className="rounded-full bg-brand-gold px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">
               Explorar coleção
             </Link>
             <span className="font-body text-[10px] uppercase tracking-[0.16em] text-brand-paper/45">
-              Frete grátis · JP e Goiana
+              Frete grátis · João Pessoa e Goiana
             </span>
           </div>
         </div>

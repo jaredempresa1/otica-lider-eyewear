@@ -24,7 +24,7 @@ function ProductImagePreview({ src, alt, priority, sizes, onOpen }: { src?: stri
   return (
     <button type="button" onClick={onOpen} className="relative h-full w-full overflow-hidden select-none" aria-label="Abrir imagem ampliada do produto">
       {src ? <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="object-contain p-3 mix-blend-multiply sm:p-7" /> : <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>}
-      {src && <span className="pointer-events-none absolute bottom-4 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full bg-brand-paper/90 px-3 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-ink/60 shadow-card backdrop-blur-sm sm:flex"><ZoomIn size={13} /> Clique para ampliar</span>}
+      {src && <span className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-brand-paper/90 px-3 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-ink/60 shadow-card backdrop-blur-sm"><ZoomIn size={13} /> Clique para ampliar</span>}
     </button>
   );
 }

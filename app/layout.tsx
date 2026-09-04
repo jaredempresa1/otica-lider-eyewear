@@ -22,14 +22,6 @@ export const metadata: Metadata = {
   title: "Ótica Líder Eyewear — Seu olhar merece uma boa moldura",
   description:
     "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Goiana.",
-  other: {
-    "color-scheme": "light",
-  },
-};
-
-export const viewport = {
-  colorScheme: "light" as const,
-  themeColor: "#f4f1ea",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
