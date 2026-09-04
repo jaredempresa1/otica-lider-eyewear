@@ -1,0 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ease-premium: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: #f4f1ea;
+}
+
+body {
+  background-color: #f4f1ea;
+  color: #1e211d;
+}
+
+::selection {
+  background: #b88a45;
+  color: #fbfaf7;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #b88a45;
+  outline-offset: 3px;
+}
+
+@layer components {
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+
+  .eyebrow {
+    @apply font-body text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-gold;
+  }
+
+  .section-title {
+    @apply font-heading text-3xl font-semibold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
+  }
+
+  .text-link {
+    @apply inline-flex items-center gap-2 border-b border-brand-gold/60 pb-1 font-body text-xs font-semibold uppercase tracking-[0.15em] text-brand-ink transition-colors duration-200 hover:border-brand-ink hover:text-brand-gold;
+  }
+
+  .btn-brand {
+    @apply inline-flex items-center justify-center rounded-full bg-brand-ink px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-paper shadow-card transition-all duration-200 hover:bg-brand-moss hover:shadow-soft active:scale-[0.97];
+  }
+
+  .btn-brand-outline {
+    @apply inline-flex items-center justify-center rounded-full border border-brand-ink/20 bg-transparent px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink transition-all duration-200 hover:border-brand-ink hover:bg-brand-ink hover:text-brand-paper active:scale-[0.97];
+  }
+
+  .input-premium {
+    @apply w-full rounded-2xl border border-brand-ink/15 bg-brand-paper px-4 py-3 font-body text-sm text-brand-ink outline-none transition-colors placeholder:text-brand-ink/35 focus:border-brand-gold;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-up {
+    animation: reveal-up 700ms var(--ease-premium) both;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
