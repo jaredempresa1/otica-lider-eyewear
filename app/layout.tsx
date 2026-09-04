@@ -5,6 +5,7 @@ import { CartProvider } from "@/components/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
+import CouponBanner from "@/components/CouponBanner";
 
 const piazzolla = Piazzolla({
   subsets: ["latin"],
@@ -57,6 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="sticky top-0 z-50">
             <AnnouncementBar />
             <Header />
+            <CouponBanner />
           </div>
           {children}
           <Footer />
