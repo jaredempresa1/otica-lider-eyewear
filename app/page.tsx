@@ -68,7 +68,7 @@ export default async function HomePage() {
         <div className="mb-7 flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Catálogo completo</p>
-            <h2 className="section-title">Encontre seu próximo clássico</h2>
+            <h2 className="section-title">Encontre seu próximo óculos</h2>
           </div>
           <Link href="/produtos" className="text-link hidden sm:inline-flex">
             Ver todos <span aria-hidden="true">↗</span>
