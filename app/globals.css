@@ -68,6 +68,15 @@ select:focus-visible {
   }
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .reveal-up {
     animation: reveal-up 700ms var(--ease-premium) both;

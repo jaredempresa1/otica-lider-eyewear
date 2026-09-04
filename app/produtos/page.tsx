@@ -1,17 +1,20 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft } from "lucide-react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import ProductGrid from "@/components/ProductGrid";
+import GenderFilter from "@/components/GenderFilter";
 
 export const revalidate = 60;
 
 export default async function ProdutosPage({
   searchParams,
 }: {
-  searchParams: { colecao?: string };
+  searchParams: { colecao?: string; genero?: string };
 }) {
   const colecao = searchParams?.colecao;
+  const genero = searchParams?.genero === "masculino" || searchParams?.genero === "feminino" ? searchParams.genero : null;
   let products: Product[] = [];
   let activeCollection: Collection | null = null;
 
@@ -27,36 +30,46 @@ export default async function ProdutosPage({
     activeCollection = (collectionResult?.data as Collection | null) ?? null;
   }
 
-  const visibleProducts = colecao
-    ? products.filter((product) => (product.collection_slugs ?? []).includes(colecao))
-    : products;
+  const visibleProducts = products.filter((product) => {
+    const matchesCollection = colecao ? (product.collection_slugs ?? []).includes(colecao) : true;
+    const matchesGender = genero ? !product.gender || product.gender === "unissex" || product.gender === genero : true;
+    return matchesCollection && matchesGender;
+  });
 
   return (
     <main className="section-shell py-10 sm:py-14">
       <Link href="/" className="mb-6 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold sm:hidden">
         <ArrowLeft size={14} /> Voltar para o início
       </Link>
-      <div className="mb-8 max-w-2xl">
-        {activeCollection ? (
-          <>
-            <p className="eyebrow">Coleção</p>
-            <h1 className="section-title mt-2">{activeCollection.name}</h1>
-            <Link href="/produtos" className="text-link mt-4 inline-flex">
-              Ver coleção completa <span aria-hidden="true">↗</span>
-            </Link>
-          </>
-        ) : (
-          <>
-            <p className="eyebrow">A coleção inteira</p>
-            <h1 className="section-title mt-2">Óculos de sol para ver e ser visto</h1>
-            <p className="mt-3 max-w-xl font-body text-sm leading-6 text-brand-ink/60 sm:text-base">
-              Modelos selecionados para acompanhar todos os seus dias — do essencial ao
-              mais marcante.
-            </p>
-          </>
-        )}
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="max-w-2xl">
+          {activeCollection ? (
+            <>
+              <p className="eyebrow">Coleção</p>
+              <h1 className="section-title mt-2">{activeCollection.name}</h1>
+              <Link href="/produtos" className="text-link mt-4 inline-flex">
+                Ver coleção completa <span aria-hidden="true">↗</span>
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="eyebrow">A coleção inteira</p>
+              <h1 className="section-title mt-2">Óculos de sol para ver e ser visto</h1>
+              <p className="mt-3 max-w-xl font-body text-sm leading-6 text-brand-ink/60 sm:text-base">
+                Modelos selecionados para acompanhar todos os seus dias — do essencial ao
+                mais marcante.
+              </p>
+            </>
+          )}
+        </div>
+        <Suspense fallback={<div className="h-[26px] w-[92px] rounded-full bg-brand-paper" />}>
+          <GenderFilter />
+        </Suspense>
       </div>
-      <ProductGrid products={visibleProducts} />
+      <ProductGrid
+        products={visibleProducts}
+        emptyMessage={genero ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Tente outro filtro ou veja a coleção completa." } : undefined}
+      />
     </main>
   );
 }

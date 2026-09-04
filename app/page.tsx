@@ -58,7 +58,7 @@ export default async function HomePage({
       )}
 
       {featuredProducts.length > 0 && (
-        <section className="section-shell pb-10 pt-12 sm:pb-14 sm:pt-16">
+        <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
               <p className="eyebrow">Coleção Destaque</p>
@@ -68,11 +68,11 @@ export default async function HomePage({
               Ver coleção completa <span aria-hidden="true">↗</span>
             </Link>
           </div>
-          <ProductGrid products={featuredProducts} />
+          <ProductGrid products={featuredProducts} scroll />
         </section>
       )}
 
-      <section id="catalogo" className={`section-shell py-12 sm:py-16 ${collections.length === 0 ? "border-t border-brand-ink/10" : ""}`}>
+      <section id="catalogo" className={`section-shell pb-12 pt-4 sm:pb-16 sm:pt-6 ${collections.length === 0 ? "border-t border-brand-ink/10" : ""}`}>
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Catálogo completo</p>
@@ -80,7 +80,7 @@ export default async function HomePage({
           </div>
           <div className="flex items-center gap-4">
             <Suspense fallback={<div className="h-[26px] w-[92px] rounded-full bg-brand-paper" />}>
-              <GenderFilter />
+              <GenderFilter anchor="catalogo" />
             </Suspense>
             <Link href="/produtos" className="text-link hidden sm:inline-flex">
               Ver todos <span aria-hidden="true">↗</span>

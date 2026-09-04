@@ -9,7 +9,7 @@ const FILTERS = [
   { value: "feminino", short: "F", label: "Feminino", desktopLabel: "Feminino" },
 ];
 
-export default function GenderFilter() {
+export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,8 +48,9 @@ export default function GenderFilter() {
     }
 
     const query = params.toString();
+    const hash = anchor ? `#${anchor}` : "";
     setIsOpen(false);
-    router.replace(`${pathname}${query ? `?${query}` : ""}#catalogo`, { scroll: false });
+    router.replace(`${pathname}${query ? `?${query}` : ""}${hash}`, { scroll: false });
   }
 
   return (
@@ -73,7 +74,7 @@ export default function GenderFilter() {
         <div
           role="listbox"
           aria-label="Filtrar óculos por público"
-          className="absolute right-0 top-10 z-20 min-w-[168px] overflow-hidden rounded-2xl border border-brand-ink/10 bg-brand-cream p-1.5 shadow-soft"
+          className="absolute left-0 top-10 z-20 min-w-[168px] overflow-hidden rounded-2xl border border-brand-ink/10 bg-brand-cream p-1.5 shadow-soft sm:left-auto sm:right-0"
         >
           {FILTERS.map((filter) => {
             const isSelected = filter.value === selected.value;
