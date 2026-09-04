@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const FILTERS = [
-  { value: "", short: "Ó", label: "Óculos", desktopLabel: "Todos os óculos" },
-  { value: "masculino", short: "M", label: "Masculino", desktopLabel: "Masculino" },
-  { value: "feminino", short: "F", label: "Feminino", desktopLabel: "Feminino" },
+  { value: "", short: "Todos", label: "Todos", desktopLabel: "Todos os óculos" },
+  { value: "masculino", short: "Masculino", label: "Masculino", desktopLabel: "Masculino" },
+  { value: "feminino", short: "Feminino", label: "Feminino", desktopLabel: "Feminino" },
 ];
 
 export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
@@ -63,7 +63,7 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
         aria-label={`Filtrar por público: ${selected.label}`}
         className="flex h-8 items-center gap-2 rounded-full border border-brand-ink/10 bg-brand-paper px-3 font-body text-[11px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
       >
-        <span className="font-semibold uppercase sm:hidden">{selected.short}</span>
+        <span className="font-semibold normal-case sm:hidden">{selected.short}</span>
         <span className="hidden normal-case sm:inline">{selected.desktopLabel}</span>
         <span aria-hidden="true" className={`text-brand-ink/45 transition-transform ${isOpen ? "rotate-180" : ""}`}>
          ⌄
@@ -91,9 +91,7 @@ export default function GenderFilter({ anchor }: { anchor?: string } = {}) {
                     : "text-brand-ink/65 hover:bg-brand-paper hover:text-brand-ink"
                 }`}
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 font-semibold uppercase text-[10px] text-brand-gold sm:hidden">
-                  {filter.short}
-                </span>
+                <span className="normal-case sm:hidden">{filter.short}</span>
                 <span className="hidden normal-case sm:inline">{filter.desktopLabel}</span>
               </button>
             );
