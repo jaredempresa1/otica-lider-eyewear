@@ -18,7 +18,7 @@ const piazzolla = Piazzolla({
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://otica-lider-eyewear.vercel.app";
 const SITE_TITLE = "Ótica Líder Eyewear — Seu olhar merece uma boa moldura";
 const SITE_DESCRIPTION =
-  "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Região.";
+  "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Região Metropolitana.";
 const OG_IMAGE = `${SITE_URL}/og-image.png`;
 
 export const metadata: Metadata = {

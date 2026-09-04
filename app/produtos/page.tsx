@@ -4,44 +4,48 @@ import { ArrowLeft } from "lucide-react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import ProductGrid from "@/components/ProductGrid";
-import GenderFilter from "@/components/GenderFilter";
+import FilterDrawer from "@/components/FilterDrawer";
+import QuickFilters from "@/components/QuickFilters";
+import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
 
 export const revalidate = 60;
 
 export default async function ProdutosPage({
   searchParams,
 }: {
-  searchParams: { colecao?: string; genero?: string };
+  searchParams: { colecao?: string; genero?: string; marca?: string; cor?: string; precoMin?: string; precoMax?: string; ordenar?: string };
 }) {
   const colecao = searchParams?.colecao;
-  const genero = searchParams?.genero === "masculino" || searchParams?.genero === "feminino" ? searchParams.genero : null;
   let products: Product[] = [];
+  let collections: Collection[] = [];
   let activeCollection: Collection | null = null;
 
   if (hasSupabaseConfig) {
-    const [{ data }, collectionResult] = await Promise.all([
+    const [{ data }, { data: collectionData }, collectionResult] = await Promise.all([
       // A "coleção inteira" sempre vem direto da tabela products (1 linha por
       // produto), então mesmo que um óculos esteja em 2 coleções ele nunca
       // aparece duplicado aqui.
       supabase.from("products").select("*").order("created_at", { ascending: false }),
+      supabase.from("collections").select("*").order("sort_order", { ascending: true }),
       colecao ? supabase.from("collections").select("*").eq("slug", colecao).maybeSingle() : Promise.resolve({ data: null }),
     ]);
     products = (data as Product[]) ?? [];
+    collections = (collectionData as Collection[]) ?? [];
     activeCollection = (collectionResult?.data as Collection | null) ?? null;
   }
 
-  const visibleProducts = products.filter((product) => {
-    const matchesCollection = colecao ? (product.collection_slugs ?? []).includes(colecao) : true;
-    const matchesGender = genero ? !product.gender || product.gender === "unissex" || product.gender === genero : true;
-    return matchesCollection && matchesGender;
-  });
+  const collectionScopedProducts = colecao ? products.filter((product) => (product.collection_slugs ?? []).includes(colecao)) : products;
+
+  const filterState = parseFilterState(searchParams ?? {});
+  const hasActiveFilters = filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.precoMin !== null || filterState.precoMax !== null;
+  const visibleProducts = applyQuickFilter(filterProducts(collectionScopedProducts, filterState), searchParams?.ordenar);
 
   return (
     <main className="section-shell py-10 sm:py-14">
       <Link href="/" className="mb-6 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold sm:hidden">
         <ArrowLeft size={14} /> Voltar para o início
       </Link>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
           {activeCollection ? (
             <>
@@ -62,13 +66,18 @@ export default async function ProdutosPage({
             </>
           )}
         </div>
-        <Suspense fallback={<div className="h-[26px] w-[92px] rounded-full bg-brand-paper" />}>
-          <GenderFilter />
+      </div>
+      <div className="mb-8 flex flex-wrap items-center gap-3">
+        <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}>
+          <FilterDrawer products={collectionScopedProducts} collections={collections} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <QuickFilters />
         </Suspense>
       </div>
       <ProductGrid
         products={visibleProducts}
-        emptyMessage={genero ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Tente outro filtro ou veja a coleção completa." } : undefined}
+        emptyMessage={hasActiveFilters ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Tente outro filtro ou veja a coleção completa." } : undefined}
       />
     </main>
   );
