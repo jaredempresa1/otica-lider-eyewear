@@ -21,6 +21,16 @@ body {
   background: #b88a45;
   color: #fbfaf7;
 }
+/* Reforço contra "modo escuro forçado" de navegadores (ex: Samsung Internet)
+   que reescrevem cores mesmo com color-scheme: light já declarado.
+   Isso trava as cores de fundo e texto nos elementos-chave do site. */
+@media (prefers-color-scheme: dark) {
+  html,
+  body {
+    background-color: #f4f1ea !important;
+    color: #1e211d !important;
+  }
+}
 
 button,
 a,
