@@ -40,7 +40,7 @@ export default function Hero() {
             <Link href="/produtos" className="rounded-full bg-brand-gold px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">
               Explorar coleção
             </Link>
-            <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]"><span className="block sm:inline">Frete grátis</span><span className="hidden sm:inline"> · </span><span className="block sm:inline">João Pessoa e Região Metropolitana</span></span>
+            <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]"><span className="block sm:inline">Frete grátis</span><span className="hidden sm:inline"> · </span><span className="block sm:inline">João Pessoa e Região</span></span>
           </div>
         </div>
 

@@ -1,7 +1,7 @@
 import { CreditCard, ShieldCheck, Truck } from "lucide-react";
 
 const BADGES = [
-  { icon: Truck, title: "Frete grátis", description: "João Pessoa e Região Metropolitana. Demais regiões, frete combinado." },
+  { icon: Truck, title: "Frete grátis", description: "João Pessoa e Região. Demais regiões, frete combinado." },
   { icon: CreditCard, title: "Pagamento facilitado", description: "Pix, cartão em até 10x sem juros." },
   { icon: ShieldCheck, title: "Compra segura", description: "Atendimento dedicado do pedido até a sua entrega." },
 ];
