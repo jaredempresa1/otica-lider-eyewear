@@ -1,5 +1,5 @@
-import { Suspense } from "react";
 import Link from "next/link";
+import { Suspense } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import Hero from "@/components/Hero";
@@ -37,28 +37,13 @@ export default async function HomePage({
 
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
   const genero = searchParams?.genero === "masculino" || searchParams?.genero === "feminino" ? searchParams.genero : null;
-  const catalogProducts = products
-    .filter((product) => !featuredProducts.some((featured) => featured.id === product.id))
-    .filter((product) => !genero || !product.gender || product.gender === "unissex" || product.gender === genero);
+  const catalogProducts = genero
+    ? products.filter((product) => !product.gender || product.gender === "unissex" || product.gender === genero)
+    : products;
 
   return (
     <main>
       <Hero />
-
-      {featuredProducts.length > 0 && (
-        <section className="section-shell pb-10 sm:pb-14">
-          <div className="mb-6 flex items-end justify-between gap-4">
-            <div>
-              <p className="eyebrow">Curadoria Líder</p>
-              <h2 className="section-title">Escolhas em destaque</h2>
-            </div>
-            <Link href="/produtos" className="text-link hidden sm:inline-flex">
-              Ver coleção completa <span aria-hidden="true">↗</span>
-            </Link>
-          </div>
-          <ProductGrid products={featuredProducts} />
-        </section>
-      )}
 
       {collections.length > 0 && (
         <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
@@ -69,6 +54,21 @@ export default async function HomePage({
             </p>
           </div>
           <CollectionTiles collections={collections} />
+        </section>
+      )}
+
+      {featuredProducts.length > 0 && (
+        <section className="section-shell pb-10 pt-12 sm:pb-14 sm:pt-16">
+          <div className="mb-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="eyebrow">Coleção Destaque</p>
+              <h2 className="section-title">Escolhas em destaque</h2>
+            </div>
+            <Link href="/produtos" className="text-link hidden sm:inline-flex">
+              Ver coleção completa <span aria-hidden="true">↗</span>
+            </Link>
+          </div>
+          <ProductGrid products={featuredProducts} />
         </section>
       )}
 
@@ -88,7 +88,7 @@ export default async function HomePage({
           </div>
         </div>
         <ProductGrid
-          products={catalogProducts.length > 0 ? catalogProducts : genero ? [] : products}
+          products={catalogProducts}
           emptyMessage={genero ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Veja a coleção completa ou tente outro filtro." } : undefined}
         />
       </section>
