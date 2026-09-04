@@ -16,3 +16,8 @@ Data da revisão: 04/09/2026.
 ## Observação de ambiente
 
 A primeira tentativa de compilação herdou uma variável `NODE_ENV` não padronizada do ambiente e foi interrompida durante a pré-renderização. Ao executar a mesma validação com `NODE_ENV=production`, a compilação foi concluída com sucesso. O catálogo não exibiu produtos nesta revisão porque as credenciais do Supabase não foram fornecidas no arquivo de ambiente local.
+
+## Revisão tipográfica adicional
+
+Os cards tiveram apenas a escala dos textos de marca/modelo, público, preço e parcelamento aumentada. Na sacola, foram ampliados apenas o valor do item, o parcelamento e os números/textos principais do resumo do pedido. A checagem de TypeScript e a compilação de produção passaram após esses ajustes. A sessão visual isolada não manteve o item de teste no armazenamento local durante esta revisão, então a conferência final da sacola foi feita pelo código renderizado e pela compilação, sem alterar outras áreas do layout.
+

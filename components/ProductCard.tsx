@@ -1,5 +1,6 @@
 "use client";
 
+/** Direção visual: reforçar a legibilidade de preço, público e parcelamento sem alterar a composição do card. */
 import Image from "next/image";
 import Link from "next/link";
 import { Check, MessageCircle, Plus } from "lucide-react";
@@ -126,14 +127,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
       <Link href={`/produtos/${product.slug}`} className="mt-4 block">
         <div className="min-w-0">
-          <h3 className="truncate font-heading text-[16px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[18px]">{displayBrand}</h3>
-          {displayModel && <p className="mt-0.5 truncate font-body text-[10px] font-medium uppercase tracking-[0.12em] text-brand-ink/55 sm:text-[11px]">{displayModel}</p>}
-          <p className="mt-1 font-body text-[9px] uppercase tracking-[0.14em] text-brand-ink/45 sm:text-[10px]">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
+          <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
+          {displayModel && <p className="mt-0.5 truncate font-body text-[11px] font-medium uppercase tracking-[0.12em] text-brand-ink/55 sm:text-[12px]">{displayModel}</p>}
+          <p className="mt-1 font-body text-[11px] uppercase tracking-[0.14em] text-brand-ink/45 sm:text-[12px]">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
-              {hasDiscount && <span className="block text-[10px] text-brand-ink/40 line-through sm:text-[11px]">{formatBRL(product.compare_at_price as number)}</span>}
-              <span className={`block text-sm font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
-              {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[10px] font-medium text-brand-ink/55">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
+              {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
+              <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
+              {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[12px] font-medium text-brand-ink/55">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
             </div>
           </div>
         </div>
@@ -157,8 +158,8 @@ export default function ProductCard({ product }: { product: Product }) {
               </span>
             </button>
           ))}
-          {colors.length > 6 && <span className="ml-1 font-body text-[10px] text-brand-ink/45">+{colors.length - 6}</span>}
-          {selectedColor?.name && <span className="ml-1 truncate font-body text-[10px] text-brand-ink/50">{selectedColor.name}{colorSoldOut ? " · Esgotada" : ""}</span>}
+          {colors.length > 6 && <span className="ml-1 font-body text-[11px] text-brand-ink/45">+{colors.length - 6}</span>}
+          {selectedColor?.name && <span className="ml-1 truncate font-body text-[11px] text-brand-ink/50">{selectedColor.name}{colorSoldOut ? " · Esgotada" : ""}</span>}
         </div>
       )}
       {(selectedColor?.frame_color || selectedColor?.lens_color) && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-body text-[10px] text-brand-ink/50"><span>Armação <strong className="font-semibold text-brand-ink/70">{selectedColor.frame_color || "—"}</strong></span><span>Lentes <strong className="font-semibold text-brand-ink/70">{selectedColor.lens_color || "—"}</strong></span></div>}

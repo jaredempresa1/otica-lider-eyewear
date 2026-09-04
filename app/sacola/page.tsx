@@ -103,8 +103,8 @@ export default function SacolaPage() {
                     </div>
                   </div>
                   <div className="shrink-0 self-start pt-1 text-right font-body">
-                    <span className="block text-[15px] font-semibold text-brand-ink">{formatBRL(itemTotal)}</span>
-                    <span className="mt-1 block text-[11px] leading-4 text-brand-ink/55">ou até 10x de {formatBRL(itemTotal / 10)}</span>
+                    <span className="block text-[17px] font-semibold text-brand-ink">{formatBRL(itemTotal)}</span>
+                    <span className="mt-1 block text-[12px] leading-4 text-brand-ink/55">ou até 10x de {formatBRL(itemTotal / 10)}</span>
                   </div>
                 </li>
               );
@@ -116,7 +116,7 @@ export default function SacolaPage() {
           <p className="eyebrow text-brand-gold">Resumo do pedido</p>
           <h2 className="mt-3 font-heading text-2xl font-semibold">Tudo certo por aqui?</h2>
 
-          <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[15px]">
+          <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
             <div className="flex items-center justify-between text-brand-paper/65"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
             <div>
               <div className="flex items-center justify-between text-brand-paper/65"><span>Frete</span><span>{isFreeShipping ? "Grátis" : "A combinar"}</span></div>
@@ -127,35 +127,35 @@ export default function SacolaPage() {
           </div>
 
           <fieldset className="mt-6 border-b border-brand-paper/15 pb-6">
-            <legend className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper/55">Forma de pagamento</legend>
+            <legend className="font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-paper/55">Forma de pagamento</legend>
             <div className="mt-3 grid gap-2">
               <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${payment.method === "pix" ? "border-brand-gold bg-brand-gold/15" : "border-brand-paper/15 bg-brand-paper/5 hover:border-brand-paper/35"}`}>
                 <input className="sr-only" type="radio" name="payment-method" value="pix" checked={payment.method === "pix"} onChange={() => selectPaymentMethod("pix")} />
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${payment.method === "pix" ? "bg-brand-gold text-brand-ink" : "bg-brand-paper/10 text-brand-paper/75"}`}><QrCode size={16} /></span>
-                <span className="min-w-0 flex-1"><span className="block font-body text-[14px] font-semibold text-brand-paper">Pix</span><span className="mt-0.5 block font-body text-[12px] text-brand-paper/55">Pagamento à vista</span></span>
+                <span className="min-w-0 flex-1"><span className="block font-body text-[15px] font-semibold text-brand-paper">Pix</span><span className="mt-0.5 block font-body text-[13px] text-brand-paper/55">Pagamento à vista</span></span>
                 {payment.method === "pix" && <Check size={17} className="text-brand-gold" aria-hidden="true" />}
               </label>
               <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${payment.method === "card" ? "border-brand-gold bg-brand-gold/15" : "border-brand-paper/15 bg-brand-paper/5 hover:border-brand-paper/35"}`}>
                 <input className="sr-only" type="radio" name="payment-method" value="card" checked={payment.method === "card"} onChange={() => selectPaymentMethod("card")} />
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${payment.method === "card" ? "bg-brand-gold text-brand-ink" : "bg-brand-paper/10 text-brand-paper/75"}`}><CreditCard size={16} /></span>
-                <span className="min-w-0 flex-1"><span className="block font-body text-[14px] font-semibold text-brand-paper">Cartão de crédito</span><span className="mt-0.5 block font-body text-[12px] text-brand-paper/55">Parcele em até 10x sem juros</span></span>
+                <span className="min-w-0 flex-1"><span className="block font-body text-[15px] font-semibold text-brand-paper">Cartão de crédito</span><span className="mt-0.5 block font-body text-[13px] text-brand-paper/55">Parcele em até 10x sem juros</span></span>
                 {payment.method === "card" && <Check size={17} className="text-brand-gold" aria-hidden="true" />}
               </label>
             </div>
 
             {payment.method === "card" && (
               <div className="mt-3 rounded-xl bg-brand-paper/10 p-3">
-                <label htmlFor="installments" className="block font-body text-[11px] font-semibold uppercase tracking-[0.13em] text-brand-paper/55">Escolha as parcelas</label>
-                <select id="installments" value={payment.installments} onChange={(event) => handleInstallments(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[14px] text-brand-paper outline-none focus:border-brand-gold">
+                <label htmlFor="installments" className="block font-body text-[12px] font-semibold uppercase tracking-[0.13em] text-brand-paper/55">Escolha as parcelas</label>
+                <select id="installments" value={payment.installments} onChange={(event) => handleInstallments(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[15px] text-brand-paper outline-none focus:border-brand-gold">
                   {INSTALLMENT_OPTIONS.map((installments) => <option key={installments} value={installments}>{installments}x de {formatBRL(subtotal / installments)} sem juros</option>)}
                 </select>
               </div>
             )}
           </fieldset>
 
-          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[15px] text-brand-paper/65">Total do pedido</span><span className="text-right font-heading text-2xl font-semibold text-brand-paper">{formatBRL(subtotal)}</span></div>
+          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[16px] text-brand-paper/65">Total do pedido</span><span className="text-right font-heading text-[26px] font-semibold text-brand-paper">{formatBRL(subtotal)}</span></div>
           <div className="mt-2 rounded-xl bg-brand-paper/10 px-3 py-2.5 font-body text-[12px] leading-5 text-brand-paper/70" aria-live="polite">
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-paper/45">Pagamento escolhido</span>
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper/45">Pagamento escolhido</span>
             {payment.method === "pix" ? "Pix à vista" : `Cartão de crédito · ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`}
           </div>
           <button onClick={handleCheckout} className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand-gold px-5 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>

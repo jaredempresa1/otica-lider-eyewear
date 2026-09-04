@@ -14,3 +14,11 @@
 
 Use este arquivo apenas como controle interno da próxima revisão da logo.
 
+
+## Revisão tipográfica solicitada
+
+- [x] Aumentar discretamente marca, preço, público e parcelamento nos cards de produto.
+- [x] Aumentar discretamente preço e parcelamento dos itens na sacola.
+- [x] Aumentar discretamente letras e números do resumo do pedido.
+- [x] Validar que nenhum outro elemento visual foi alterado.
+
