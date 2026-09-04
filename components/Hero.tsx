@@ -21,7 +21,7 @@ export default function Hero() {
         <div className="absolute -bottom-32 left-1/3 h-80 w-80 rounded-full border border-brand-gold/20" />
 
         <div className="relative z-10 flex flex-col justify-end px-6 pb-8 pt-16 sm:px-12 sm:pb-12 lg:justify-center lg:py-16">
-          <p className="eyebrow text-[13px] text-brand-gold sm:text-[14px]">Desde 1999 · Paraíba e Pernambuco</p>
+          <p className="eyebrow text-[13px] leading-6 text-brand-gold sm:text-[14px]"><span className="block sm:inline">Desde 1999</span><span className="hidden sm:inline"> · </span><span className="block sm:inline">Paraíba e Pernambuco</span></p>
           <h1 className="mt-5 max-w-xl font-heading text-[2.1rem] font-medium leading-[0.98] tracking-[-0.04em] text-brand-paper sm:text-6xl lg:text-[4.2rem]">
             Melhores Escolhas do Verão
           </h1>
@@ -32,9 +32,7 @@ export default function Hero() {
             <Link href="/produtos" className="rounded-full bg-brand-gold px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">
               Explorar coleção
             </Link>
-            <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]">
-              Frete grátis · João Pessoa e Região Metropolitana
-            </span>
+            <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]"><span className="block sm:inline">Frete grátis</span><span className="hidden sm:inline"> · </span><span className="block sm:inline">João Pessoa e Região Metropolitana</span></span>
           </div>
         </div>
 

@@ -26,3 +26,8 @@ Os cards tiveram apenas a escala dos textos de marca/modelo, público, preço e 
 
 As frases da hero foram ampliadas para 13/14px na linha de localização, 16/18px na descrição e 12/13px no frete, conforme a referência mobile enviada. A mensagem de frete combinada para CEP fora da área gratuita passou para 13/14px. A página servida confirmou as tags `og:title`, `og:description`, `og:url`, `og:image` e `twitter:image`, apontando para `https://otica-lider-eyewear.vercel.app/og-image.png`, imagem Open Graph existente com a logo oficial e fotos editoriais da coleção.
 
+
+## Ajuste final de mobile
+
+Na hero, “Desde 1999” e “Paraíba e Pernambuco” agora ficam em linhas separadas apenas abaixo do breakpoint mobile; no desktop permanecem na mesma linha com o separador. A mesma regra foi aplicada a “Frete grátis” e “João Pessoa e Região Metropolitana”. O benefício inferior foi atualizado para “Pix, cartão em até 10x sem juros.” TypeScript e build de produção foram concluídos sem erros.
+

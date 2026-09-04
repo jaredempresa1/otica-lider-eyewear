@@ -30,3 +30,11 @@ Use este arquivo apenas como controle interno da próxima revisão da logo.
 - [x] Configurar título, descrição e imagem de prévia para compartilhamento do link.
 - [x] Validar responsividade e compilação final.
 
+
+## Ajuste mobile da home e benefício de pagamento
+
+- [x] Quebrar “Desde 1999” e “Paraíba e Pernambuco” em linhas separadas apenas no mobile.
+- [x] Quebrar “Frete grátis” e “João Pessoa e Região Metropolitana” em linhas separadas apenas no mobile.
+- [x] Atualizar o benefício para “Pix, cartão em até 10x sem juros”.
+- [x] Validar que o desktop continua em uma linha e recompilar o projeto.
+
