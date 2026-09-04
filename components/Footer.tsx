@@ -15,7 +15,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">A experiência Líder</h4>
-          <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Troca garantida — não gostou, a gente resolve</li><li>Frete grátis para João Pessoa e Goiana</li></ul>
+          <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Troca garantida — não gostou, a gente resolve</li><li>Frete grátis para João Pessoa e Região Metropolitana</li></ul>
         </div>
       </div>
       <div className="border-t border-brand-paper/10 px-5 py-5 text-center font-body text-[10px] text-brand-paper/35">© {new Date().getFullYear()} Ótica Líder Eyewear. Todos os direitos reservados.</div>

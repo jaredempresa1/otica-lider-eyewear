@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import ProductGrid from "@/components/ProductGrid";
@@ -32,6 +33,9 @@ export default async function ProdutosPage({
 
   return (
     <main className="section-shell py-10 sm:py-14">
+      <Link href="/" className="mb-6 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold sm:hidden">
+        <ArrowLeft size={14} /> Voltar para o início
+      </Link>
       <div className="mb-8 max-w-2xl">
         {activeCollection ? (
           <>

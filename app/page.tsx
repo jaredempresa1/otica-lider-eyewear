@@ -3,7 +3,6 @@ import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
-import InstitutionalMessage from "@/components/InstitutionalMessage";
 import ProductGrid from "@/components/ProductGrid";
 import CollectionTiles from "@/components/CollectionTiles";
 import Testimonials from "@/components/Testimonials";
@@ -57,8 +56,10 @@ export default async function HomePage() {
       {collections.length > 0 && (
         <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
           <div className="mb-6">
-            <p className="eyebrow">Marcas e coleções</p>
-            <h2 className="section-title">Compre por marca ou por estilo</h2>
+            <h2 className="section-title">Marcas e coleções</h2>
+            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">
+              Compre por marca
+            </p>
           </div>
           <CollectionTiles collections={collections} />
         </section>
@@ -68,7 +69,7 @@ export default async function HomePage() {
         <div className="mb-7 flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Catálogo completo</p>
-            <h2 className="section-title">Encontre seu próximo óculos</h2>
+            <h2 className="section-title">Encontre seu próximo óculos de sol</h2>
           </div>
           <Link href="/produtos" className="text-link hidden sm:inline-flex">
             Ver todos <span aria-hidden="true">↗</span>
@@ -77,7 +78,6 @@ export default async function HomePage() {
         <ProductGrid products={catalogProducts.length > 0 ? catalogProducts : products} />
       </section>
 
-      <InstitutionalMessage />
       <TrustBadges />
       <Testimonials testimonials={testimonials} />
     </main>

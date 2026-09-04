@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const MESSAGES = [
   "Entregamos para todo o Brasil",
-  "Frete grátis para João Pessoa e Goiana",
+  "Frete grátis para João Pessoa e Região Metropolitana",
   "25 anos de experiência em ótica",
 ];
 
