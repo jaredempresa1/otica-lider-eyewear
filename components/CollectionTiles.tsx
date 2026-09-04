@@ -6,12 +6,17 @@ export default function CollectionTiles({ collections }: { collections: Collecti
   if (!collections || collections.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+    // On mobile/tablet this behaves like a normal 2-column grid (unchanged).
+    // On desktop (lg) it becomes a centered flex-wrap row: each tile has the
+    // same width a 3-column grid would give it, but because the row is
+    // centered, a dangling last row (1 or 2 leftover tiles) sits centered
+    // under the row above instead of stuck to the left.
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:flex lg:flex-wrap lg:justify-center lg:gap-5">
       {collections.map((collection) => (
         <Link
           key={collection.id}
           href={`/produtos?colecao=${encodeURIComponent(collection.slug)}`}
-          className="group relative aspect-[16/9] overflow-hidden rounded-2xl bg-brand-ink shadow-card transition-transform duration-200 active:scale-[0.98] sm:aspect-[21/9] lg:aspect-[3/1]"
+          className="group relative aspect-[16/9] overflow-hidden rounded-2xl bg-brand-ink shadow-card transition-transform duration-200 active:scale-[0.98] sm:aspect-[21/9] lg:aspect-[3/1] lg:w-[calc((100%-2.5rem)/3)]"
         >
           {collection.image_url ? (
             <Image
