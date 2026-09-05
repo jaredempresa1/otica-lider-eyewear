@@ -12,6 +12,7 @@ import {
   FileText,
   ImageIcon,
   LogOut,
+  MessageCircle,
   PackageCheck,
   PackageX,
   Pencil,
@@ -20,6 +21,14 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
+
+type Lead = {
+  id: string;
+  name: string | null;
+  whatsapp: string;
+  gender: string | null;
+  created_at: string;
+};
 
 type FormState = {
   id?: string;
@@ -94,6 +103,17 @@ function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function formatWhatsAppDigits(digits: string) {
+  const clean = digits.replace(/\D/g, "");
+  if (clean.length <= 2) return clean;
+  if (clean.length <= 7) return `(${clean.slice(0, 2)}) ${clean.slice(2)}`;
+  return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7, 11)}`;
+}
+
+function formatLeadDate(value: string) {
+  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -114,6 +134,9 @@ export default function AdminDashboardPage() {
   const [collectionUploading, setCollectionUploading] = useState(false);
   const [collectionError, setCollectionError] = useState("");
 
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp">("produtos");
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
@@ -122,6 +145,7 @@ export default function AdminDashboardPage() {
         setChecking(false);
         void loadProducts();
         void loadCollections();
+        void loadLeads();
       }
     });
   }, [router]);
@@ -134,6 +158,11 @@ export default function AdminDashboardPage() {
   async function loadCollections() {
     const { data } = await supabase.from("collections").select("*").order("sort_order", { ascending: true });
     setCollections((data as Collection[]) ?? []);
+  }
+
+  async function loadLeads() {
+    const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
+    setLeads((data as Lead[]) ?? []);
   }
 
   function openNewCollectionForm() {
@@ -483,15 +512,42 @@ export default function AdminDashboardPage() {
       <div className="mb-8 flex flex-col gap-5 border-b border-brand-ink/10 pb-7 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
-          <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Produtos</h1>
-          <p className="mt-2 font-body text-sm text-brand-ink/55">Cadastre imagens, variações, ofertas e materiais em um só lugar.</p>
+          <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : "Números de WhatsApp"}
+          </h1>
+          <p className="mt-2 font-body text-sm text-brand-ink/55">
+            {activeTab === "produtos"
+              ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
+              : activeTab === "colecoes"
+              ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
+              : "Contatos que se cadastraram pelo formulário do final da home."}
+          </p>
         </div>
         <div className="flex gap-3">
-          <button onClick={openNewForm} className="btn-brand"><Plus size={15} className="mr-2" /> Novo produto</button>
+          {activeTab === "produtos" && <button onClick={openNewForm} className="btn-brand"><Plus size={15} className="mr-2" /> Novo produto</button>}
           <button onClick={handleLogout} className="btn-brand-outline"><LogOut size={15} className="mr-2" /> Sair</button>
         </div>
       </div>
 
+      <div className="mb-8 flex gap-2 border-b border-brand-ink/10">
+        {([
+          { key: "produtos", label: "Produtos" },
+          { key: "colecoes", label: "Coleções" },
+          { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
+        ] as const).map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`border-b-2 px-4 py-3 font-body text-sm font-semibold transition-colors ${
+              activeTab === tab.key ? "border-brand-gold text-brand-ink" : "border-transparent text-brand-ink/45 hover:text-brand-ink"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "colecoes" && (
       <section className="mb-10">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -522,7 +578,9 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </section>
+      )}
 
+      {activeTab === "produtos" && (
       <div className="overflow-hidden rounded-[1.5rem] bg-brand-paper shadow-card">
         <div className="hidden grid-cols-[1fr_140px_110px_180px_120px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
           <span>Produto</span><span>Preço</span><span>Estoque</span><span>Badges</span><span />
@@ -548,6 +606,34 @@ export default function AdminDashboardPage() {
           </div>
         );})}
       </div>
+      )}
+
+      {activeTab === "whatsapp" && (
+      <div className="overflow-hidden rounded-[1.5rem] bg-brand-paper shadow-card">
+        <div className="hidden grid-cols-[1fr_170px_110px_90px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
+          <span>Nome</span><span>WhatsApp</span><span>Público</span><span>Data</span>
+        </div>
+        {leads.length === 0 ? (
+          <div className="px-6 py-14 text-center"><p className="font-heading text-2xl text-brand-ink">Nenhum cadastro ainda</p><p className="mt-2 font-body text-sm text-brand-ink/55">Assim que alguém se cadastrar na home, o contato aparece aqui.</p></div>
+        ) : leads.map((lead) => (
+          <div key={lead.id} className="grid gap-3 border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[1fr_170px_110px_90px] sm:items-center sm:gap-4 sm:px-6">
+            <p className="truncate font-body text-sm font-semibold text-brand-ink">{lead.name?.trim() || "Sem nome"}</p>
+            <a
+              href={`https://wa.me/55${lead.whatsapp}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 font-body text-sm text-brand-ink transition-colors hover:text-brand-gold"
+              aria-label={`Abrir conversa no WhatsApp com ${lead.name || lead.whatsapp}`}
+            >
+              <MessageCircle size={16} className="shrink-0 text-green-600" />
+              {formatWhatsAppDigits(lead.whatsapp)}
+            </a>
+            <span className="font-body text-xs uppercase tracking-[0.08em] text-brand-ink/55">{lead.gender === "masculino" ? "Masculino" : lead.gender === "feminino" ? "Feminino" : "—"}</span>
+            <span className="font-body text-xs text-brand-ink/45">{formatLeadDate(lead.created_at)}</span>
+          </div>
+        ))}
+      </div>
+      )}
 
       {showCollectionForm && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-brand-ink/55 px-4 py-5 backdrop-blur-sm sm:py-10">

@@ -82,23 +82,14 @@ export default function WhatsAppSignup() {
         </h2>
 
         <form onSubmit={handleSubmit} className="mt-8 flex max-w-xl flex-col gap-3">
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <input
-              type="tel"
-              inputMode="numeric"
-              placeholder="Digite o seu WhatsApp"
-              value={whatsapp}
-              onChange={(event) => setWhatsapp(formatWhatsApp(event.target.value))}
-              className="w-full rounded-lg border border-brand-ink/15 bg-white px-4 py-3.5 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold sm:flex-1"
-            />
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              className="shrink-0 rounded-lg bg-brand-ink px-8 py-3.5 font-body text-[15px] font-medium text-brand-paper transition-colors hover:bg-brand-ink/85 disabled:opacity-60"
-            >
-              {status === "loading" ? "Enviando..." : "Enviar"}
-            </button>
-          </div>
+          <input
+            type="tel"
+            inputMode="numeric"
+            placeholder="Digite o seu WhatsApp"
+            value={whatsapp}
+            onChange={(event) => setWhatsapp(formatWhatsApp(event.target.value))}
+            className="w-full rounded-lg border border-brand-ink/15 bg-white px-4 py-3.5 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold"
+          />
           <input
             type="text"
             placeholder="Digite o seu nome"
@@ -106,6 +97,13 @@ export default function WhatsAppSignup() {
             onChange={(event) => setName(event.target.value)}
             className="w-full rounded-lg border border-brand-ink/15 bg-white px-4 py-3.5 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold"
           />
+          <button
+            type="submit"
+            disabled={status === "loading"}
+            className="w-full shrink-0 rounded-lg bg-brand-ink px-8 py-3.5 font-body text-[15px] font-medium text-brand-paper transition-colors hover:bg-brand-ink/85 disabled:opacity-60 sm:w-fit"
+          >
+            {status === "loading" ? "Enviando..." : "Enviar"}
+          </button>
         </form>
 
         {errorMessage && <p className="mt-2 font-body text-sm text-red-600">{errorMessage}</p>}
