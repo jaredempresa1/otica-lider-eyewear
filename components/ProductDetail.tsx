@@ -3,12 +3,13 @@
 /** Direção visual: no mobile, escolha de cor e ação de compra ficam próximas da galeria e do preço para reduzir fricção. */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, MessageCircle, RotateCcw, ShoppingBag, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingBag, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { buildWhatsAppInquiryMessage, buildWhatsAppLink } from "@/lib/whatsapp";
+import TryOnModal from "./TryOnModal";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -178,6 +179,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [activeImage, setActiveImage] = useState(initialGallery[0]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [tryOnOpen, setTryOnOpen] = useState(false);
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
   const selectedGallery = getColorImages(product, selectedColor);
   const colorSoldOut = Boolean(selectedColor?.sold_out);
@@ -250,6 +252,13 @@ export default function ProductDetail({ product }: { product: Product }) {
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div>
+          <button
+            type="button"
+            onClick={() => setTryOnOpen(true)}
+            className="relative z-10 mb-3 inline-flex items-center gap-2 rounded-full bg-brand-paper px-4 py-2.5 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink shadow-card transition-colors hover:bg-brand-gold hover:text-brand-paper"
+          >
+            <Glasses size={15} /> Experimente agora
+          </button>
           <div
             className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-brand-sage/60 sm:aspect-[1.08]"
             onTouchStart={handleTouchStart}
@@ -334,6 +343,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       )}
 
       {lightboxOpen && <ProductLightbox images={selectedGallery} initialIndex={lightboxIndex} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} onClose={() => setLightboxOpen(false)} />}
+      {tryOnOpen && <TryOnModal productImage={activeImage || selectedGallery[0] || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
     </main>
   );
 }
