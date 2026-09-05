@@ -7,6 +7,7 @@ import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
 import CollectionTiles from "@/components/CollectionTiles";
 import Testimonials from "@/components/Testimonials";
+import WhatsAppSignup from "@/components/WhatsAppSignup";
 import FilterDrawer from "@/components/FilterDrawer";
 import QuickFilters from "@/components/QuickFilters";
 import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
@@ -99,6 +100,7 @@ export default async function HomePage({
 
       <TrustBadges />
       <Testimonials testimonials={testimonials} />
+      <WhatsAppSignup />
     </main>
   );
 }

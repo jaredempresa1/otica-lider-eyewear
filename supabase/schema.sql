@@ -118,8 +118,6 @@ create policy "Somente logados podem gerenciar depoimentos"
 -- Depois de rodar isso, crie o usuário admin em:
 -- Supabase > Authentication > Users > Add user (email + senha)
 -- Esse email/senha é o login usado em /admin no site.
-
--- Storage para fotos e documentos anexados aos produtos.
 insert into storage.buckets (id, name, public)
 values ('product-media', 'product-media', true)
 on conflict (id) do update set public = true;
@@ -146,3 +144,31 @@ create policy "Logados podem apagar arquivos de produtos"
   on storage.objects for delete
   to authenticated
   using (bucket_id = 'product-media');
+
+-- Cadastro de WhatsApp (formulário "Cadastre-se e receba novidades" no fim da home).
+create table if not exists leads (
+  id uuid primary key default uuid_generate_v4(),
+  name text default '',
+  whatsapp text not null,
+  gender text check (gender in ('masculino', 'feminino')),
+  created_at timestamp with time zone default now()
+);
+
+-- Compatibilidade com instalações que já tinham a tabela leads sem o campo nome.
+alter table leads add column if not exists name text default '';
+
+alter table leads enable row level security;
+
+-- Qualquer visitante pode se cadastrar (enviar o formulário), mas ninguém
+-- de fora consegue LER a lista — só você, logado no Supabase, visualiza os
+-- contatos em Table Editor > leads.
+drop policy if exists "Qualquer um pode se cadastrar" on leads;
+create policy "Qualquer um pode se cadastrar"
+  on leads for insert
+  with check (true);
+
+drop policy if exists "Somente logados podem ver os cadastros" on leads;
+create policy "Somente logados podem ver os cadastros"
+  on leads for select
+  to authenticated
+  using (true);
