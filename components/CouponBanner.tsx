@@ -1,21 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Tag, X } from "lucide-react";
 
-const STORAGE_KEY = "ol-coupon-dismissed";
-
 export default function CouponBanner() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const dismissed = window.localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) setVisible(true);
-  }, []);
+  const [visible, setVisible] = useState(true);
 
   function handleDismiss() {
     setVisible(false);
-    window.localStorage.setItem(STORAGE_KEY, "1");
   }
 
   if (!visible) return null;
