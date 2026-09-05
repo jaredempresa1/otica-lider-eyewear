@@ -62,23 +62,42 @@ export default function TryOnModal({
     setStatus("loading");
     setErrorMessage("");
 
+    // Pré-carrega a foto do produto (precisa estar pronta antes do loop de desenho).
+    // Não usamos crossOrigin aqui: só desenhamos a imagem no canvas pra exibição,
+    // nunca lemos os pixels de volta (getImageData/toDataURL), então CORS não é
+    // necessário — e exigir isso sem o servidor liberar só faz a imagem falhar.
     try {
-      // Pré-carrega a foto do produto (precisa estar pronta antes do loop de desenho).
       const image = new Image();
-      image.crossOrigin = "anonymous";
       image.src = productImage;
       await new Promise<void>((resolve, reject) => {
         image.onload = () => resolve();
-        image.onerror = () => reject(new Error("Não foi possível carregar a foto do produto."));
+        image.onerror = () => reject(new Error("image"));
       });
       glassesImageRef.current = image;
+    } catch {
+      setStatus("error");
+      setErrorMessage("Não conseguimos carregar a foto deste produto para o provador virtual.");
+      return;
+    }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
         audio: false,
       });
       streamRef.current = stream;
+    } catch (error) {
+      setStatus("error");
+      setErrorMessage(
+        error instanceof DOMException && error.name === "NotAllowedError"
+          ? "Você precisa permitir o acesso à câmera pra usar o provador virtual. Verifique o cadeado/ícone ao lado do endereço do site e libere a câmera."
+          : "Não conseguimos acessar a câmera do seu dispositivo. Verifique se outro aplicativo não está usando ela."
+      );
+      return;
+    }
 
+    try {
       const video = videoRef.current;
       if (!video) throw new Error("Não foi possível iniciar a câmera.");
       video.srcObject = stream;
@@ -97,7 +116,14 @@ export default function TryOnModal({
       if (containerRef.current) {
         containerRef.current.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
       }
+    } catch {
+      stopCamera();
+      setStatus("error");
+      setErrorMessage("Não foi possível exibir a imagem da câmera.");
+      return;
+    }
 
+    try {
       // Carregado só quando o usuário ativa a câmera — é um pacote pesado (WASM + modelo),
       // não faz sentido baixar pra quem nunca clicou em "Ativar câmera".
       const { FaceLandmarker, FilesetResolver } = await import("@mediapipe/tasks-vision");
@@ -114,23 +140,20 @@ export default function TryOnModal({
         numFaces: 1,
       });
       faceLandmarkerRef.current = faceLandmarker;
-
-      if (stoppedRef.current) {
-        stopCamera();
-        return;
-      }
-
-      setStatus("running");
-      drawLoop();
-    } catch (error) {
+    } catch {
       stopCamera();
       setStatus("error");
-      setErrorMessage(
-        error instanceof Error && error.name === "NotAllowedError"
-          ? "Você precisa permitir o acesso à câmera pra usar o provador virtual."
-          : "Não foi possível ativar o provador virtual agora. Tente novamente em instantes."
-      );
+      setErrorMessage("Não conseguimos carregar o reconhecimento facial. Verifique sua conexão com a internet e tente de novo.");
+      return;
     }
+
+    if (stoppedRef.current) {
+      stopCamera();
+      return;
+    }
+
+    setStatus("running");
+    drawLoop();
   }
 
   function drawLoop() {
