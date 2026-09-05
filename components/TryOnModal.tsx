@@ -5,18 +5,37 @@ import { X } from "lucide-react";
 
 type Status = "consent" | "loading" | "running" | "error";
 
-// Quanto maior, mais largo o óculos fica em relação à distância entre os
-// cantos externos dos olhos. É uma aproximação — cada foto de produto tem um
-// enquadramento levemente diferente, então pode precisar de ajuste fino.
+// Quanto maior, mais largo o óculos fica em relação à distância pupilar
+// (centro da íris a centro da íris — a mesma referência que uma ótica usa
+// pra montar uma armação). 2.1 aproxima a proporção real entre a distância
+// pupilar média (~63mm) e a largura média de uma armação (~135mm).
 const GLASSES_WIDTH_FACTOR = 2.1;
-// Desce o centro do óculos um pouco abaixo da linha dos olhos, pra ficar
-// mais perto da altura real do nariz.
-const VERTICAL_OFFSET_FACTOR = 0.35;
+// Desce o centro do óculos um pouco abaixo da linha das pupilas. Mantido
+// pequeno de propósito: o centro óptico de uma lente fica na altura da
+// pupila, então um deslocamento grande empurra o óculos pra baixo, em
+// direção ao nariz.
+const VERTICAL_OFFSET_FACTOR = 0.12;
+// Suavização entre quadros (0 a 1). Menor = mais suave, porém mais lento
+// pra acompanhar o rosto; maior = mais responsivo, porém mais tremido.
+const SMOOTHING = 0.35;
+// Abaixo dessa simetria nariz/olhos, consideramos que o rosto virou demais
+// pra câmera e não desenhamos o óculos — de lado, o encaixe 2D vira uma
+// distorção sem sentido (ver relato do usuário sobre a imagem de perfil).
+const MIN_FRONTAL_SYMMETRY = 0.55;
 
-// Índices da malha facial (FaceLandmarker/FaceMesh, 468+ pontos) usados
-// para os cantos externos dos olhos.
+// Centros da íris (mais estáveis que os cantos dos olhos: não se deslocam
+// com piscada ou variação do olhar, e correspondem à distância pupilar
+// real usada pra medir óculos).
+const LEFT_IRIS_CENTER = 473;
+const RIGHT_IRIS_CENTER = 468;
+// Usados só pra checar se o rosto está de frente (ver MIN_FRONTAL_SYMMETRY).
 const LEFT_EYE_OUTER = 33;
 const RIGHT_EYE_OUTER = 263;
+const NOSE_TIP = 4;
+
+function lerp(from: number, to: number, factor: number) {
+  return from + (to - from) * factor;
+}
 
 export default function TryOnModal({
   productImage,
@@ -37,6 +56,14 @@ export default function TryOnModal({
   const glassesImageRef = useRef<HTMLImageElement | null>(null);
   const faceLandmarkerRef = useRef<any>(null);
   const stoppedRef = useRef(false);
+  const smoothedRef = useRef<{
+    centerX: number;
+    centerY: number;
+    angle: number;
+    width: number;
+    height: number;
+    alpha: number;
+  } | null>(null);
 
   useEffect(() => {
     return () => {
@@ -56,6 +83,7 @@ export default function TryOnModal({
       // ignora — só estamos liberando recursos
     }
     faceLandmarkerRef.current = null;
+    smoothedRef.current = null;
   }
 
   async function handleActivateCamera() {
@@ -169,9 +197,25 @@ export default function TryOnModal({
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const landmarks = result?.faceLandmarks?.[0];
+
+      // Rosto de frente o suficiente? Comparamos a que distância (em x) o
+      // nariz está de cada canto do olho — de frente essa distância é
+      // parecida dos dois lados; de perfil, um lado fica bem mais perto do
+      // nariz que o outro.
+      let isFrontal = false;
       if (landmarks) {
-        const left = landmarks[LEFT_EYE_OUTER];
-        const right = landmarks[RIGHT_EYE_OUTER];
+        const leftOuterX = landmarks[LEFT_EYE_OUTER].x * canvas.width;
+        const rightOuterX = landmarks[RIGHT_EYE_OUTER].x * canvas.width;
+        const noseX = landmarks[NOSE_TIP].x * canvas.width;
+        const distToLeft = Math.abs(noseX - leftOuterX);
+        const distToRight = Math.abs(rightOuterX - noseX);
+        const symmetry = Math.min(distToLeft, distToRight) / Math.max(distToLeft, distToRight, 1);
+        isFrontal = symmetry >= MIN_FRONTAL_SYMMETRY;
+      }
+
+      if (landmarks && isFrontal) {
+        const left = landmarks[LEFT_IRIS_CENTER];
+        const right = landmarks[RIGHT_IRIS_CENTER];
         const leftPx = { x: left.x * canvas.width, y: left.y * canvas.height };
         const rightPx = { x: right.x * canvas.width, y: right.y * canvas.height };
         const dx = rightPx.x - leftPx.x;
@@ -183,11 +227,34 @@ export default function TryOnModal({
         const glassesWidth = eyeDistance * GLASSES_WIDTH_FACTOR;
         const glassesHeight = glassesWidth * (glasses.naturalHeight / glasses.naturalWidth);
 
+        const prev = smoothedRef.current;
+        smoothedRef.current = prev
+          ? {
+              centerX: lerp(prev.centerX, centerX, SMOOTHING),
+              centerY: lerp(prev.centerY, centerY, SMOOTHING),
+              angle: lerp(prev.angle, angle, SMOOTHING),
+              width: lerp(prev.width, glassesWidth, SMOOTHING),
+              height: lerp(prev.height, glassesHeight, SMOOTHING),
+              alpha: lerp(prev.alpha, 1, SMOOTHING),
+            }
+          : { centerX, centerY, angle, width: glassesWidth, height: glassesHeight, alpha: 1 };
+      } else if (smoothedRef.current) {
+        // Sem rosto detectado ou virado demais: some aos poucos em vez de
+        // sumir de uma vez (e evita que o óculos "grude" torto por um
+        // instante quando a pessoa vira o rosto).
+        const prev = smoothedRef.current;
+        const nextAlpha = lerp(prev.alpha, 0, SMOOTHING);
+        smoothedRef.current = nextAlpha < 0.02 ? null : { ...prev, alpha: nextAlpha };
+      }
+
+      const s = smoothedRef.current;
+      if (s && s.alpha > 0.01) {
         ctx.save();
+        ctx.globalAlpha = s.alpha;
         ctx.globalCompositeOperation = "multiply";
-        ctx.translate(centerX, centerY);
-        ctx.rotate(angle);
-        ctx.drawImage(glasses, -glassesWidth / 2, -glassesHeight / 2, glassesWidth, glassesHeight);
+        ctx.translate(s.centerX, s.centerY);
+        ctx.rotate(s.angle);
+        ctx.drawImage(glasses, -s.width / 2, -s.height / 2, s.width, s.height);
         ctx.restore();
       }
     }
