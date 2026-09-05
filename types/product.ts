@@ -22,6 +22,14 @@ export type ProductInstallments = {
 
 export type ProductGender = "masculino" | "feminino" | "unissex";
 
+export type ProductSpecifications = {
+  material?: string;
+  format?: string;
+  warranty?: string;
+  lens_type?: string;
+  package_contents?: string;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -34,6 +42,7 @@ export type Product = {
   installments?: ProductInstallments | null;
   category: string;
   gender?: ProductGender;
+  specifications?: ProductSpecifications | null;
   images: string[];
   colors: ProductColor[];
   downloads?: ProductDownload[];

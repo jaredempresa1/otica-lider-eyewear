@@ -3,7 +3,7 @@
 /** Direção visual: no mobile, escolha de cor e ação de compra ficam próximas da galeria e do preço para reduzir fricção. */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, ChevronLeft, ChevronRight, Download, MessageCircle, RotateCcw, ShoppingBag, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, MessageCircle, RotateCcw, ShoppingBag, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
@@ -128,6 +128,24 @@ function ColorPicker({ colors, selectedColor, onSelect, className = "" }: { colo
   );
 }
 
+function AccordionItem({ title, children, defaultOpen }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(Boolean(defaultOpen));
+  return (
+    <div className="border-b border-brand-ink/10">
+      <button
+        type="button"
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center justify-between py-5 text-left"
+        aria-expanded={open}
+      >
+        <span className="font-heading text-lg font-bold text-brand-ink sm:text-xl">{title}</span>
+        <ChevronDown size={20} className={`shrink-0 text-brand-ink transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="pb-6 font-body text-[15px] leading-7 text-brand-ink/70">{children}</div>}
+    </div>
+  );
+}
+
 export default function ProductDetail({ product }: { product: Product }) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -152,6 +170,27 @@ export default function ProductDetail({ product }: { product: Product }) {
     setLightboxOpen(true);
   }
 
+  function goToGalleryImage(direction: number) {
+    if (selectedGallery.length < 2) return;
+    const currentIndex = Math.max(0, selectedGallery.indexOf(activeImage));
+    const nextIndex = (currentIndex + direction + selectedGallery.length) % selectedGallery.length;
+    setActiveImage(selectedGallery[nextIndex]);
+  }
+
+  const touchStartX = useRef<number | null>(null);
+
+  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    touchStartX.current = event.touches[0].clientX;
+  }
+
+  function handleTouchEnd(event: React.TouchEvent<HTMLDivElement>) {
+    if (touchStartX.current === null) return;
+    const deltaX = event.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(deltaX) < 40) return;
+    goToGalleryImage(deltaX < 0 ? 1 : -1);
+  }
+
   function handleColorSelect(color: ProductColor) {
     setSelectedColor(color);
     const gallery = getColorImages(product, color);
@@ -173,19 +212,52 @@ export default function ProductDetail({ product }: { product: Product }) {
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
   }
 
+  const specRows: { label: string; value: string }[] = [
+    { label: "Material", value: product.specifications?.material?.trim() || "" },
+    { label: "Formato", value: product.specifications?.format?.trim() || "" },
+    { label: "Gênero", value: genderLabel(product.gender) },
+    { label: "Garantia", value: product.specifications?.warranty?.trim() || "" },
+    { label: "Tipo de lente", value: product.specifications?.lens_type?.trim() || "" },
+    { label: "Conteúdo da embalagem", value: product.specifications?.package_contents?.trim() || "" },
+  ].filter((row) => row.value);
+
   return (
     <main className="section-shell py-8 sm:py-12">
       <button onClick={() => router.back()} className="mb-7 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold"><ArrowLeft size={14} /> Voltar para a coleção</button>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div>
-          <div className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-brand-sage/60 sm:aspect-[1.08]">
+          <div
+            className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-brand-sage/60 sm:aspect-[1.08]"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <ProductImagePreview src={activeImage} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} priority sizes="(max-width: 1024px) 100vw, 55vw" onOpen={() => openLightbox(activeImage || selectedGallery[0] || "")} />
             {product.more_sold && <span className="pointer-events-none absolute left-5 top-5 z-10 rounded-full bg-brand-paper/90 px-4 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-ink backdrop-blur-sm">Mais vendido</span>}
             {productSoldOut && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-brand-cream/10">
                 <span className="-rotate-12 rounded-xl border-2 border-brand-ink/70 bg-brand-paper/90 px-6 py-2.5 font-body text-sm font-bold uppercase tracking-[0.22em] text-brand-ink/85 shadow-card backdrop-blur-sm">Esgotado</span>
               </div>
+            )}
+            {selectedGallery.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => goToGalleryImage(-1)}
+                  className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-transform hover:scale-105"
+                  aria-label="Ver foto anterior"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => goToGalleryImage(1)}
+                  className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-transform hover:scale-105"
+                  aria-label="Ver próxima foto"
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </>
             )}
           </div>
           {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-sage/40 transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
@@ -216,6 +288,28 @@ export default function ProductDetail({ product }: { product: Product }) {
           {product.downloads && product.downloads.length > 0 && <div className="mt-8 rounded-2xl bg-brand-paper p-5"><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55">Materiais do produto</p><div className="mt-3 space-y-2">{product.downloads.map((download) => <a key={`${download.name}-${download.url}`} href={download.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 font-body text-sm text-brand-gold hover:text-brand-ink"><Download size={15} /> {download.name}</a>)}</div></div>}
         </div>
       </div>
+
+      {(product.description || specRows.length > 0) && (
+        <div className="mx-auto mt-10 max-w-3xl border-t border-brand-ink/10 lg:mt-14">
+          {product.description && (
+            <AccordionItem title="Descrição do produto" defaultOpen>
+              <p className="whitespace-pre-line">{product.description}</p>
+            </AccordionItem>
+          )}
+          {specRows.length > 0 && (
+            <AccordionItem title="Especificações">
+              <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                {specRows.map((row) => (
+                  <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-brand-ink/5 py-1.5 sm:justify-start sm:gap-2">
+                    <dt className="shrink-0 font-semibold text-brand-ink/85">{row.label}:</dt>
+                    <dd className="text-right text-brand-ink/70 sm:text-left">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </AccordionItem>
+          )}
+        </div>
+      )}
 
       {lightboxOpen && <ProductLightbox images={selectedGallery} initialIndex={lightboxIndex} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} onClose={() => setLightboxOpen(false)} />}
     </main>

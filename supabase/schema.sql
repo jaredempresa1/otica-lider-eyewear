@@ -172,3 +172,6 @@ create policy "Somente logados podem ver os cadastros"
   on leads for select
   to authenticated
   using (true);
+
+-- Especificações técnicas exibidas no acordeão da página do produto.
+alter table products add column if not exists specifications jsonb not null default '{}'::jsonb;
