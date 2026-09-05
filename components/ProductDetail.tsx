@@ -39,6 +39,7 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const pointerMoved = useRef(false);
+  const justZoomedIn = useRef(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -59,6 +60,7 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
     setZoomed(false);
     setOffset({ x: 0, y: 0 });
     setDragging(false);
+    justZoomedIn.current = false;
   }
 
   function selectImage(index: number) {
@@ -76,10 +78,12 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
     pointerMoved.current = false;
     dragStart.current = { x: event.clientX, y: event.clientY, offsetX: offset.x, offsetY: offset.y };
     if (!zoomed) {
+      justZoomedIn.current = true;
       setZoomed(true);
       setOffset({ x: 0, y: 0 });
       return;
     }
+    justZoomedIn.current = false;
     setDragging(true);
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
@@ -104,6 +108,12 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
   function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
     setDragging(false);
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    if (justZoomedIn.current) {
+      // Esse pointerUp pertence ao mesmo toque que acabou de dar zoom —
+      // não deve desfazer o zoom que ele mesmo acabou de ativar.
+      justZoomedIn.current = false;
+      return;
+    }
     // Tocou de novo sem arrastar enquanto já estava com zoom: volta ao normal.
     if (zoomed && !pointerMoved.current) resetZoom();
   }
