@@ -23,11 +23,14 @@ const SMOOTHING = 0.35;
 // distorção sem sentido (ver relato do usuário sobre a imagem de perfil).
 const MIN_FRONTAL_SYMMETRY = 0.55;
 
-// Centros da íris (mais estáveis que os cantos dos olhos: não se deslocam
+// Pontos da íris (mais estáveis que os cantos dos olhos: não se deslocam
 // com piscada ou variação do olhar, e correspondem à distância pupilar
-// real usada pra medir óculos).
-const LEFT_IRIS_CENTER = 473;
-const RIGHT_IRIS_CENTER = 468;
+// real usada pra medir óculos). Não fixamos qual índice é "esquerdo" ou
+// "direito" — isso é decidido no próprio quadro por posição na tela (ver
+// drawLoop), pra nunca inverter a ordem e girar o óculos de cabeça pra
+// baixo.
+const IRIS_CENTER_A = 468;
+const IRIS_CENTER_B = 473;
 // Usados só pra checar se o rosto está de frente (ver MIN_FRONTAL_SYMMETRY).
 const LEFT_EYE_OUTER = 33;
 const RIGHT_EYE_OUTER = 263;
@@ -59,7 +62,8 @@ export default function TryOnModal({
   const smoothedRef = useRef<{
     centerX: number;
     centerY: number;
-    angle: number;
+    dx: number;
+    dy: number;
     width: number;
     height: number;
     alpha: number;
@@ -214,14 +218,16 @@ export default function TryOnModal({
       }
 
       if (landmarks && isFrontal) {
-        const left = landmarks[LEFT_IRIS_CENTER];
-        const right = landmarks[RIGHT_IRIS_CENTER];
-        const leftPx = { x: left.x * canvas.width, y: left.y * canvas.height };
-        const rightPx = { x: right.x * canvas.width, y: right.y * canvas.height };
+        const a = landmarks[IRIS_CENTER_A];
+        const b = landmarks[IRIS_CENTER_B];
+        const aPx = { x: a.x * canvas.width, y: a.y * canvas.height };
+        const bPx = { x: b.x * canvas.width, y: b.y * canvas.height };
+        // Sempre da esquerda pra direita NA TELA, não importa qual índice
+        // é qual — é isso que garante o ângulo (e o óculos) do lado certo.
+        const [leftPx, rightPx] = aPx.x <= bPx.x ? [aPx, bPx] : [bPx, aPx];
         const dx = rightPx.x - leftPx.x;
         const dy = rightPx.y - leftPx.y;
         const eyeDistance = Math.hypot(dx, dy);
-        const angle = Math.atan2(dy, dx);
         const centerX = (leftPx.x + rightPx.x) / 2;
         const centerY = (leftPx.y + rightPx.y) / 2 + eyeDistance * VERTICAL_OFFSET_FACTOR;
         const glassesWidth = eyeDistance * GLASSES_WIDTH_FACTOR;
@@ -232,12 +238,16 @@ export default function TryOnModal({
           ? {
               centerX: lerp(prev.centerX, centerX, SMOOTHING),
               centerY: lerp(prev.centerY, centerY, SMOOTHING),
-              angle: lerp(prev.angle, angle, SMOOTHING),
+              // Suavizamos o vetor (dx, dy), não o ângulo em si — interpolar
+              // o ângulo direto quebra perto de ±180° (a virada de sinal
+              // fazia o óculos girar procurando o rosto).
+              dx: lerp(prev.dx, dx, SMOOTHING),
+              dy: lerp(prev.dy, dy, SMOOTHING),
               width: lerp(prev.width, glassesWidth, SMOOTHING),
               height: lerp(prev.height, glassesHeight, SMOOTHING),
               alpha: lerp(prev.alpha, 1, SMOOTHING),
             }
-          : { centerX, centerY, angle, width: glassesWidth, height: glassesHeight, alpha: 1 };
+          : { centerX, centerY, dx, dy, width: glassesWidth, height: glassesHeight, alpha: 1 };
       } else if (smoothedRef.current) {
         // Sem rosto detectado ou virado demais: some aos poucos em vez de
         // sumir de uma vez (e evita que o óculos "grude" torto por um
@@ -253,7 +263,7 @@ export default function TryOnModal({
         ctx.globalAlpha = s.alpha;
         ctx.globalCompositeOperation = "multiply";
         ctx.translate(s.centerX, s.centerY);
-        ctx.rotate(s.angle);
+        ctx.rotate(Math.atan2(s.dy, s.dx));
         ctx.drawImage(glasses, -s.width / 2, -s.height / 2, s.width, s.height);
         ctx.restore();
       }
