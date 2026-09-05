@@ -134,7 +134,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <div>
               {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
               <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
-              {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[12px] font-medium text-brand-ink/55">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
+              {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[12px] font-medium text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
             </div>
           </div>
         </div>

@@ -29,10 +29,10 @@ export default function Hero() {
             Proteção e estilo para curtir a praia e praticar esportes.
           </p>
           <div className="mt-5 inline-flex w-fit flex-col gap-1 rounded-2xl border border-brand-gold/30 bg-brand-paper/[0.06] px-5 py-3.5 backdrop-blur-sm">
-            <span className="font-heading text-lg font-semibold leading-tight tracking-[-0.01em] text-brand-paper sm:text-xl">
+            <span className="whitespace-nowrap font-heading text-xl font-semibold leading-tight tracking-[-0.01em] text-brand-paper sm:text-2xl">
               Do Acessível ao Premium
             </span>
-            <span className="font-body text-[13px] font-semibold uppercase tracking-[0.1em] text-brand-gold sm:text-sm">
+            <span className="whitespace-nowrap font-body text-sm font-semibold uppercase tracking-[0.1em] text-brand-gold sm:text-base">
               Óculos a partir de R$ 180,00
             </span>
           </div>
