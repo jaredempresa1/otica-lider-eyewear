@@ -30,12 +30,15 @@ function ProductImagePreview({ src, alt, priority, sizes, onOpen }: { src?: stri
   );
 }
 
+const ZOOM_SCALE = 2.2;
+
 function ProductLightbox({ images, initialIndex, alt, onClose }: { images: string[]; initialIndex: number; alt: string; onClose: () => void }) {
   const [currentIndex, setCurrentIndex] = useState(Math.max(0, Math.min(initialIndex, images.length - 1)));
   const [zoomed, setZoomed] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+  const pointerMoved = useRef(false);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -70,29 +73,39 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
 
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
+    pointerMoved.current = false;
+    dragStart.current = { x: event.clientX, y: event.clientY, offsetX: offset.x, offsetY: offset.y };
     if (!zoomed) {
       setZoomed(true);
       setOffset({ x: 0, y: 0 });
       return;
     }
     setDragging(true);
-    dragStart.current = { x: event.clientX, y: event.clientY, offsetX: offset.x, offsetY: offset.y };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>) {
     if (!dragging) return;
+    const deltaX = event.clientX - dragStart.current.x;
+    const deltaY = event.clientY - dragStart.current.y;
+    if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) pointerMoved.current = true;
     const rect = event.currentTarget.getBoundingClientRect();
-    const limitX = rect.width * 0.34;
-    const limitY = rect.height * 0.34;
-    const nextX = Math.max(-limitX, Math.min(limitX, dragStart.current.offsetX + event.clientX - dragStart.current.x));
-    const nextY = Math.max(-limitY, Math.min(limitY, dragStart.current.offsetY + event.clientY - dragStart.current.y));
+    // Após ampliar em ZOOM_SCALE×, a imagem passa a ocupar ZOOM_SCALE× o
+    // tamanho do contêiner. O quanto ela "sobra" pra cada lado é metade
+    // dessa diferença — é até aí que dá pra arrastar sem deixar margem sem
+    // ver (sem esse cálculo, as bordas da imagem ficavam inacessíveis).
+    const limitX = (rect.width * (ZOOM_SCALE - 1)) / 2;
+    const limitY = (rect.height * (ZOOM_SCALE - 1)) / 2;
+    const nextX = Math.max(-limitX, Math.min(limitX, dragStart.current.offsetX + deltaX));
+    const nextY = Math.max(-limitY, Math.min(limitY, dragStart.current.offsetY + deltaY));
     setOffset({ x: nextX, y: nextY });
   }
 
   function handlePointerUp(event: React.PointerEvent<HTMLDivElement>) {
     setDragging(false);
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    // Tocou de novo sem arrastar enquanto já estava com zoom: volta ao normal.
+    if (zoomed && !pointerMoved.current) resetZoom();
   }
 
   if (!images.length) return null;
@@ -101,16 +114,16 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
     <div className="fixed inset-0 z-[80] flex flex-col bg-brand-cream/95 p-3 backdrop-blur-md sm:p-6" role="dialog" aria-modal="true" aria-label={`Galeria ampliada de ${alt}`}>
       <div className="flex items-center justify-between gap-4 px-1 pb-3 sm:px-2"><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55">{currentIndex + 1} de {images.length} fotos</p><button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-ink text-brand-paper transition-colors hover:bg-brand-gold" aria-label="Fechar galeria"><X size={18} /></button></div>
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.5rem] bg-brand-sage/45">
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ touchAction: "none", cursor: zoomed ? (dragging ? "grabbing" : "grab") : "zoom-in" }}>
-          <div className="relative h-full w-full transition-transform duration-200 ease-out" style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoomed ? 2.15 : 1})` }}>
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ touchAction: "none", cursor: zoomed ? (dragging ? "grabbing" : "zoom-out") : "zoom-in" }}>
+          <div className="relative h-full w-full transition-transform duration-200 ease-out" style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoomed ? ZOOM_SCALE : 1})` }}>
             <Image key={images[currentIndex]} src={images[currentIndex]} alt={`${alt}, foto ${currentIndex + 1}`} fill priority className="object-contain p-3 mix-blend-multiply sm:p-10" sizes="100vw" draggable={false} />
           </div>
         </div>
-        {images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Foto anterior"><ChevronLeft size={20} /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Próxima foto"><ChevronRight size={20} /></button></>}
+        {!zoomed && images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Foto anterior"><ChevronLeft size={20} /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Próxima foto"><ChevronRight size={20} /></button></>}
         <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-brand-paper/95 p-1 shadow-card sm:bottom-4"><button type="button" onClick={() => setZoomed(true)} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Aumentar zoom"><ZoomIn size={16} /></button><button type="button" onClick={() => setZoomed(false)} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Diminuir zoom"><ZoomOut size={16} /></button><button type="button" onClick={resetZoom} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Restaurar zoom"><RotateCcw size={15} /></button></div>
       </div>
       <div className="mt-3 flex gap-2 overflow-x-auto px-1 pb-1 sm:mt-4 sm:justify-center">{images.map((image, index) => <button key={`${image}-${index}`} type="button" onClick={() => selectImage(index)} className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-brand-sage/40 transition-colors sm:h-20 sm:w-20 ${currentIndex === index ? "border-brand-gold" : "border-transparent"}`} aria-label={`Abrir foto ${index + 1}`}><Image src={image} alt={`${alt}, miniatura ${index + 1}`} fill className="object-contain p-1 mix-blend-multiply" sizes="80px" /></button>)}</div>
-      <p className="pt-2 text-center font-body text-[10px] uppercase tracking-[0.12em] text-brand-ink/45 sm:hidden">Toque na imagem para ampliar e arraste para ver os detalhes</p>
+      <p className="pt-2 text-center font-body text-[10px] uppercase tracking-[0.12em] text-brand-ink/45 sm:hidden">Toque na imagem para ampliar ou arrastar. Toque de novo para voltar ao normal.</p>
     </div>
   );
 }
@@ -122,7 +135,7 @@ function ColorPicker({ colors, selectedColor, onSelect, className = "" }: { colo
     <div className={className}>
       <div className="flex items-center justify-between gap-3"><p className="font-body text-[11px] font-semibold uppercase tracking-[0.15em] text-brand-ink/55">Cor selecionada</p><span className="font-body text-[15px] font-medium text-brand-ink">{selectedColor?.name || "Único"}{colorSoldOut ? " · Esgotada" : ""}</span></div>
       <div className="mt-4 flex flex-wrap gap-3">{colors.map((color) => <button key={`${color.name}-${color.hex}`} onClick={() => onSelect(color)} title={color.sold_out ? `${color.name} · Esgotada` : `Ver galeria ${color.name}`} aria-label={color.sold_out ? `${color.name} está esgotada` : `Ver fotos do óculos na cor ${color.name}`} className={`relative h-11 w-11 rounded-full border-2 transition-transform duration-200 hover:scale-105 ${selectedColor?.name === color.name ? "border-brand-gold p-1" : "border-transparent"} ${color.sold_out ? "opacity-50" : ""}`}><span className="relative block h-full w-full overflow-hidden rounded-full border border-brand-ink/10"><span className="absolute inset-0" style={{ backgroundColor: color.hex }} />{color.sold_out && <span className="absolute left-1/2 top-1/2 h-[150%] w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-white" />}</span></button>)}</div>
-      <p className="mt-3 font-body text-[12px] leading-5 text-brand-ink/45">{colorSoldOut ? "Essa cor está esgotada no momento. Escolha outra opção disponível ou avise que quer ser avisado quando voltar." : "Ao trocar a cor, todas as fotos e ângulos exibidos mudam para essa variação."}</p>
+      {(colors.length > 1 || colorSoldOut) && <p className="mt-3 font-body text-[12px] leading-5 text-brand-ink/45">{colorSoldOut ? "Essa cor está esgotada no momento. Escolha outra opção disponível ou avise que quer ser avisado quando voltar." : "Ao trocar a cor, todas as fotos e ângulos exibidos mudam para essa variação."}</p>}
       {(selectedColor?.frame_color || selectedColor?.lens_color) && <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-brand-paper p-4"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/45">Armação</p><p className="mt-1 font-body text-[15px] font-semibold text-brand-ink">{selectedColor.frame_color || "—"}</p></div><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/45">Lentes</p><p className="mt-1 font-body text-[15px] font-semibold text-brand-ink">{selectedColor.lens_color || "—"}</p></div></div>}
     </div>
   );
@@ -271,7 +284,6 @@ export default function ProductDetail({ product }: { product: Product }) {
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className={`mt-1 text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-2 text-[15px] font-medium text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}</div>
           <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> Adicionar à sacola</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> Pedir no WhatsApp</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
-          {product.description && <p className="mt-6 max-w-lg font-body text-[15px] leading-7 text-brand-ink/65">{product.description}</p>}
 
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-8 hidden border-t border-brand-ink/10 pt-6 lg:block" />}
 
