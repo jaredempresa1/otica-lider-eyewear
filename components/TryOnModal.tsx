@@ -36,6 +36,31 @@ const LEFT_EYE_OUTER = 33;
 const RIGHT_EYE_OUTER = 263;
 const NOSE_TIP = 4;
 
+// Carrega a foto do óculos. Primeiro tenta com CORS liberado — isso é o que
+// permite ler os pixels da imagem depois (measureContentWidthFraction) pra
+// medir automaticamente o tamanho real do óculos na foto. Se o servidor de
+// imagens não liberar isso, cai pro carregamento normal: a foto ainda
+// aparece certinho no provador, só não dá pra medir (usa um valor padrão).
+function loadImageElement(src: string, useCrossOrigin: boolean): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    if (useCrossOrigin) image.crossOrigin = "anonymous";
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image-load-failed"));
+    image.src = src;
+  });
+}
+
+async function loadGlassesImage(src: string): Promise<{ image: HTMLImageElement; canMeasure: boolean }> {
+  try {
+    const image = await loadImageElement(src, true);
+    return { image, canMeasure: true };
+  } catch {
+    const image = await loadImageElement(src, false);
+    return { image, canMeasure: false };
+  }
+}
+
 function lerp(from: number, to: number, factor: number) {
   return from + (to - from) * factor;
 }
@@ -142,14 +167,9 @@ export default function TryOnModal({
     // nunca lemos os pixels de volta (getImageData/toDataURL), então CORS não é
     // necessário — e exigir isso sem o servidor liberar só faz a imagem falhar.
     try {
-      const image = new Image();
-      image.src = productImage;
-      await new Promise<void>((resolve, reject) => {
-        image.onload = () => resolve();
-        image.onerror = () => reject(new Error("image"));
-      });
+      const { image, canMeasure } = await loadGlassesImage(productImage);
       glassesImageRef.current = image;
-      contentFractionRef.current = measureContentWidthFraction(image);
+      contentFractionRef.current = canMeasure ? measureContentWidthFraction(image) : 0.82;
     } catch {
       setStatus("error");
       setErrorMessage("Não conseguimos carregar a foto deste produto para o provador virtual.");
