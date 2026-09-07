@@ -11,6 +11,7 @@ Site de catálogo premium de óculos com sacola e finalização de pedido pelo W
 - Parcelamento opcional configurável por produto, exibido no formato `10x de R$ 99,90` abaixo do preço.
 - Adição rápida pelo botão `+` em cada card, com feedback "Adicionado à sacola". Ao adicionar dentro do detalhe, o cliente é levado para `/sacola`.
 - Sacola dedicada em `/sacola` com produtos, cores, quantidade, subtotal, CEP, frete grátis automático para **João Pessoa (58000-000 a 58099-999)** e **Goiana-PE (55900-000 a 55919-999)**, além da finalização pelo WhatsApp somente nessa página.
+- Cotação de frete pago via Melhor Envio para fora da área grátis, com token renovado sozinho (ver seção 6) — só uma autorização manual, feita uma única vez.
 - Painel administrativo em `/admin` e `/admin/dashboard`, protegido por login do Supabase, com preço atual/promocional, selo de mais vendido, destaque, estoque, fotos e materiais para download.
 - Upload de fotos e documentos por arrastar e soltar via Supabase Storage; também é possível colar URLs públicas manualmente.
 - Identidade visual com marfim, carvão, verde sálvia, dourado e tipografia Piazzolla + Instrument Sans.
@@ -49,6 +50,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=... (cole aqui a anon public key)
 NEXT_PUBLIC_WHATSAPP_NUMBER=5583900000000 (seu número, só números, com 55 + DDD)
 ```
 
+As variáveis do Melhor Envio (`SUPABASE_SERVICE_ROLE_KEY`,
+`MELHOR_ENVIO_CLIENT_ID`, `MELHOR_ENVIO_CLIENT_SECRET`) ficam para a seção
+6, mais abaixo — não são obrigatórias para rodar o site localmente.
+
 ## 4. Rodar localmente
 
 ```
@@ -70,11 +75,42 @@ Acesse `/admin`, faça login e use **Novo produto**. O formulário está organiz
 
 O `supabase/schema.sql` já cria a coluna `more_sold`, a coluna `downloads` e o bucket público `product-media`. Rode o SQL completo no Supabase antes de usar os novos campos.
 
-## 6. Ver a versão mobile
+## 6. Configurar o frete automático (Melhor Envio)
+
+O site calcula o frete pago sozinho pela API do Melhor Envio para quem
+está fora da área de frete grátis. Depois da configuração abaixo, o token
+de acesso se renova sozinho para sempre — você não precisa voltar aqui.
+
+1. Copie a chave **service_role** do seu projeto Supabase: **Project
+   Settings → API → Project API keys → service_role**. Adicione essa chave
+   como `SUPABASE_SERVICE_ROLE_KEY` no `.env.local` (e depois na Vercel).
+   É ela que permite ao site guardar e renovar o token sozinho — sem essa
+   chave, a renovação automática fica desativada.
+2. Crie uma conta em [melhorenvio.com.br](https://melhorenvio.com.br) (ou
+   use a que já tiver) e cadastre um aplicativo em **Gerenciar
+   aplicações → Criar novo aplicativo**. Use como URL de redirecionamento
+   `https://SEU-DOMINIO/api/melhor-envio/callback` (troque pelo domínio
+   real do site já publicado na Vercel).
+3. Copie o **Client ID** e o **Client Secret** do aplicativo criado e
+   preencha `MELHOR_ENVIO_CLIENT_ID` e `MELHOR_ENVIO_CLIENT_SECRET` no
+   `.env.local` (e depois na Vercel).
+4. Publique o site na Vercel com essas variáveis já configuradas (ver
+   seção 7 abaixo).
+5. Com o site no ar, acesse **uma única vez**
+   `https://SEU-DOMINIO/api/melhor-envio/callback` — na verdade acesse
+   `https://SEU-DOMINIO/api/melhor-envio/authorize`, faça login no Melhor
+   Envio e autorize o aplicativo. Essa é a única etapa manual de todo o
+   processo: depois dela, o token é salvo e renovado sozinho, para sempre.
+
+Se você pular esta seção, o site continua funcionando normalmente — só
+a cotação automática de frete fica indisponível, e o cliente é orientado
+a combinar o frete por WhatsApp.
+
+## 7. Ver a versão mobile
 
 O layout foi feito mobile-first. Para testar no computador, abra o site no Chrome, pressione `F12` (ou `Ctrl + Shift + I`), clique no ícone de celular/tablet e escolha um modelo como iPhone 12 Pro. Para testar no aparelho real na mesma rede, rode `npm run dev -- -H 0.0.0.0` e abra no celular o endereço local exibido pelo seu ambiente, usando a mesma rede Wi-Fi.
 
-## 7. Colocar no ar (deploy)
+## 8. Colocar no ar (deploy)
 
 1. Suba este projeto para um repositório no GitHub.
 2. Crie uma conta em [vercel.com](https://vercel.com) e importe o

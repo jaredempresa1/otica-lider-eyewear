@@ -195,6 +195,22 @@ drop policy if exists "Somente logados podem alterar configuração de frete" on
 create policy "Somente logados podem alterar configuração de frete"
   on shipping_settings for all to authenticated using (true) with check (true);
 
+-- Guarda o token de acesso e o refresh token do Melhor Envio para a
+-- renovação automática (ver lib/melhorEnvio.ts). Não recebe NENHUMA
+-- política pública: com RLS ligado e sem policies, só a chave de SERVIÇO
+-- (SUPABASE_SERVICE_ROLE_KEY, usada apenas em rotas de servidor) consegue
+-- ler ou escrever aqui — nem o anon key do site público, nem um usuário
+-- autenticado comum têm acesso a esses tokens.
+create table if not exists melhor_envio_tokens (
+  id integer primary key default 1 check (id = 1),
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamp with time zone not null,
+  updated_at timestamp with time zone default now()
+);
+
+alter table melhor_envio_tokens enable row level security;
+
 -- Banner promocional opcional exibido entre os produtos em destaque e as coleções.
 create table if not exists promo_banner (
   id integer primary key default 1 check (id = 1),

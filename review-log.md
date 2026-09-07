@@ -1,6 +1,30 @@
 # Registro de verificação
 
-Data da revisão: 04/09/2026.
+Data da revisão: 07/09/2026.
+
+## Renovação automática do token do Melhor Envio
+
+Antes, o token de acesso do Melhor Envio era gerado uma vez em
+`/api/melhor-envio/callback`, mostrado na tela para ser colado à mão em
+`MELHOR_ENVIO_TOKEN` na Vercel, e precisava ser trocado manualmente
+sempre que expirasse. Isso foi substituído por um esquema que se renova
+sozinho:
+
+- Nova tabela `melhor_envio_tokens` no Supabase (sem nenhuma política
+  pública — só a chave de serviço acessa) guarda o `access_token`, o
+  `refresh_token` e a validade atual.
+- `app/api/melhor-envio/callback/route.ts` agora salva os tokens direto
+  no banco em vez de só exibi-los na tela.
+- Novo `lib/melhorEnvio.ts` confere a validade antes de cada cotação e,
+  quando está perto de vencer, troca o `refresh_token` por um par novo de
+  tokens sozinho, sem intervenção humana.
+- `app/api/shipping/route.ts` passou a usar esse token renovado
+  automaticamente em vez do valor fixo do `.env`.
+- A única etapa manual que continua existindo é a primeira autorização
+  (visitar `/api/melhor-envio/authorize` uma única vez) — isso é uma
+  exigência do próprio Melhor Envio (OAuth), não uma limitação do código.
+
+Data da revisão original abaixo: 04/09/2026.
 
 ## Checagens concluídas
 

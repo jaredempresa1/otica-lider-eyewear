@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
+import { getValidMelhorEnvioToken } from "@/lib/melhorEnvio";
 
 const ORIGIN_POSTAL_CODE = "58043320";
 const MELHOR_ENVIO_URL = "https://melhorenvio.com.br/api/v2/me/shipment/calculate";
@@ -40,12 +41,15 @@ function normalizeDeliveryTime(value: unknown): number {
 }
 
 export async function POST(request: Request) {
-  const token = process.env.MELHOR_ENVIO_TOKEN;
+  const token = await getValidMelhorEnvioToken();
   const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)";
 
   if (!token) {
     return NextResponse.json(
-      { error: "Cotação automática indisponível: token do Melhor Envio não configurado." },
+      {
+        error:
+          "Cotação automática indisponível: autorize o Melhor Envio uma vez em /api/melhor-envio/authorize.",
+      },
       { status: 503 },
     );
   }

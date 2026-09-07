@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
+import { hasSupabaseAdminConfig, saveMelhorEnvioToken } from "@/lib/melhorEnvio";
 
 const CALLBACK_URL = "https://otica-lider-eyewear.vercel.app/api/melhor-envio/callback";
+
+function htmlPage(title: string, body: string, status: number) {
+  return new NextResponse(
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>${title}</title></head><body style="font-family:Arial,sans-serif;max-width:640px;margin:64px auto;padding:24px;color:#1f2937"><h1>${title}</h1>${body}</body></html>`,
+    { status, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } },
+  );
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -8,16 +16,18 @@ export async function GET(request: Request) {
   const error = url.searchParams.get("error");
 
   if (error) {
-    return new NextResponse(
-      `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Autorização não concluída</title></head><body style="font-family:Arial,sans-serif;max-width:640px;margin:64px auto;padding:24px;color:#1f2937"><h1>Autorização não concluída</h1><p>O Melhor Envio retornou um erro durante a autorização. Você pode fechar esta janela e tentar novamente.</p></body></html>`,
-      { status: 400, headers: { "Content-Type": "text/html; charset=utf-8" } },
+    return htmlPage(
+      "Autorização não concluída",
+      "<p>O Melhor Envio retornou um erro durante a autorização. Você pode fechar esta janela e tentar novamente.</p>",
+      400,
     );
   }
 
   if (!code) {
-    return new NextResponse(
-      `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Callback do Melhor Envio</title></head><body style="font-family:Arial,sans-serif;max-width:640px;margin:64px auto;padding:24px;color:#1f2937"><h1>Callback do Melhor Envio</h1><p>Esta URL está ativa e aguardando uma autorização válida.</p></body></html>`,
-      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } },
+    return htmlPage(
+      "Callback do Melhor Envio",
+      "<p>Esta URL está ativa e aguardando uma autorização válida.</p>",
+      200,
     );
   }
 
@@ -25,7 +35,19 @@ export async function GET(request: Request) {
   const clientSecret = process.env.MELHOR_ENVIO_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    return new NextResponse("Credenciais do Melhor Envio não configuradas.", { status: 503 });
+    return htmlPage(
+      "Credenciais ausentes",
+      "<p>Credenciais do Melhor Envio não configuradas (MELHOR_ENVIO_CLIENT_ID / MELHOR_ENVIO_CLIENT_SECRET).</p>",
+      503,
+    );
+  }
+
+  if (!hasSupabaseAdminConfig) {
+    return htmlPage(
+      "Configuração pendente",
+      "<p>Falta configurar <strong>SUPABASE_SERVICE_ROLE_KEY</strong> na Vercel antes de autorizar — é ela que permite ao site guardar e renovar o token sozinho. Adicione essa variável, faça redeploy e tente autorizar de novo.</p>",
+      503,
+    );
   }
 
   try {
@@ -45,18 +67,33 @@ export async function GET(request: Request) {
       }),
       cache: "no-store",
     });
-    const tokenData = (await tokenResponse.json()) as { access_token?: string; refresh_token?: string; error?: string };
+    const tokenData = (await tokenResponse.json()) as {
+      access_token?: string;
+      refresh_token?: string;
+      expires_in?: number;
+      error?: string;
+    };
 
-    if (!tokenResponse.ok || !tokenData.access_token) {
-      return new NextResponse("Não foi possível concluir a autorização do Melhor Envio.", { status: 502 });
+    if (!tokenResponse.ok || !tokenData.access_token || !tokenData.refresh_token || !tokenData.expires_in) {
+      return htmlPage(
+        "Autorização não concluída",
+        "<p>Não foi possível concluir a autorização do Melhor Envio. Tente novamente.</p>",
+        502,
+      );
     }
 
-    // O token é mostrado uma única vez para ser salvo como Secret na Vercel.
-    return new NextResponse(
-      `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Autorização concluída</title></head><body style="font-family:Arial,sans-serif;max-width:760px;margin:64px auto;padding:24px;color:#1f2937"><h1>Autorização concluída</h1><p>Copie o access token abaixo e salve-o na Vercel como <strong>MELHOR_ENVIO_TOKEN</strong> usando o tipo Secret. Não compartilhe este valor.</p><textarea readonly style="width:100%;min-height:130px;padding:12px">${tokenData.access_token}</textarea><p>Depois de salvar, faça Redeploy na Vercel. O refresh token também foi gerado e deve ser guardado para renovação futura:</p><textarea readonly style="width:100%;min-height:100px;padding:12px">${tokenData.refresh_token || "não retornado"}</textarea></body></html>`,
-      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } },
+    await saveMelhorEnvioToken({
+      access_token: tokenData.access_token,
+      refresh_token: tokenData.refresh_token,
+      expires_in: tokenData.expires_in,
+    });
+
+    return htmlPage(
+      "Autorização concluída ✅",
+      "<p>O Melhor Envio foi conectado e o token já foi salvo automaticamente. A partir de agora a cotação de frete se renova sozinha para sempre — você não precisa colar nada em lugar nenhum. Pode fechar esta janela.</p>",
+      200,
     );
   } catch {
-    return new NextResponse("Não foi possível conectar ao Melhor Envio.", { status: 502 });
+    return htmlPage("Erro de conexão", "<p>Não foi possível conectar ao Melhor Envio.</p>", 502);
   }
 }
