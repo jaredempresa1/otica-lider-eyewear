@@ -185,6 +185,9 @@ export default function ProductDetail({ product }: { product: Product }) {
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const canBuy = !productSoldOut && !colorSoldOut;
+  const installmentTotal = product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0
+    ? product.installments.count * product.installments.amount
+    : null;
   const displayBrand = product.brand?.trim() || product.name;
   const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
@@ -301,7 +304,7 @@ export default function ProductDetail({ product }: { product: Product }) {
           <p className="eyebrow">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
           <p className="mt-3 font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
-          <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className={`mt-1 text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-2 text-[15px] font-medium text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}</div>
+          <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className={`mt-1 text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{installmentTotal !== null && product.installments && <span className="mt-2 text-[15px] font-medium leading-6 text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)} · total {formatBRL(installmentTotal)}</span>}</div>
           <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> Adicionar à sacola</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> Pedir no WhatsApp</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
 
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-8 hidden border-t border-brand-ink/10 pt-6 lg:block" />}

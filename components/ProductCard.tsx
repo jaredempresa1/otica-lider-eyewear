@@ -26,6 +26,9 @@ export default function ProductCard({ product }: { product: Product }) {
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const canBuy = !productSoldOut && !colorSoldOut;
+  const installmentTotal = product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0
+    ? product.installments.count * product.installments.amount
+    : null;
   const displayBrand = product.brand?.trim() || product.name;
   const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
@@ -134,7 +137,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <div>
               {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
               <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
-              {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[12px] font-medium text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
+              {installmentTotal !== null && product.installments && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)} · total {formatBRL(installmentTotal)}</span>}
             </div>
           </div>
         </div>
