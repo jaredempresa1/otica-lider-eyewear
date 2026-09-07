@@ -65,9 +65,35 @@ export function buildWhatsAppLink(message: string): string {
 }
 
 /**
- * Mensagem pronta para quando o cliente quer encomendar um modelo esgotado
- * (esgotado só naquela cor, ou o produto inteiro esgotado).
+ * Mensagem pronta para produtos marcados como "pedido especial" (sob
+ * encomenda) no admin — ex.: um óculos de pouco giro que só é comprado
+ * depois que o cliente confirma o pedido. Diferente da mensagem de
+ * "esgotado" acima: aqui o produto nem chegou a ter estoque, então o
+ * texto já avisa o prazo médio em vez de falar em "reposição".
  */
+export function buildWhatsAppMadeToOrderMessage(product: {
+  brand?: string;
+  model?: string;
+  name: string;
+  price: number;
+}, options: { colorName?: string; leadTime?: string } = {}): string {
+  const label = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
+  const lines: string[] = [];
+
+  lines.push("Olá! Quero fazer um pedido deste óculos sob encomenda na Ótica Líder Eyewear:");
+  lines.push("");
+  lines.push(`• ${label}${options.colorName ? ` — cor ${options.colorName}` : ""} — ${formatBRL(product.price)}`);
+  if (options.leadTime?.trim()) {
+    lines.push("");
+    lines.push(`Vi que o prazo médio de entrega é ${options.leadTime.trim()}. Pode confirmar o pedido?`);
+  } else {
+    lines.push("");
+    lines.push("Pode me confirmar o prazo médio de entrega e fechar o pedido?");
+  }
+
+  return lines.join("\n");
+}
+
 export function buildWhatsAppInquiryMessage(product: {
   brand?: string;
   model?: string;

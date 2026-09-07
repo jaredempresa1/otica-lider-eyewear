@@ -12,6 +12,7 @@ Site de catálogo premium de óculos com sacola e finalização de pedido pelo W
 - Adição rápida pelo botão `+` em cada card, com feedback "Adicionado à sacola". Ao adicionar dentro do detalhe, o cliente é levado para `/sacola`.
 - Sacola dedicada em `/sacola` com produtos, cores, quantidade, subtotal, CEP, frete grátis automático para **João Pessoa (58000-000 a 58099-999)** e **Goiana-PE (55900-000 a 55919-999)**, além da finalização pelo WhatsApp somente nessa página.
 - Cotação de frete pago via Melhor Envio para fora da área grátis, com token renovado sozinho (ver seção 6) — só uma autorização manual, feita uma única vez.
+- Produtos marcados como **Pedido especial** (sob encomenda) pulam o carrinho: o cliente vê "Fazer pedido" e cai direto numa mensagem pronta no WhatsApp, já com o prazo médio cadastrado no `/admin`.
 - Painel administrativo em `/admin` e `/admin/dashboard`, protegido por login do Supabase, com preço atual/promocional, selo de mais vendido, destaque, estoque, fotos e materiais para download.
 - Upload de fotos e documentos por arrastar e soltar via Supabase Storage; também é possível colar URLs públicas manualmente.
 - Identidade visual com marfim, carvão, verde sálvia, dourado e tipografia Piazzolla + Instrument Sans.

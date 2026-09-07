@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
-import { buildWhatsAppInquiryMessage, buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -25,7 +25,8 @@ export default function ProductCard({ product }: { product: Product }) {
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
-  const canBuy = !productSoldOut && !colorSoldOut;
+  const madeToOrder = Boolean(product.made_to_order);
+  const canBuy = !productSoldOut && !colorSoldOut && !madeToOrder;
   const installmentTotal = product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0
     ? product.installments.count * product.installments.amount
     : null;
@@ -65,10 +66,15 @@ export default function ProductCard({ product }: { product: Product }) {
   function handleQuickInquiry(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
-    const message = buildWhatsAppInquiryMessage(
-      { brand: product.brand, model: product.model, name: product.name, price: product.price },
-      { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
-    );
+    const message = madeToOrder
+      ? buildWhatsAppMadeToOrderMessage(
+          { brand: product.brand, model: product.model, name: product.name, price: product.price },
+          { colorName: selectedColor?.name, leadTime: product.made_to_order_note }
+        )
+      : buildWhatsAppInquiryMessage(
+          { brand: product.brand, model: product.model, name: product.name, price: product.price },
+          { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
+        );
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
   }
 
@@ -88,7 +94,7 @@ export default function ProductCard({ product }: { product: Product }) {
         ) : (
           <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>
         )}
-        {productSoldOut && (
+        {productSoldOut && !madeToOrder && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
             <span className="-rotate-12 rounded-lg border-2 border-brand-ink/70 bg-brand-paper/90 px-4 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink/80 shadow-card backdrop-blur-sm">Esgotado</span>
           </div>
@@ -97,7 +103,9 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.more_sold ? <span className="rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-ink backdrop-blur-sm">Mais vendido</span> : <span />}
           {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Oferta</span>}
         </div>
-        {colorSoldOut && !productSoldOut ? (
+        {madeToOrder ? (
+          <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-gold px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Sob encomenda</span>
+        ) : colorSoldOut && !productSoldOut ? (
           <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Cor esgotada</span>
         ) : (
           !productSoldOut && product.stock <= 1 && product.stock > 0 && <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Última peça</span>
@@ -112,8 +120,8 @@ export default function ProductCard({ product }: { product: Product }) {
               ? "h-11 w-11 bg-brand-paper text-brand-ink hover:bg-brand-gold hover:text-brand-paper sm:h-12 sm:w-12"
               : "h-9 pl-3 pr-3.5 bg-brand-ink text-brand-paper hover:bg-brand-gold sm:h-10 sm:pl-3.5 sm:pr-4"
           }`}
-          aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} à sacola` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
-          title={canBuy ? "Adicionar à sacola" : "Pedir no WhatsApp"}
+          aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} à sacola` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
+          title={canBuy ? "Adicionar à sacola" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
         >
           {added ? (
             <Check size={19} strokeWidth={2} />
@@ -122,7 +130,7 @@ export default function ProductCard({ product }: { product: Product }) {
           ) : (
             <>
               <MessageCircle size={15} strokeWidth={1.8} />
-              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.1em] sm:text-[11px]">Pedir</span>
+              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.1em] sm:text-[11px]">{madeToOrder ? "Fazer pedido" : "Pedir"}</span>
             </>
           )}
         </button>

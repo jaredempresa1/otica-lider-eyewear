@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
-import { buildWhatsAppInquiryMessage, buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
 import TryOnModal from "./TryOnModal";
 
 function formatBRL(value: number): string {
@@ -184,7 +184,8 @@ export default function ProductDetail({ product }: { product: Product }) {
   const selectedGallery = getColorImages(product, selectedColor);
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
-  const canBuy = !productSoldOut && !colorSoldOut;
+  const madeToOrder = Boolean(product.made_to_order);
+  const canBuy = !productSoldOut && !colorSoldOut && !madeToOrder;
   const installmentTotal = product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0
     ? product.installments.count * product.installments.amount
     : null;
@@ -233,10 +234,15 @@ export default function ProductDetail({ product }: { product: Product }) {
   }
 
   function handleWhatsAppInquiry() {
-    const message = buildWhatsAppInquiryMessage(
-      { brand: product.brand, model: product.model, name: product.name, price: product.price },
-      { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
-    );
+    const message = madeToOrder
+      ? buildWhatsAppMadeToOrderMessage(
+          { brand: product.brand, model: product.model, name: product.name, price: product.price },
+          { colorName: selectedColor?.name, leadTime: product.made_to_order_note }
+        )
+      : buildWhatsAppInquiryMessage(
+          { brand: product.brand, model: product.model, name: product.name, price: product.price },
+          { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
+        );
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
   }
 
@@ -269,7 +275,8 @@ export default function ProductDetail({ product }: { product: Product }) {
           >
             <ProductImagePreview src={activeImage} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} priority sizes="(max-width: 1024px) 100vw, 55vw" onOpen={() => openLightbox(activeImage || selectedGallery[0] || "")} />
             {product.more_sold && <span className="pointer-events-none absolute left-5 top-5 z-10 rounded-full bg-brand-paper/90 px-4 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-ink backdrop-blur-sm">Mais vendido</span>}
-            {productSoldOut && (
+            {madeToOrder && <span className="pointer-events-none absolute right-5 top-5 z-10 rounded-full bg-brand-gold px-4 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-paper backdrop-blur-sm">Sob encomenda</span>}
+            {productSoldOut && !madeToOrder && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-brand-cream/10">
                 <span className="-rotate-12 rounded-xl border-2 border-brand-ink/70 bg-brand-paper/90 px-6 py-2.5 font-body text-sm font-bold uppercase tracking-[0.22em] text-brand-ink/85 shadow-card backdrop-blur-sm">Esgotado</span>
               </div>
@@ -305,17 +312,17 @@ export default function ProductDetail({ product }: { product: Product }) {
           <p className="mt-3 font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className={`mt-1 text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{installmentTotal !== null && product.installments && <span className="mt-2 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>
-          <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> Adicionar à sacola</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> Pedir no WhatsApp</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
+          <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> Adicionar à sacola</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{madeToOrder ? `Sob encomenda${product.made_to_order_note?.trim() ? ` — prazo médio: ${product.made_to_order_note.trim()}` : ""}. O pedido é fechado direto no WhatsApp.` : productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
 
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-8 hidden border-t border-brand-ink/10 pt-6 lg:block" />}
 
-          <div className="mt-7 flex items-center justify-between border-y border-brand-ink/10 py-4 font-body text-[11px] uppercase tracking-[0.12em] text-brand-ink/55"><span>{productSoldOut ? "Esgotado" : colorSoldOut ? "Cor esgotada" : product.stock > 1 ? `${product.stock} unidades disponíveis` : product.stock === 1 ? "Última unidade" : "Fora de estoque"}</span><span>Proteção UV</span></div>
+          <div className="mt-7 flex items-center justify-between border-y border-brand-ink/10 py-4 font-body text-[11px] uppercase tracking-[0.12em] text-brand-ink/55"><span>{madeToOrder ? "Sob encomenda" : productSoldOut ? "Esgotado" : colorSoldOut ? "Cor esgotada" : product.stock > 1 ? `${product.stock} unidades disponíveis` : product.stock === 1 ? "Última unidade" : "Fora de estoque"}</span><span>Proteção UV</span></div>
           <div className="hidden lg:block">{canBuy ? (
             <button onClick={handleAddToCart} className="btn-brand mt-7 w-full gap-3"><ShoppingBag size={16} strokeWidth={1.8} /> Adicionar à sacola</button>
           ) : (
             <div className="mt-7 space-y-2">
-              <button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={16} strokeWidth={1.8} /> Pedir no WhatsApp</button>
-              <p className="text-center font-body text-[11px] leading-5 text-brand-ink/45">{productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p>
+              <button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={16} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button>
+              <p className="text-center font-body text-[11px] leading-5 text-brand-ink/45">{madeToOrder ? `Sob encomenda${product.made_to_order_note?.trim() ? ` — prazo médio: ${product.made_to_order_note.trim()}` : ""}. O pedido é fechado direto no WhatsApp.` : productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p>
             </div>
           )}</div>
 

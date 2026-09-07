@@ -1,6 +1,24 @@
 # Registro de verificação
 
-Data da revisão: 07/09/2026.
+Data da revisão: 07/09/2026 (parte 2).
+
+## Pedido especial (sob encomenda)
+
+Novo campo `made_to_order` (+ `made_to_order_note` com o prazo médio) na
+tabela `products`, pensado para modelos de pouco giro que a loja só compra
+depois que o cliente pede (ex.: Ray-Ban Meta). Quando marcado no `/admin`:
+
+- O card e a página do produto trocam "Adicionar à sacola" por "Fazer
+  pedido", que abre o WhatsApp com uma mensagem pronta (nova
+  `buildWhatsAppMadeToOrderMessage` em `lib/whatsapp.ts`), já citando o
+  prazo médio cadastrado.
+- Um selo "Sob encomenda" substitui o carimbo de "Esgotado" nesses
+  produtos (mesmo com estoque 0, já que a intenção é vender por
+  encomenda, não avisar reposição).
+- A listagem interna do `/admin` também mostra esse mesmo selo, para
+  facilitar identificar de relance quais produtos são encomenda.
+
+Data da revisão original abaixo: 07/09/2026 (parte 1).
 
 ## Renovação automática do token do Melhor Envio
 

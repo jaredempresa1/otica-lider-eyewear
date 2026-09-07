@@ -176,6 +176,13 @@ create policy "Somente logados podem ver os cadastros"
 -- Especificações técnicas exibidas no acordeão da página do produto.
 alter table products add column if not exists specifications jsonb not null default '{}'::jsonb;
 
+-- Pedido especial (sob encomenda): produtos de baixo giro que a loja só
+-- compra depois que o cliente pede (ex.: Ray-Ban Meta). Quando marcado, o
+-- site pula o carrinho normal e leva direto para uma mensagem pronta no
+-- WhatsApp, avisando o prazo médio cadastrado aqui.
+alter table products add column if not exists made_to_order boolean not null default false;
+alter table products add column if not exists made_to_order_note text default '';
+
 -- Configuração do pacote usada na cotação automática de frete.
 create table if not exists shipping_settings (
   id integer primary key default 1 check (id = 1),

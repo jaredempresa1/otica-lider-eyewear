@@ -48,6 +48,8 @@ export type Product = {
   downloads?: ProductDownload[];
   stock: number;
   sold_out?: boolean;
+  made_to_order?: boolean;
+  made_to_order_note?: string;
   featured: boolean;
   more_sold?: boolean;
   collection_slugs?: string[];
