@@ -30,6 +30,13 @@ export function isValidCep(cep: string): boolean {
   return cleanCep(cep).length === 8;
 }
 
+export type ShippingOption = {
+  id: number | null;
+  name: string;
+  price: number;
+  deliveryTime: number;
+};
+
 export type ShippingResult = {
   valid: boolean;
   freeShipping: boolean;
@@ -38,6 +45,7 @@ export type ShippingResult = {
   price?: number;
   deliveryTime?: number;
   serviceName?: string;
+  options?: ShippingOption[];
   error?: string;
 };
 
@@ -70,7 +78,8 @@ async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<Shi
       }),
     });
     const data = (await response.json()) as {
-      quote?: { name: string; price: number; deliveryTime: number };
+      quote?: ShippingOption;
+      options?: ShippingOption[];
       error?: string;
     };
 
@@ -86,6 +95,7 @@ async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<Shi
       price: data.quote.price,
       deliveryTime: data.quote.deliveryTime,
       serviceName: data.quote.name,
+      options: data.options || [data.quote],
     };
   } catch {
     return { valid: true, freeShipping: false, regionLabel: null, source: "api", error: "Não foi possível calcular o frete." };

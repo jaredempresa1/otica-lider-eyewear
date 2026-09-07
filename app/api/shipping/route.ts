@@ -3,6 +3,17 @@ import { NextResponse } from "next/server";
 const ORIGIN_POSTAL_CODE = "58043320";
 const MELHOR_ENVIO_URL = "https://melhorenvio.com.br/api/v2/me/shipment/calculate";
 
+// Ajuste aqui o pacote padrão usado na cotação dos óculos.
+const PACKAGE = {
+  width: 15,
+  height: 10,
+  length: 20,
+  weight: 0.5,
+};
+
+// Melhor Envio: 1 = PAC e 2 = SEDEX.
+const REQUESTED_SERVICES = "1,2";
+
 type QuoteRequest = {
   postalCode?: string;
   items?: Array<{ id: string; price: number; quantity: number }>;
@@ -47,10 +58,7 @@ export async function POST(request: Request) {
 
   const products = body.items.map((item) => ({
     id: item.id,
-    width: 15,
-    height: 10,
-    length: 20,
-    weight: 0.5,
+    ...PACKAGE,
     insurance_value: Number(item.price.toFixed(2)),
     quantity: Math.max(1, item.quantity),
   }));
@@ -69,6 +77,7 @@ export async function POST(request: Request) {
         to: { postal_code: postalCode },
         products,
         options: { receipt: false, own_hand: false },
+        services: REQUESTED_SERVICES,
       }),
       cache: "no-store",
     });

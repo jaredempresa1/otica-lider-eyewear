@@ -58,9 +58,20 @@ export default function SacolaPage() {
     setPayment((current) => ({ ...current, method }));
   }
 
-  function handleInstallments(installments: number) {
-    setPayment({ method: "card", installments });
-  }
+	function handleInstallments(installments: number) {
+	  setPayment({ method: "card", installments });
+	}
+
+	function handleShippingOption(optionId: string) {
+	  const option = shipping?.options?.find((item) => String(item.id ?? item.name) === optionId);
+	  if (!option) return;
+	  setShipping((current) => current ? {
+	    ...current,
+	    price: option.price,
+	    deliveryTime: option.deliveryTime,
+	    serviceName: option.name,
+	  } : current);
+	}
 
 	function handleCheckout() {
 		const message = buildWhatsAppOrderMessage(
@@ -151,10 +162,22 @@ export default function SacolaPage() {
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
               {checkingShipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
-              {!checkingShipping && shipping && (
-                <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
-	                  {isFreeShipping ? "Frete grátis" : shipping?.price != null ? `${shipping.serviceName || "Frete"} · entrega em até ${shipping.deliveryTime} dias úteis` : shipping?.error || "Não foi possível calcular o frete automaticamente."}
-                </p>
+	              {!checkingShipping && shipping && (
+	                <div className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
+	                  {isFreeShipping ? <p>Frete grátis</p> : shipping?.price != null ? (
+	                    <>
+	                      {shipping.options && shipping.options.length > 1 && (
+	                        <label className="block">
+	                          <span className="sr-only">Escolha o tipo de frete</span>
+	                          <select value={shipping.options.find((option) => option.name === shipping.serviceName)?.id ?? shipping.serviceName ?? ""} onChange={(event) => handleShippingOption(event.target.value)} className="w-full rounded-xl border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none focus:border-brand-gold">
+	                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · até {option.deliveryTime} dias úteis</option>)}
+	                          </select>
+	                        </label>
+	                      )}
+	                      {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · entrega em até {shipping.deliveryTime} dias úteis</p>}
+	                    </>
+	                  ) : <p>{shipping?.error || "Não foi possível calcular o frete automaticamente."}</p>}
+                </div>
               )}
             </div>
           </div>
