@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasSupabaseAdminConfig, saveMelhorEnvioToken } from "@/lib/melhorEnvio";
+import { hasSupabaseAdminConfig } from "@/lib/supabaseAdmin";
+import { saveMelhorEnvioToken } from "@/lib/melhorEnvio";
 
 const CALLBACK_URL = "https://otica-lider-eyewear.vercel.app/api/melhor-envio/callback";
 
