@@ -656,7 +656,7 @@ export default function AdminDashboardPage() {
             <label className="block font-body text-xs font-semibold text-brand-ink/65">Imagem (JPG, PNG ou WebP)
               <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadPromoBanner(file); }} className="mt-2 block w-full rounded-xl border border-dashed border-brand-ink/20 bg-brand-cream px-4 py-4 font-body text-sm" />
             </label>
-            {promoBanner.image_url && <img src={promoBanner.image_url} alt="Prévia do destaque" className="aspect-[16/5] w-full rounded-xl object-cover" />}
+            {promoBanner.image_url && <img src={promoBanner.image_url} alt="Prévia do destaque" className="aspect-[16/6] w-full rounded-xl object-cover" />}
             <label className="block font-body text-xs font-semibold text-brand-ink/65">Texto alternativo
               <input value={promoBanner.alt_text} onChange={(event) => setPromoBanner((current) => ({ ...current, alt_text: event.target.value }))} className="input-premium mt-1" />
             </label>

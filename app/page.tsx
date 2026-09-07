@@ -61,8 +61,6 @@ export default async function HomePage({
         </section>
       )}
 
-      <PromoBanner banner={promoBanner} />
-
       {featuredProducts.length > 0 && (
         <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">
           <div className="mb-6 flex items-end justify-between gap-4">
@@ -77,6 +75,8 @@ export default async function HomePage({
           <ProductGrid products={featuredProducts} scroll />
         </section>
       )}
+
+      <PromoBanner banner={promoBanner} />
 
       <section id="catalogo" className={`section-shell pb-12 pt-4 sm:pb-16 sm:pt-6 ${collections.length === 0 ? "border-t border-brand-ink/10" : ""}`}>
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
