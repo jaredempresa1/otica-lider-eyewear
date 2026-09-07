@@ -40,6 +40,48 @@ function lerp(from: number, to: number, factor: number) {
   return from + (to - from) * factor;
 }
 
+// Cada foto de produto tem uma folga (espaço em branco) diferente ao redor
+// do óculos — uma foto mais "fechada" faz o óculos parecer maior no
+// provador, uma mais "aberta" faz parecer menor, mesmo com o mesmo cálculo
+// de distância pupilar. Essa função mede, uma vez por foto, que fração da
+// largura da imagem é realmente ocupada pelo óculos (em vez do fundo claro),
+// pra normalizar o tamanho entre fotos diferentes.
+function measureContentWidthFraction(image: HTMLImageElement): number {
+  const FALLBACK = 0.82;
+  try {
+    const offscreen = document.createElement("canvas");
+    offscreen.width = image.naturalWidth;
+    offscreen.height = image.naturalHeight;
+    const octx = offscreen.getContext("2d", { willReadFrequently: true });
+    if (!octx || offscreen.width === 0 || offscreen.height === 0) return FALLBACK;
+    octx.drawImage(image, 0, 0);
+
+    const { data } = octx.getImageData(0, 0, offscreen.width, offscreen.height);
+    const threshold = 245; // quase branco
+    const step = 2; // amostra de 2 em 2 pixels — mais rápido, precisão suficiente
+    let minX = offscreen.width;
+    let maxX = 0;
+    for (let y = 0; y < offscreen.height; y += step) {
+      for (let x = 0; x < offscreen.width; x += step) {
+        const i = (y * offscreen.width + x) * 4;
+        const isOpaque = data[i + 3] > 10;
+        const isDarkEnough = data[i] < threshold || data[i + 1] < threshold || data[i + 2] < threshold;
+        if (isOpaque && isDarkEnough) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+        }
+      }
+    }
+    if (maxX <= minX) return FALLBACK;
+    const fraction = (maxX - minX) / offscreen.width;
+    // Limites de segurança contra leituras esquisitas (foto toda escura, ruído, etc.).
+    return Math.min(0.98, Math.max(0.35, fraction));
+  } catch {
+    // Canvas "contaminado" por CORS ou outro erro de leitura — usa um padrão razoável.
+    return FALLBACK;
+  }
+}
+
 export default function TryOnModal({
   productImage,
   productName,
@@ -57,6 +99,7 @@ export default function TryOnModal({
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const glassesImageRef = useRef<HTMLImageElement | null>(null);
+  const contentFractionRef = useRef(0.82);
   const faceLandmarkerRef = useRef<any>(null);
   const stoppedRef = useRef(false);
   const smoothedRef = useRef<{
@@ -106,6 +149,7 @@ export default function TryOnModal({
         image.onerror = () => reject(new Error("image"));
       });
       glassesImageRef.current = image;
+      contentFractionRef.current = measureContentWidthFraction(image);
     } catch {
       setStatus("error");
       setErrorMessage("Não conseguimos carregar a foto deste produto para o provador virtual.");
@@ -230,7 +274,7 @@ export default function TryOnModal({
         const eyeDistance = Math.hypot(dx, dy);
         const centerX = (leftPx.x + rightPx.x) / 2;
         const centerY = (leftPx.y + rightPx.y) / 2 + eyeDistance * VERTICAL_OFFSET_FACTOR;
-        const glassesWidth = eyeDistance * GLASSES_WIDTH_FACTOR;
+        const glassesWidth = (eyeDistance * GLASSES_WIDTH_FACTOR) / contentFractionRef.current;
         const glassesHeight = glassesWidth * (glasses.naturalHeight / glasses.naturalWidth);
 
         const prev = smoothedRef.current;

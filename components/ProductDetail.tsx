@@ -343,7 +343,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       )}
 
       {lightboxOpen && <ProductLightbox images={selectedGallery} initialIndex={lightboxIndex} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} onClose={() => setLightboxOpen(false)} />}
-      {tryOnOpen && <TryOnModal productImage={activeImage || selectedGallery[0] || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
+      {tryOnOpen && <TryOnModal productImage={selectedGallery[1] || selectedGallery[0] || activeImage || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
     </main>
   );
 }
