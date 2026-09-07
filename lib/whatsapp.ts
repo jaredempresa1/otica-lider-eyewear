@@ -41,12 +41,14 @@ export function buildWhatsAppOrderMessage(
   lines.push(`Subtotal: ${formatBRL(subtotal)}`);
   lines.push(`Forma de pagamento: ${paymentDescription(payment, subtotal)}`);
 
-  if (cep) {
-    lines.push(`CEP de entrega: ${cep}`);
-    if (shipping.freeShipping) {
-      lines.push(`Frete: Grátis (${shipping.regionLabel})`);
-    } else {
-      lines.push("Frete: a calcular com vocês");
+	  if (cep) {
+	    lines.push(`CEP de entrega: ${cep}`);
+	    if (shipping.freeShipping) {
+	      lines.push("Frete: Grátis");
+	    } else if (shipping.price != null) {
+	      lines.push(`Frete: ${formatBRL(shipping.price)}${shipping.deliveryTime ? ` — até ${shipping.deliveryTime} dias úteis` : ""}`);
+	    } else {
+	      lines.push("Frete: a calcular com vocês");
     }
   }
 

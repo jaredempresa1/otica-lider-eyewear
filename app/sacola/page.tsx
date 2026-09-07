@@ -40,7 +40,7 @@ export default function SacolaPage() {
     setCheckingShipping(true);
 
     const timer = setTimeout(() => {
-      checkShipping(cep).then((result) => {
+	    checkShipping(cep, items).then((result) => {
         if (!cancelled) {
           setShipping(result);
           setCheckingShipping(false);
@@ -52,7 +52,7 @@ export default function SacolaPage() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [cep]);
+	  }, [cep, items]);
 
   function selectPaymentMethod(method: PaymentSelection["method"]) {
     setPayment((current) => ({ ...current, method }));
@@ -147,13 +147,13 @@ export default function SacolaPage() {
           <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
             <div className="flex items-center justify-between text-brand-paper"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
             <div>
-              <div className="flex items-center justify-between text-brand-paper"><span>Frete</span><span>{isFreeShipping ? "Grátis" : "A combinar"}</span></div>
+	            <div className="flex items-center justify-between text-brand-paper"><span>Frete</span><span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span></div>
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
               {checkingShipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
               {!checkingShipping && shipping && (
                 <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
-                  {isFreeShipping ? "Frete grátis: seu endereço está dentro da nossa área de entrega." : "Para este CEP, combinaremos o frete pelo WhatsApp."}
+	                  {isFreeShipping ? "Frete grátis" : shipping?.price != null ? `${shipping.serviceName || "Frete"} · entrega em até ${shipping.deliveryTime} dias úteis` : shipping?.error || "Não foi possível calcular o frete automaticamente."}
                 </p>
               )}
             </div>
@@ -186,7 +186,7 @@ export default function SacolaPage() {
             )}
           </fieldset>
 
-          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[16px] text-brand-paper">Total do pedido</span><span className="text-right font-heading text-[26px] font-semibold text-brand-paper">{formatBRL(subtotal)}</span></div>
+	          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[16px] text-brand-paper">Total do pedido</span><span className="text-right font-heading text-[26px] font-semibold text-brand-paper">{formatBRL(subtotal + (shipping?.price || 0))}</span></div>
           <div className="mt-2 rounded-xl bg-brand-paper/10 px-3 py-2.5 font-body text-[12px] leading-5 text-brand-paper" aria-live="polite">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper">Pagamento escolhido</span>
             {payment.method === "pix" ? "Pix à vista" : `Cartão de crédito · ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`}
