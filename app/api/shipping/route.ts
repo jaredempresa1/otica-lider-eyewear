@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import { supabase } from "@/lib/supabaseClient";
 
 const ORIGIN_POSTAL_CODE = "58043320";
 const MELHOR_ENVIO_URL = "https://melhorenvio.com.br/api/v2/me/shipment/calculate";
 
-// Ajuste aqui o pacote padrão usado na cotação dos óculos.
-const PACKAGE = {
+// Usado até a tabela shipping_settings ser criada no Supabase.
+const DEFAULT_PACKAGE = {
   width: 15,
   height: 10,
   length: 20,
@@ -56,9 +57,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Informe um CEP de destino e ao menos um item." }, { status: 400 });
   }
 
+  const { data: packageSettings } = await supabase
+    .from("shipping_settings")
+    .select("width, height, length, weight")
+    .eq("id", 1)
+    .maybeSingle();
+
+  const packageSize = packageSettings ? {
+    width: Number(packageSettings.width),
+    height: Number(packageSettings.height),
+    length: Number(packageSettings.length),
+    weight: Number(packageSettings.weight),
+  } : DEFAULT_PACKAGE;
+
   const products = body.items.map((item) => ({
     id: item.id,
-    ...PACKAGE,
+    ...packageSize,
     insurance_value: Number(item.price.toFixed(2)),
     quantity: Math.max(1, item.quantity),
   }));

@@ -30,6 +30,13 @@ type Lead = {
   created_at: string;
 };
 
+type ShippingSettings = {
+  width: string;
+  height: string;
+  length: string;
+  weight: string;
+};
+
 type FormState = {
   id?: string;
   slug: string;
@@ -145,7 +152,10 @@ export default function AdminDashboardPage() {
   const [collectionError, setCollectionError] = useState("");
 
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp">("produtos");
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>({ width: "15", height: "10", length: "20", weight: "0.5" });
+  const [shippingSaving, setShippingSaving] = useState(false);
+  const [shippingMessage, setShippingMessage] = useState("");
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete">("produtos");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -156,6 +166,7 @@ export default function AdminDashboardPage() {
         void loadProducts();
         void loadCollections();
         void loadLeads();
+        void loadShippingSettings();
       }
     });
   }, [router]);
@@ -173,6 +184,31 @@ export default function AdminDashboardPage() {
   async function loadLeads() {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
     setLeads((data as Lead[]) ?? []);
+  }
+
+  async function loadShippingSettings() {
+    const { data } = await supabase.from("shipping_settings").select("width, height, length, weight").eq("id", 1).maybeSingle();
+    if (data) setShippingSettings({ width: String(data.width), height: String(data.height), length: String(data.length), weight: String(data.weight) });
+  }
+
+  async function saveShippingSettings(event: React.FormEvent) {
+    event.preventDefault();
+    setShippingSaving(true);
+    setShippingMessage("");
+    const values = {
+      width: Number(shippingSettings.width.replace(",", ".")),
+      height: Number(shippingSettings.height.replace(",", ".")),
+      length: Number(shippingSettings.length.replace(",", ".")),
+      weight: Number(shippingSettings.weight.replace(",", ".")),
+    };
+    if (Object.values(values).some((value) => !Number.isFinite(value) || value <= 0)) {
+      setShippingMessage("Informe valores maiores que zero.");
+      setShippingSaving(false);
+      return;
+    }
+    const { error } = await supabase.from("shipping_settings").upsert({ id: 1, ...values, updated_at: new Date().toISOString() });
+    setShippingMessage(error ? "Não foi possível salvar. Crie a tabela shipping_settings no Supabase primeiro." : "Medidas salvas. Os próximos cálculos usarão esta embalagem.");
+    setShippingSaving(false);
   }
 
   function openNewCollectionForm() {
@@ -535,14 +571,14 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : "Números de WhatsApp"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : "Frete"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : "Contatos que se cadastraram pelo formulário do final da home."}
+              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : "Configure o pacote usado no cálculo automático de frete."}
           </p>
         </div>
         <div className="flex gap-3">
@@ -556,6 +592,7 @@ export default function AdminDashboardPage() {
           { key: "produtos", label: "Produtos" },
           { key: "colecoes", label: "Coleções" },
           { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
+          { key: "frete", label: "Frete" },
         ] as const).map((tab) => (
           <button
             key={tab.key}
@@ -568,6 +605,26 @@ export default function AdminDashboardPage() {
           </button>
         ))}
       </div>
+
+      {activeTab === "frete" && (
+        <section className="max-w-2xl rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8">
+          <p className="eyebrow">Embalagem padrão</p>
+          <h2 className="mt-2 font-heading text-2xl font-semibold text-brand-ink">Peso e dimensões para o cálculo</h2>
+          <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Informe as medidas externas da caixa fechada, em centímetros, e o peso total do pacote, em quilogramas.</p>
+          <form onSubmit={saveShippingSettings} className="mt-6 grid gap-4 sm:grid-cols-2">
+            {([['width', 'Largura (cm)'], ['height', 'Altura (cm)'], ['length', 'Comprimento (cm)'], ['weight', 'Peso (kg)']] as const).map(([key, label]) => (
+              <label key={key} className="font-body text-xs font-semibold text-brand-ink/65">
+                {label}
+                <input required type="number" min="0.001" step="0.001" value={shippingSettings[key]} onChange={(event) => setShippingSettings((current) => ({ ...current, [key]: event.target.value }))} className="input-premium mt-1" />
+              </label>
+            ))}
+            <div className="sm:col-span-2 flex items-center gap-4">
+              <button type="submit" disabled={shippingSaving} className="btn-brand">{shippingSaving ? "Salvando..." : "Salvar medidas"}</button>
+              {shippingMessage && <p className="font-body text-sm text-brand-ink/65">{shippingMessage}</p>}
+            </div>
+          </form>
+        </section>
+      )}
 
       {activeTab === "colecoes" && (
       <section className="mb-10">

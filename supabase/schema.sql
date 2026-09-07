@@ -175,3 +175,22 @@ create policy "Somente logados podem ver os cadastros"
 
 -- Especificações técnicas exibidas no acordeão da página do produto.
 alter table products add column if not exists specifications jsonb not null default '{}'::jsonb;
+
+-- Configuração do pacote usada na cotação automática de frete.
+create table if not exists shipping_settings (
+  id integer primary key default 1 check (id = 1),
+  width numeric(8, 2) not null default 15,
+  height numeric(8, 2) not null default 10,
+  length numeric(8, 2) not null default 20,
+  weight numeric(8, 3) not null default 0.5,
+  updated_at timestamp with time zone default now()
+);
+
+insert into shipping_settings (id) values (1) on conflict (id) do nothing;
+alter table shipping_settings enable row level security;
+drop policy if exists "Configuração de frete é pública para cotação" on shipping_settings;
+create policy "Configuração de frete é pública para cotação"
+  on shipping_settings for select using (true);
+drop policy if exists "Somente logados podem alterar configuração de frete" on shipping_settings;
+create policy "Somente logados podem alterar configuração de frete"
+  on shipping_settings for all to authenticated using (true) with check (true);
