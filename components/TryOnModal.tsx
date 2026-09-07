@@ -7,9 +7,9 @@ type Status = "consent" | "loading" | "running" | "error";
 
 // Quanto maior, mais largo o óculos fica em relação à distância pupilar
 // (centro da íris a centro da íris — a mesma referência que uma ótica usa
-// pra montar uma armação). 2.1 aproxima a proporção real entre a distância
-// pupilar média (~63mm) e a largura média de uma armação (~135mm).
-const GLASSES_WIDTH_FACTOR = 2.1;
+// pra montar uma armação). 2.3 aproxima a proporção real entre a distância
+// pupilar média (~63mm) e a largura média de uma armação (~145mm).
+const GLASSES_WIDTH_FACTOR = 2.3;
 // Desce o centro do óculos um pouco abaixo da linha das pupilas. Mantido
 // pequeno de propósito: o centro óptico de uma lente fica na altura da
 // pupila, então um deslocamento grande empurra o óculos pra baixo, em
