@@ -49,24 +49,17 @@ export type ShippingResult = {
   error?: string;
 };
 
-const FALLBACK_RANGES: { label: string; from: number; to: number }[] = [
-  { label: "João Pessoa - PB", from: 58000, to: 58099 },
-  { label: "Bayeux - PB", from: 58110, to: 58119 },
-  { label: "Bayeux - PB", from: 58305, to: 58309 },
-  { label: "Cabedelo - PB", from: 58310, to: 58319 },
-];
-
-function fallbackCheck(digits: string): ShippingResult {
-  const prefix = parseInt(digits.slice(0, 5), 10);
-
-  for (const range of FALLBACK_RANGES) {
-    if (prefix >= range.from && prefix <= range.to) {
-      return { valid: true, freeShipping: true, regionLabel: range.label, source: "fallback" };
-    }
-  }
-
-  return { valid: true, freeShipping: false, regionLabel: null, source: "fallback" };
-}
+// ⚠️ Removido em 07/2026: este arquivo tinha uma tabela de faixas de CEP
+// (FALLBACK_RANGES) que concedia frete grátis para QUALQUER CEP de João
+// Pessoa, Bayeux ou Cabedelo inteiras sempre que a geocodificação por
+// coordenadas falhasse (API fora do ar, CEP sem coordenadas cadastradas,
+// erro de rede). Isso ignorava por completo o polígono da área de frete
+// grátis (FREE_SHIPPING_ZONE) — ou seja, clientes de bairros bem fora da
+// área real podiam ganhar frete grátis por acaso, sempre que a consulta de
+// coordenadas falhasse. Como a regra é "só frete grátis para quem está
+// REALMENTE dentro da área", removemos essa concessão automática: se não
+// dá pra confirmar a localização exata do CEP, o site cai para a cotação
+// paga (Melhor Envio) em vez de presumir frete grátis.
 
 async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<ShippingResult> {
   try {
@@ -113,8 +106,10 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
   const { coords, city } = await getCepInfo(digits);
 
   if (!coords) {
-    const fallback = fallbackCheck(digits);
-    return fallback.freeShipping ? fallback : quoteOutsideFreeArea(digits, items);
+    // Não temos como confirmar se este CEP está dentro da área de frete
+    // grátis — em vez de presumir que sim (como acontecia antes), calculamos
+    // o frete pago normalmente. Mais seguro que dar frete grátis "no escuro".
+    return quoteOutsideFreeArea(digits, items);
   }
 
   if (!isExcludedCity(city) && isInsideZone(coords, FREE_SHIPPING_ZONE)) {

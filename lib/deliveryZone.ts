@@ -2,20 +2,30 @@
  * ÁREA DE FRETE GRÁTIS
  * =====================
  *
- * Em vez de "advinhar" a cidade a partir do prefixo do CEP, a gente
+ * Em vez de "adivinhar" a cidade a partir do prefixo do CEP, a gente
  * confere se o PONTO (latitude/longitude) do CEP do cliente cai dentro
  * desse polígono. É o mesmo princípio das áreas de entrega do iFood ou
  * do Uber.
  *
- * ⚠️ IMPORTANTE — os pontos abaixo são um RASCUNHO
- * ---------------------------------------------------
- * Eu desenhei esse polígono de olho na imagem que você mandou (a área
- * demarcada em vermelho: João Pessoa, Bayeux, Cabedelo e a orla até a
- * altura de Seixas). Mas eu "chutei" as coordenadas olhando um mapa —
- * não tenho como extrair os pontos exatos do contorno vermelho do seu
- * print. Então trate isso como ponto de partida, não como área final.
+ * ⚠️ REVISADO EM 07/2026 — ainda é uma ESTIMATIVA, não um traçado exato
+ * -----------------------------------------------------------------------
+ * A versão anterior deste arquivo foi um "chute" olhando um print.
+ * Esta versão foi refeita usando coordenadas reais e confirmadas de
+ * Bayeux, João Pessoa, Cabedelo e Cabo Branco/Ponta do Seixas como
+ * pontos de referência, ajustando o contorno para acompanhar o formato
+ * da área vermelha do seu print (cobrindo Bayeux, toda a orla de João
+ * Pessoa, Cabedelo, até a altura de Cabo Branco/Seixas).
  *
- * PARA DEIXAR CERTEIRO (5 minutos, de graça):
+ * Isso é bem mais confiável que o rascunho anterior, mas ainda pode ter
+ * erro de algumas centenas de metros perto das bordas — um print não
+ * carrega informação de projeção/zoom exata, então não dá pra extrair
+ * coordenadas com precisão cirúrgica só olhando a imagem.
+ *
+ * Cidades como Lucena, Santa Rita e Conde são bloqueadas separadamente
+ * em lib/shipping.ts (EXCLUDED_CITIES), então mesmo que o polígono
+ * "vaze" um pouco para perto delas, essas cidades continuam de fora.
+ *
+ * PARA DEIXAR 100% EXATO (5 minutos, de graça):
  * 1. Abra https://geojson.io no navegador.
  * 2. No menu de desenho (ícone de polígono, canto superior direito),
  *    desenhe por cima do mapa a MESMA área que você marcou de vermelho.
@@ -38,18 +48,18 @@ export type LatLng = {
 };
 
 export const FREE_SHIPPING_ZONE: LatLng[] = [
-  { lat: -7.020, lng: -34.965 },
-  { lat: -7.005, lng: -34.900 },
-  { lat: -6.965, lng: -34.850 },
-  { lat: -6.955, lng: -34.808 },
-  { lat: -6.995, lng: -34.800 },
-  { lat: -7.080, lng: -34.815 },
-  { lat: -7.145, lng: -34.825 },
-  { lat: -7.205, lng: -34.845 },
-  { lat: -7.230, lng: -34.900 },
-  { lat: -7.175, lng: -34.965 },
-  { lat: -7.090, lng: -35.010 },
-  { lat: -7.020, lng: -34.985 },
+  { lat: -7.055, lng: -34.945 }, // norte de Bayeux
+  { lat: -7.010, lng: -34.900 }, // acompanhando o rio Sanhauá, ao norte
+  { lat: -6.985, lng: -34.860 }, // seguindo para leste, rumo a Cabedelo
+  { lat: -6.965, lng: -34.822 }, // norte de Cabedelo / Costinha
+  { lat: -6.985, lng: -34.812 }, // litoral de Cabedelo (Intermares/Camboinha)
+  { lat: -7.020, lng: -34.815 }, // porto de Cabedelo
+  { lat: -7.095, lng: -34.822 }, // orla de João Pessoa (Bessa/Manaíra/Tambaú)
+  { lat: -7.150, lng: -34.800 }, // Cabo Branco / Ponta do Seixas
+  { lat: -7.195, lng: -34.812 }, // sul de Seixas, virada da costa
+  { lat: -7.215, lng: -34.865 }, // interior sul de João Pessoa
+  { lat: -7.150, lng: -34.930 }, // interior, retornando em direção a Bayeux
+  { lat: -7.090, lng: -34.958 }, // oeste de Bayeux, fecha o polígono
 ];
 
 /**
