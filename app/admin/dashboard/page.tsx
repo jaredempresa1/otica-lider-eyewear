@@ -42,6 +42,8 @@ type PromoBannerSettings = {
   alt_text: string;
   href: string;
   active: boolean;
+  destination_type: "none" | "collection" | "product";
+  destination_id: string;
 };
 
 type FormState = {
@@ -162,7 +164,7 @@ export default function AdminDashboardPage() {
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>({ width: "15", height: "10", length: "20", weight: "0.5" });
   const [shippingSaving, setShippingSaving] = useState(false);
   const [shippingMessage, setShippingMessage] = useState("");
-  const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false });
+  const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false, destination_type: "none", destination_id: "" });
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
   const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque">("produtos");
@@ -223,8 +225,8 @@ export default function AdminDashboardPage() {
   }
 
   async function loadPromoBanner() {
-    const { data } = await supabase.from("promo_banner").select("image_url, alt_text, href, active").eq("id", 1).maybeSingle();
-    if (data) setPromoBanner({ image_url: data.image_url || "", alt_text: data.alt_text || "Novidade da Ótica Líder", href: data.href || "", active: Boolean(data.active) });
+    const { data } = await supabase.from("promo_banner").select("image_url, alt_text, href, active, destination_type, destination_id").eq("id", 1).maybeSingle();
+    if (data) setPromoBanner({ image_url: data.image_url || "", alt_text: data.alt_text || "Novidade da Ótica Líder", href: data.href || "", active: Boolean(data.active), destination_type: data.destination_type || "none", destination_id: data.destination_id || "" });
   }
 
   async function uploadPromoBanner(file: File) {
@@ -656,12 +658,25 @@ export default function AdminDashboardPage() {
             <label className="block font-body text-xs font-semibold text-brand-ink/65">Imagem (JPG, PNG ou WebP)
               <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadPromoBanner(file); }} className="mt-2 block w-full rounded-xl border border-dashed border-brand-ink/20 bg-brand-cream px-4 py-4 font-body text-sm" />
             </label>
-            {promoBanner.image_url && <img src={promoBanner.image_url} alt="Prévia do destaque" className="aspect-[16/6] w-full rounded-xl object-cover" />}
+            {promoBanner.image_url && <img src={promoBanner.image_url} alt="Prévia do destaque" className="aspect-[16/9] w-full rounded-xl object-cover" />}
             <label className="block font-body text-xs font-semibold text-brand-ink/65">Texto alternativo
               <input value={promoBanner.alt_text} onChange={(event) => setPromoBanner((current) => ({ ...current, alt_text: event.target.value }))} className="input-premium mt-1" />
             </label>
-            <label className="block font-body text-xs font-semibold text-brand-ink/65">Link opcional (ex.: /produtos)
-              <input value={promoBanner.href} onChange={(event) => setPromoBanner((current) => ({ ...current, href: event.target.value }))} className="input-premium mt-1" placeholder="/produtos" />
+            <label className="block font-body text-xs font-semibold text-brand-ink/65">Ao clicar no destaque, levar para
+              <select value={promoBanner.destination_type === "none" ? "none" : `${promoBanner.destination_type}:${promoBanner.destination_id}`} onChange={(event) => {
+                const [type, id = ""] = event.target.value.split(":");
+                const destinationType = type as PromoBannerSettings["destination_type"];
+                const href = destinationType === "collection" ? `/produtos?colecao=${encodeURIComponent(id)}` : destinationType === "product" ? `/produtos/${encodeURIComponent(id)}` : "";
+                setPromoBanner((current) => ({ ...current, destination_type: destinationType, destination_id: id, href }));
+              }} className="input-premium mt-1">
+                <option value="none">Nenhum destino</option>
+                <optgroup label="Coleções">
+                  {collections.map((collection) => <option key={collection.id} value={`collection:${collection.slug}`}>{collection.name}</option>)}
+                </optgroup>
+                <optgroup label="Produtos">
+                  {products.map((product) => <option key={product.id} value={`product:${product.slug}`}>{product.name}</option>)}
+                </optgroup>
+              </select>
             </label>
             <label className="flex items-center gap-3 font-body text-sm font-semibold text-brand-ink/70"><input type="checkbox" checked={promoBanner.active} onChange={(event) => setPromoBanner((current) => ({ ...current, active: event.target.checked }))} className="h-4 w-4 accent-brand-gold" /> Mostrar destaque na home</label>
             <div className="flex items-center gap-4"><button type="submit" disabled={promoSaving || !promoBanner.image_url} className="btn-brand">{promoSaving ? "Salvando..." : "Salvar destaque"}</button>{promoMessage && <p className="font-body text-sm text-brand-ink/65">{promoMessage}</p>}</div>

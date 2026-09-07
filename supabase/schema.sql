@@ -205,6 +205,9 @@ create table if not exists promo_banner (
   updated_at timestamp with time zone default now()
 );
 
+alter table promo_banner add column if not exists destination_type text not null default 'none';
+alter table promo_banner add column if not exists destination_id text not null default '';
+
 insert into promo_banner (id) values (1) on conflict (id) do nothing;
 alter table promo_banner enable row level security;
 drop policy if exists "Banner ativo é público" on promo_banner;
