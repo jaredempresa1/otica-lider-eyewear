@@ -6,9 +6,9 @@
  */
 import Link from "next/link";
 import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingBag, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartContext";
-import { checkShipping, isValidCep } from "@/lib/shipping";
+import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
@@ -21,9 +21,38 @@ export default function SacolaPage() {
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
   const [cep, setCep] = useState("");
   const [payment, setPayment] = useState<PaymentSelection>({ method: "pix", installments: 10 });
-  const shipping = isValidCep(cep) ? checkShipping(cep) : null;
+  const [shipping, setShipping] = useState<ShippingResult | null>(null);
+  const [checkingShipping, setCheckingShipping] = useState(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const installmentValue = subtotal / payment.installments;
+
+  // Assim que o cliente termina de digitar o CEP (8 dígitos), esperamos
+  // meio segundo (pra não disparar uma chamada a cada tecla) e então
+  // consultamos a API de geocodificação + a área de frete grátis.
+  useEffect(() => {
+    if (!isValidCep(cep)) {
+      setShipping(null);
+      setCheckingShipping(false);
+      return;
+    }
+
+    let cancelled = false;
+    setCheckingShipping(true);
+
+    const timer = setTimeout(() => {
+      checkShipping(cep).then((result) => {
+        if (!cancelled) {
+          setShipping(result);
+          setCheckingShipping(false);
+        }
+      });
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [cep]);
 
   function selectPaymentMethod(method: PaymentSelection["method"]) {
     setPayment((current) => ({ ...current, method }));
@@ -121,7 +150,12 @@ export default function SacolaPage() {
               <div className="flex items-center justify-between text-brand-paper"><span>Frete</span><span>{isFreeShipping ? "Grátis" : "A combinar"}</span></div>
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
-              {shipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">{isFreeShipping ? `Frete grátis para ${shipping.regionLabel}.` : "Para este CEP, combinaremos o frete pelo WhatsApp."}</p>}
+              {checkingShipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
+              {!checkingShipping && shipping && (
+                <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
+                  {isFreeShipping ? "Frete grátis: seu endereço está dentro da nossa área de entrega." : "Para este CEP, combinaremos o frete pelo WhatsApp."}
+                </p>
+              )}
             </div>
           </div>
 
