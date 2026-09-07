@@ -84,7 +84,7 @@ export default function ProductCard({ product }: { product: Product }) {
   function handleMadeToOrderPaymentConfirm(payment: PaymentSelection) {
     const message = buildWhatsAppMadeToOrderMessage(
       { brand: product.brand, model: product.model, name: product.name, price: product.price },
-      { colorName: selectedColor?.name, leadTime: product.made_to_order_note, payment }
+      { colorName: selectedColor?.name, leadTime: product.made_to_order_note, payment, cardTotal: installmentTotal ?? product.price }
     );
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
     setShowPaymentModal(false);
@@ -194,7 +194,9 @@ export default function ProductCard({ product }: { product: Product }) {
       {showPaymentModal && (
         <PaymentMethodModal
           productName={productLabel}
-          total={product.price}
+          cashPrice={product.price}
+          cardTotal={installmentTotal ?? product.price}
+          maxInstallments={product.installments?.enabled && product.installments.count > 0 ? product.installments.count : 1}
           onConfirm={handleMadeToOrderPaymentConfirm}
           onClose={() => setShowPaymentModal(false)}
         />

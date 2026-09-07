@@ -17,6 +17,17 @@ function paymentDescription(payment: PaymentSelection, total: number): string {
   return `Cartão de crédito — ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`;
 }
 
+/** Mesma ideia da acima, mas sem presumir "sem juros": usada quando o total
+ * de parcelas já vem do plano de parcelamento cadastrado no produto
+ * (product.installments), que pode ter o valor parcelado maior que o preço
+ * à vista. */
+function madeToOrderPaymentDescription(payment: PaymentSelection, cashPrice: number, cardTotal: number): string {
+  if (payment.method === "pix") return `Pix à vista — ${formatBRL(cashPrice)}`;
+
+  const installmentValue = cardTotal / payment.installments;
+  return `Cartão de crédito — ${payment.installments}x de ${formatBRL(installmentValue)}`;
+}
+
 export function buildWhatsAppOrderMessage(
   items: CartItem[],
   cep: string,
@@ -76,7 +87,7 @@ export function buildWhatsAppMadeToOrderMessage(product: {
   model?: string;
   name: string;
   price: number;
-}, options: { colorName?: string; leadTime?: string; payment?: PaymentSelection } = {}): string {
+}, options: { colorName?: string; leadTime?: string; payment?: PaymentSelection; cardTotal?: number } = {}): string {
   const label = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
   const lines: string[] = [];
 
@@ -84,7 +95,7 @@ export function buildWhatsAppMadeToOrderMessage(product: {
   lines.push("");
   lines.push(`• ${label}${options.colorName ? ` — cor ${options.colorName}` : ""} — ${formatBRL(product.price)}`);
   if (options.payment) {
-    lines.push(`Forma de pagamento: ${paymentDescription(options.payment, product.price)}`);
+    lines.push(`Forma de pagamento: ${madeToOrderPaymentDescription(options.payment, product.price, options.cardTotal ?? product.price)}`);
   }
   if (options.leadTime?.trim()) {
     lines.push("");
