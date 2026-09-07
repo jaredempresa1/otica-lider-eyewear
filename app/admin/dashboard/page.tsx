@@ -37,6 +37,13 @@ type ShippingSettings = {
   weight: string;
 };
 
+type PromoBannerSettings = {
+  image_url: string;
+  alt_text: string;
+  href: string;
+  active: boolean;
+};
+
 type FormState = {
   id?: string;
   slug: string;
@@ -155,7 +162,10 @@ export default function AdminDashboardPage() {
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>({ width: "15", height: "10", length: "20", weight: "0.5" });
   const [shippingSaving, setShippingSaving] = useState(false);
   const [shippingMessage, setShippingMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete">("produtos");
+  const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false });
+  const [promoSaving, setPromoSaving] = useState(false);
+  const [promoMessage, setPromoMessage] = useState("");
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque">("produtos");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -167,6 +177,7 @@ export default function AdminDashboardPage() {
         void loadCollections();
         void loadLeads();
         void loadShippingSettings();
+        void loadPromoBanner();
       }
     });
   }, [router]);
@@ -209,6 +220,35 @@ export default function AdminDashboardPage() {
     const { error } = await supabase.from("shipping_settings").upsert({ id: 1, ...values, updated_at: new Date().toISOString() });
     setShippingMessage(error ? "Não foi possível salvar. Crie a tabela shipping_settings no Supabase primeiro." : "Medidas salvas. Os próximos cálculos usarão esta embalagem.");
     setShippingSaving(false);
+  }
+
+  async function loadPromoBanner() {
+    const { data } = await supabase.from("promo_banner").select("image_url, alt_text, href, active").eq("id", 1).maybeSingle();
+    if (data) setPromoBanner({ image_url: data.image_url || "", alt_text: data.alt_text || "Novidade da Ótica Líder", href: data.href || "", active: Boolean(data.active) });
+  }
+
+  async function uploadPromoBanner(file: File) {
+    if (!file.type.startsWith("image/")) { setPromoMessage("Envie uma imagem JPG, PNG ou WebP."); return; }
+    setPromoSaving(true);
+    setPromoMessage("");
+    const extension = file.name.split(".").pop() || "jpg";
+    const path = `promo-banner/${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage.from("product-media").upload(path, file, { upsert: true, contentType: file.type });
+    if (error) setPromoMessage(error.message);
+    else {
+      const { data } = supabase.storage.from("product-media").getPublicUrl(path);
+      setPromoBanner((current) => ({ ...current, image_url: data.publicUrl }));
+      setPromoMessage("Imagem carregada. Clique em Salvar destaque.");
+    }
+    setPromoSaving(false);
+  }
+
+  async function savePromoBanner(event: React.FormEvent) {
+    event.preventDefault();
+    setPromoSaving(true);
+    const { error } = await supabase.from("promo_banner").upsert({ id: 1, ...promoBanner, updated_at: new Date().toISOString() });
+    setPromoMessage(error ? "Não foi possível salvar. Crie a tabela promo_banner no Supabase primeiro." : promoBanner.active ? "Destaque ativado na home." : "Destaque salvo e desativado.");
+    setPromoSaving(false);
   }
 
   function openNewCollectionForm() {
@@ -571,14 +611,14 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : "Frete"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "frete" ? "Frete" : "Destaque"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : "Configure o pacote usado no cálculo automático de frete."}
+              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : "Publique uma novidade opcional na home."}
           </p>
         </div>
         <div className="flex gap-3">
@@ -593,6 +633,7 @@ export default function AdminDashboardPage() {
           { key: "colecoes", label: "Coleções" },
           { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
           { key: "frete", label: "Frete" },
+          { key: "destaque", label: "Destaque" },
         ] as const).map((tab) => (
           <button
             key={tab.key}
@@ -605,6 +646,28 @@ export default function AdminDashboardPage() {
           </button>
         ))}
       </div>
+
+      {activeTab === "destaque" && (
+        <section className="max-w-3xl rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8">
+          <p className="eyebrow">Novidade na home</p>
+          <h2 className="mt-2 font-heading text-2xl font-semibold text-brand-ink">Destaque promocional</h2>
+          <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Envie uma imagem horizontal, ative quando quiser e desative para removê-la da home sem apagar o arquivo.</p>
+          <form onSubmit={savePromoBanner} className="mt-6 space-y-4">
+            <label className="block font-body text-xs font-semibold text-brand-ink/65">Imagem (JPG, PNG ou WebP)
+              <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadPromoBanner(file); }} className="mt-2 block w-full rounded-xl border border-dashed border-brand-ink/20 bg-brand-cream px-4 py-4 font-body text-sm" />
+            </label>
+            {promoBanner.image_url && <img src={promoBanner.image_url} alt="Prévia do destaque" className="aspect-[16/4] w-full rounded-xl object-cover" />}
+            <label className="block font-body text-xs font-semibold text-brand-ink/65">Texto alternativo
+              <input value={promoBanner.alt_text} onChange={(event) => setPromoBanner((current) => ({ ...current, alt_text: event.target.value }))} className="input-premium mt-1" />
+            </label>
+            <label className="block font-body text-xs font-semibold text-brand-ink/65">Link opcional (ex.: /produtos)
+              <input value={promoBanner.href} onChange={(event) => setPromoBanner((current) => ({ ...current, href: event.target.value }))} className="input-premium mt-1" placeholder="/produtos" />
+            </label>
+            <label className="flex items-center gap-3 font-body text-sm font-semibold text-brand-ink/70"><input type="checkbox" checked={promoBanner.active} onChange={(event) => setPromoBanner((current) => ({ ...current, active: event.target.checked }))} className="h-4 w-4 accent-brand-gold" /> Mostrar destaque na home</label>
+            <div className="flex items-center gap-4"><button type="submit" disabled={promoSaving || !promoBanner.image_url} className="btn-brand">{promoSaving ? "Salvando..." : "Salvar destaque"}</button>{promoMessage && <p className="font-body text-sm text-brand-ink/65">{promoMessage}</p>}</div>
+          </form>
+        </section>
+      )}
 
       {activeTab === "frete" && (
         <section className="max-w-2xl rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8">

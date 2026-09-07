@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
 import CollectionTiles from "@/components/CollectionTiles";
+import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
 import WhatsAppSignup from "@/components/WhatsAppSignup";
 import FilterDrawer from "@/components/FilterDrawer";
@@ -22,9 +23,10 @@ export default async function HomePage({
   let products: Product[] = [];
   let testimonials: Array<{ id: string; author_name: string; content: string }> = [];
   let collections: Collection[] = [];
+  let promoBanner: { image_url: string; href: string; alt_text: string } | null = null;
 
   if (hasSupabaseConfig) {
-    const [{ data: productData }, { data: testimonialData }, { data: collectionData }] = await Promise.all([
+    const [{ data: productData }, { data: testimonialData }, { data: collectionData }, { data: bannerData }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase
         .from("testimonials")
@@ -32,10 +34,12 @@ export default async function HomePage({
         .order("created_at", { ascending: false })
         .limit(4),
       supabase.from("collections").select("*").order("sort_order", { ascending: true }),
+      supabase.from("promo_banner").select("image_url, href, alt_text").eq("id", 1).maybeSingle(),
     ]);
     products = (productData as Product[]) ?? [];
     testimonials = testimonialData ?? [];
     collections = (collectionData as Collection[]) ?? [];
+    promoBanner = bannerData ?? null;
   }
 
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
@@ -46,18 +50,6 @@ export default async function HomePage({
   return (
     <main>
       <Hero />
-
-      {collections.length > 0 && (
-        <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
-          <div className="mb-6">
-            <h2 className="section-title">Marcas e coleções</h2>
-            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">
-              Compre por marca
-            </p>
-          </div>
-          <CollectionTiles collections={collections} />
-        </section>
-      )}
 
       {featuredProducts.length > 0 && (
         <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">
@@ -71,6 +63,18 @@ export default async function HomePage({
             </Link>
           </div>
           <ProductGrid products={featuredProducts} scroll />
+        </section>
+      )}
+
+      <PromoBanner banner={promoBanner} />
+
+      {collections.length > 0 && (
+        <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
+          <div className="mb-6">
+            <h2 className="section-title">Marcas e coleções</h2>
+            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Compre por marca</p>
+          </div>
+          <CollectionTiles collections={collections} />
         </section>
       )}
 

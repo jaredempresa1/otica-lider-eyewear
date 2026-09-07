@@ -17,6 +17,10 @@ export default function Footer() {
           <h4 className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">A experiência Líder</h4>
           <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Troca garantida — não gostou, a gente resolve</li><li>Frete grátis para João Pessoa e Região</li></ul>
         </div>
+        <div className="sm:col-span-3 border-t border-brand-paper/10 pt-6 font-body text-sm leading-6 text-brand-paper/60">
+          <p><span className="font-semibold text-brand-paper/80">Endereço:</span> R. Gal Joaquim Barbosa Cordeiro de Farias, 31 B - Centro, Goiana - PE, 55900-000</p>
+          <a href="https://www.instagram.com/oticaliderpe" target="_blank" rel="noreferrer" className="mt-2 inline-block transition-colors hover:text-brand-gold">Instagram: @oticaliderpe</a>
+        </div>
       </div>
       <div className="border-t border-brand-paper/10 px-5 py-5 text-center font-body text-[10px] text-brand-paper/35">© {new Date().getFullYear()} Ótica Líder Eyewear. Todos os direitos reservados.</div>
     </footer>

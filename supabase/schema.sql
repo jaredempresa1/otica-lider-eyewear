@@ -194,3 +194,20 @@ create policy "Configuração de frete é pública para cotação"
 drop policy if exists "Somente logados podem alterar configuração de frete" on shipping_settings;
 create policy "Somente logados podem alterar configuração de frete"
   on shipping_settings for all to authenticated using (true) with check (true);
+
+-- Banner promocional opcional exibido entre os produtos em destaque e as coleções.
+create table if not exists promo_banner (
+  id integer primary key default 1 check (id = 1),
+  image_url text not null default '',
+  alt_text text not null default 'Novidade da Ótica Líder',
+  href text not null default '',
+  active boolean not null default false,
+  updated_at timestamp with time zone default now()
+);
+
+insert into promo_banner (id) values (1) on conflict (id) do nothing;
+alter table promo_banner enable row level security;
+drop policy if exists "Banner ativo é público" on promo_banner;
+create policy "Banner ativo é público" on promo_banner for select using (active = true);
+drop policy if exists "Somente logados podem gerenciar banner" on promo_banner;
+create policy "Somente logados podem gerenciar banner" on promo_banner for all to authenticated using (true) with check (true);
