@@ -170,11 +170,11 @@ export default function SacolaPage() {
 	                        <label className="block">
 	                          <span className="sr-only">Escolha o tipo de frete</span>
 	                          <select value={shipping.options.find((option) => option.name === shipping.serviceName)?.id ?? shipping.serviceName ?? ""} onChange={(event) => handleShippingOption(event.target.value)} className="w-full rounded-xl border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none focus:border-brand-gold">
-	                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · até {option.deliveryTime} dias úteis</option>)}
+                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · entrega estimada em até {option.deliveryTime} dias úteis após a postagem</option>)}
 	                          </select>
 	                        </label>
 	                      )}
-	                      {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · entrega em até {shipping.deliveryTime} dias úteis</p>}
+                      {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem</p>}
 	                    </>
 	                  ) : <p>{shipping?.error || "Não foi possível calcular o frete automaticamente."}</p>}
                 </div>

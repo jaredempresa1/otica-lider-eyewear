@@ -34,6 +34,11 @@ function cleanPostalCode(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+function normalizeDeliveryTime(value: unknown): number {
+  const days = Number(value);
+  return Number.isFinite(days) && days > 0 ? Math.round(days) : 0;
+}
+
 export async function POST(request: Request) {
   const token = process.env.MELHOR_ENVIO_TOKEN;
   const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)";
@@ -78,7 +83,7 @@ export async function POST(request: Request) {
   }));
 
   try {
-    const response = await fetch(MELHOR_ENVIO_URL, {
+    const requestQuotes = async (services?: string) => fetch(MELHOR_ENVIO_URL, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -91,15 +96,24 @@ export async function POST(request: Request) {
         to: { postal_code: postalCode },
         products,
         options: { receipt: false, own_hand: false },
-        services: REQUESTED_SERVICES,
+        ...(services ? { services } : {}),
       }),
       cache: "no-store",
     });
 
-    const data = (await response.json()) as MelhorEnvioQuote[] | { error?: string };
+    let response = await requestQuotes(REQUESTED_SERVICES);
+    let data = (await response.json()) as MelhorEnvioQuote[] | { error?: string };
+
+    // Se PAC/SEDEX não estiver disponível para uma rota específica, tenta
+    // novamente sem restringir a transportadora para obter outras opções.
+    if (response.ok && Array.isArray(data) && !data.some((quote) => quote.error == null && Number(quote.custom_price ?? quote.price ?? 0) > 0)) {
+      response = await requestQuotes();
+      data = (await response.json()) as MelhorEnvioQuote[] | { error?: string };
+    }
+
     if (!response.ok || !Array.isArray(data)) {
       return NextResponse.json(
-        { error: Array.isArray(data) ? "Não foi possível calcular o frete." : data.error || "Não foi possível calcular o frete." },
+        { error: Array.isArray(data) ? "Não há serviço de entrega disponível para este CEP." : data.error || "Não foi possível calcular o frete para este CEP." },
         { status: 502 },
       );
     }
@@ -110,13 +124,13 @@ export async function POST(request: Request) {
         id: quote.id ?? null,
         name: quote.name || "Transportadora",
         price: Number(quote.custom_price ?? quote.price ?? 0),
-        deliveryTime: Number(quote.custom_delivery_time ?? quote.delivery_time ?? 0),
+        deliveryTime: normalizeDeliveryTime(quote.custom_delivery_time ?? quote.delivery_time),
       }))
       .filter((quote) => Number.isFinite(quote.price) && quote.price > 0)
       .sort((a, b) => a.price - b.price);
 
     if (!quotes.length) {
-      return NextResponse.json({ error: "Nenhuma opção de frete disponível para este destino." }, { status: 404 });
+      return NextResponse.json({ error: "Nenhuma opção de frete disponível para este CEP. Confira o CEP ou tente outra modalidade." }, { status: 404 });
     }
 
     return NextResponse.json({ quote: quotes[0], options: quotes });

@@ -53,6 +53,7 @@ const FALLBACK_RANGES: { label: string; from: number; to: number }[] = [
   { label: "João Pessoa - PB", from: 58000, to: 58099 },
   { label: "Bayeux - PB", from: 58110, to: 58119 },
   { label: "Bayeux - PB", from: 58305, to: 58309 },
+  { label: "Cabedelo - PB", from: 58310, to: 58319 },
 ];
 
 function fallbackCheck(digits: string): ShippingResult {
