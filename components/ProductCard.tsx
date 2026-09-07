@@ -100,16 +100,18 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         <div className="absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
-          {product.more_sold ? <span className="rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-ink backdrop-blur-sm">Mais vendido</span> : <span />}
-          {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Oferta</span>}
+          <div className="flex flex-col items-start gap-1.5">
+            {product.more_sold && <span className="rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
+            {madeToOrder ? (
+              <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Sob encomenda</span>
+            ) : colorSoldOut && !productSoldOut ? (
+              <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Cor esgotada</span>
+            ) : (
+              !productSoldOut && product.stock <= 1 && product.stock > 0 && <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Última peça</span>
+            )}
+          </div>
+          {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Oferta</span>}
         </div>
-        {madeToOrder ? (
-          <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-gold px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Sob encomenda</span>
-        ) : colorSoldOut && !productSoldOut ? (
-          <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Cor esgotada</span>
-        ) : (
-          !productSoldOut && product.stock <= 1 && product.stock > 0 && <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-paper">Última peça</span>
-        )}
         <button
           type="button"
           onClick={canBuy ? handleQuickAdd : handleQuickInquiry}
