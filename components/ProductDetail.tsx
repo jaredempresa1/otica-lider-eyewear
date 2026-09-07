@@ -8,8 +8,9 @@ import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
-import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
 import TryOnModal from "./TryOnModal";
+import PaymentMethodModal from "./PaymentMethodModal";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -180,6 +181,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [tryOnOpen, setTryOnOpen] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
   const selectedGallery = getColorImages(product, selectedColor);
   const colorSoldOut = Boolean(selectedColor?.sold_out);
@@ -234,16 +236,26 @@ export default function ProductDetail({ product }: { product: Product }) {
   }
 
   function handleWhatsAppInquiry() {
-    const message = madeToOrder
-      ? buildWhatsAppMadeToOrderMessage(
-          { brand: product.brand, model: product.model, name: product.name, price: product.price },
-          { colorName: selectedColor?.name, leadTime: product.made_to_order_note }
-        )
-      : buildWhatsAppInquiryMessage(
-          { brand: product.brand, model: product.model, name: product.name, price: product.price },
-          { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
-        );
+    // Sob encomenda: pergunta a forma de pagamento antes de abrir o WhatsApp,
+    // pra mensagem já sair pronta com o que o cliente escolheu.
+    if (madeToOrder) {
+      setShowPaymentModal(true);
+      return;
+    }
+    const message = buildWhatsAppInquiryMessage(
+      { brand: product.brand, model: product.model, name: product.name, price: product.price },
+      { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
+    );
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+  }
+
+  function handleMadeToOrderPaymentConfirm(payment: PaymentSelection) {
+    const message = buildWhatsAppMadeToOrderMessage(
+      { brand: product.brand, model: product.model, name: product.name, price: product.price },
+      { colorName: selectedColor?.name, leadTime: product.made_to_order_note, payment }
+    );
+    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+    setShowPaymentModal(false);
   }
 
   const specRows: { label: string; value: string }[] = [
@@ -354,6 +366,14 @@ export default function ProductDetail({ product }: { product: Product }) {
 
       {lightboxOpen && <ProductLightbox images={selectedGallery} initialIndex={lightboxIndex} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} onClose={() => setLightboxOpen(false)} />}
       {tryOnOpen && <TryOnModal productImage={selectedGallery[1] || selectedGallery[0] || activeImage || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
+      {showPaymentModal && (
+        <PaymentMethodModal
+          productName={productLabel}
+          total={product.price}
+          onConfirm={handleMadeToOrderPaymentConfirm}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </main>
   );
 }

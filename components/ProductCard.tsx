@@ -8,7 +8,8 @@ import { useEffect, useState } from "react";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
-import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink } from "@/lib/whatsapp";
+import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
+import PaymentMethodModal from "./PaymentMethodModal";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -18,6 +19,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const [added, setAdded] = useState(false);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const colors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
   const selectedColor: ProductColor | undefined = colors[selectedColorIndex];
   const selectedColorImages = selectedColor?.images?.filter(Boolean) ?? [];
@@ -66,16 +68,26 @@ export default function ProductCard({ product }: { product: Product }) {
   function handleQuickInquiry(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
     event.stopPropagation();
-    const message = madeToOrder
-      ? buildWhatsAppMadeToOrderMessage(
-          { brand: product.brand, model: product.model, name: product.name, price: product.price },
-          { colorName: selectedColor?.name, leadTime: product.made_to_order_note }
-        )
-      : buildWhatsAppInquiryMessage(
-          { brand: product.brand, model: product.model, name: product.name, price: product.price },
-          { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
-        );
+    // Sob encomenda: pergunta a forma de pagamento antes de abrir o WhatsApp,
+    // pra mensagem já sair pronta com o que o cliente escolheu.
+    if (madeToOrder) {
+      setShowPaymentModal(true);
+      return;
+    }
+    const message = buildWhatsAppInquiryMessage(
+      { brand: product.brand, model: product.model, name: product.name, price: product.price },
+      { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
+    );
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+  }
+
+  function handleMadeToOrderPaymentConfirm(payment: PaymentSelection) {
+    const message = buildWhatsAppMadeToOrderMessage(
+      { brand: product.brand, model: product.model, name: product.name, price: product.price },
+      { colorName: selectedColor?.name, leadTime: product.made_to_order_note, payment }
+    );
+    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+    setShowPaymentModal(false);
   }
 
   return (
@@ -178,6 +190,15 @@ export default function ProductCard({ product }: { product: Product }) {
       {(selectedColor?.frame_color || selectedColor?.lens_color) && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-body text-[10px] text-brand-ink/50"><span>Armação <strong className="font-semibold text-brand-ink/70">{selectedColor.frame_color || "—"}</strong></span><span>Lentes <strong className="font-semibold text-brand-ink/70">{selectedColor.lens_color || "—"}</strong></span></div>}
 
       <p className={`mt-2 min-h-[16px] font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 ${added ? "text-brand-moss" : "text-transparent"}`}>{added ? "Adicionado à sacola" : " "}</p>
+
+      {showPaymentModal && (
+        <PaymentMethodModal
+          productName={productLabel}
+          total={product.price}
+          onConfirm={handleMadeToOrderPaymentConfirm}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </article>
   );
 }

@@ -76,13 +76,16 @@ export function buildWhatsAppMadeToOrderMessage(product: {
   model?: string;
   name: string;
   price: number;
-}, options: { colorName?: string; leadTime?: string } = {}): string {
+}, options: { colorName?: string; leadTime?: string; payment?: PaymentSelection } = {}): string {
   const label = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
   const lines: string[] = [];
 
   lines.push("Olá! Quero fazer um pedido deste óculos sob encomenda na Ótica Líder Eyewear:");
   lines.push("");
   lines.push(`• ${label}${options.colorName ? ` — cor ${options.colorName}` : ""} — ${formatBRL(product.price)}`);
+  if (options.payment) {
+    lines.push(`Forma de pagamento: ${paymentDescription(options.payment, product.price)}`);
+  }
   if (options.leadTime?.trim()) {
     lines.push("");
     lines.push(`Vi que o prazo médio de entrega é ${options.leadTime.trim()}. Pode confirmar o pedido?`);
