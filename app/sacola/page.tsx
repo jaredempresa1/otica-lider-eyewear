@@ -62,13 +62,13 @@ export default function SacolaPage() {
     setPayment({ method: "card", installments });
   }
 
-  function handleCheckout() {
-    const message = buildWhatsAppOrderMessage(
-      items,
-      cep,
-      shipping ?? { valid: false, freeShipping: false, regionLabel: null },
-      payment,
-    );
+	function handleCheckout() {
+		const message = buildWhatsAppOrderMessage(
+			items,
+			cep,
+			shipping ?? { valid: false, freeShipping: false, regionLabel: null, source: "invalid" },
+			payment,
+		);
     window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
   }
 
@@ -198,4 +198,3 @@ export default function SacolaPage() {
     </main>
   );
 }
-
