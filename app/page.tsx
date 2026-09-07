@@ -51,6 +51,18 @@ export default async function HomePage({
     <main>
       <Hero />
 
+      {collections.length > 0 && (
+        <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
+          <div className="mb-6">
+            <h2 className="section-title">Marcas e coleções</h2>
+            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Compre por marca</p>
+          </div>
+          <CollectionTiles collections={collections} />
+        </section>
+      )}
+
+      <PromoBanner banner={promoBanner} />
+
       {featuredProducts.length > 0 && (
         <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">
           <div className="mb-6 flex items-end justify-between gap-4">
@@ -63,18 +75,6 @@ export default async function HomePage({
             </Link>
           </div>
           <ProductGrid products={featuredProducts} scroll />
-        </section>
-      )}
-
-      <PromoBanner banner={promoBanner} />
-
-      {collections.length > 0 && (
-        <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
-          <div className="mb-6">
-            <h2 className="section-title">Marcas e coleções</h2>
-            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Compre por marca</p>
-          </div>
-          <CollectionTiles collections={collections} />
         </section>
       )}
 
