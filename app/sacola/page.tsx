@@ -176,7 +176,7 @@ export default function SacolaPage() {
 	                      )}
                       {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem</p>}
 	                    </>
-	                  ) : <p>{shipping?.error || "Não foi possível calcular o frete automaticamente."}</p>}
+	                  ) : <p>{shipping?.error || "Frete a combinar pelo WhatsApp."}</p>}
                 </div>
               )}
             </div>

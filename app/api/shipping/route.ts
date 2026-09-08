@@ -117,7 +117,7 @@ export async function POST(request: Request) {
 
     if (!response.ok || !Array.isArray(data)) {
       return NextResponse.json(
-        { error: Array.isArray(data) ? "Não há serviço de entrega disponível para este CEP." : data.error || "Não foi possível calcular o frete para este CEP." },
+        { error: "Frete a combinar pelo WhatsApp." },
         { status: 502 },
       );
     }
@@ -134,11 +134,11 @@ export async function POST(request: Request) {
       .sort((a, b) => a.price - b.price);
 
     if (!quotes.length) {
-      return NextResponse.json({ error: "Nenhuma opção de frete disponível para este CEP. Confira o CEP ou tente outra modalidade." }, { status: 404 });
+      return NextResponse.json({ error: "Frete a combinar pelo WhatsApp." }, { status: 404 });
     }
 
     return NextResponse.json({ quote: quotes[0], options: quotes });
   } catch {
-    return NextResponse.json({ error: "Não foi possível conectar ao serviço de frete." }, { status: 502 });
+    return NextResponse.json({ error: "Frete a combinar pelo WhatsApp." }, { status: 502 });
   }
 }

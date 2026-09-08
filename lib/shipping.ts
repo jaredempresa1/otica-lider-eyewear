@@ -5,6 +5,7 @@
 
 import { getCepInfo } from "./geocode";
 import { FREE_SHIPPING_ZONE, isInsideZone } from "./deliveryZone";
+import { FREE_SHIPPING_CEP_OVERRIDES } from "./freeShippingOverrides";
 import { CartItem } from "@/types/product";
 
 const EXCLUDED_CITIES = ["lucena", "santa rita", "conde"];
@@ -92,7 +93,7 @@ async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<Shi
       options: data.options || [data.quote],
     };
   } catch {
-    return { valid: true, freeShipping: false, regionLabel: null, source: "api", error: "Não foi possível calcular o frete." };
+    return { valid: true, freeShipping: false, regionLabel: null, source: "api", error: "Frete a combinar pelo WhatsApp." };
   }
 }
 
@@ -101,6 +102,12 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
 
   if (digits.length !== 8) {
     return { valid: false, freeShipping: false, regionLabel: null, source: "invalid" };
+  }
+
+  // Atalho manual: CEPs já confirmados como frete grátis não dependem de
+  // geocodificação nenhuma (veja lib/freeShippingOverrides.ts).
+  if (FREE_SHIPPING_CEP_OVERRIDES.includes(digits)) {
+    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo" };
   }
 
   const { coords, city } = await getCepInfo(digits);
