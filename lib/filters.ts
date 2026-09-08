@@ -1,5 +1,17 @@
 import { Collection, Product } from "@/types/product";
 
+/** Normaliza texto para comparação "aproximada": minúsculas, sem acento, e qualquer
+ * pontuação/hífen/espaço vira um único espaço. Assim "Ray-Ban" e "ray ban" batem
+ * com a mesma busca, mesmo escritos de formas diferentes. */
+function normalizeSearchText(value: string): string {
+  return value
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 export type QuickFilterValue = "menor-preco" | "maior-preco" | "destaques" | "mais-vendidos" | "ofertas";
 
 export const QUICK_FILTERS: { value: QuickFilterValue; label: string }[] = [
@@ -88,8 +100,13 @@ export function countActiveFilters(state: ProductFilterState, priceBounds?: { mi
 /** Um produto "unissex" (ou sem gênero definido) aparece nos dois filtros, masculino e feminino. */
 export function productMatchesFilters(product: Product, state: ProductFilterState): boolean {
   if (state.busca) {
-    const searchText = [product.name, product.brand, product.model, product.description].filter(Boolean).join(" ").toLocaleLowerCase("pt-BR");
-    if (!searchText.includes(state.busca.toLocaleLowerCase("pt-BR"))) return false;
+    const searchText = normalizeSearchText([product.name, product.brand, product.model, product.description].filter(Boolean).join(" "));
+    const normalizedQuery = normalizeSearchText(state.busca);
+    const queryWords = normalizedQuery.split(" ").filter(Boolean);
+    const matchesByWord = queryWords.length > 0 && queryWords.every((word) => searchText.includes(word));
+    // Também compara ignorando todos os espaços, para pegar buscas como "rayban" batendo com "Ray-Ban".
+    const matchesCollapsed = normalizedQuery.length > 0 && searchText.replace(/ /g, "").includes(normalizedQuery.replace(/ /g, ""));
+    if (!matchesByWord && !matchesCollapsed) return false;
   }
 
   if (state.genero.length > 0) {
