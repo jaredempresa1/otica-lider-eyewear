@@ -72,7 +72,9 @@ export default function Testimonials({ testimonials, totalCount = testimonials.l
         </div>
         <div className="mt-8 md:grid md:grid-cols-3 md:gap-4">
           <div className="relative overflow-hidden touch-pan-y md:hidden" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <TestimonialCard testimonial={currentTestimonial} />
+            <div key={currentTestimonial.id} className="testimonial-enter">
+              <TestimonialCard testimonial={currentTestimonial} />
+            </div>
             {canMove && <><button type="button" onClick={() => move(-1)} className="absolute left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/45 text-brand-ink/65 transition-colors hover:bg-brand-paper/80 hover:text-brand-ink" aria-label="Avaliação anterior"><ChevronLeft size={15} /></button><button type="button" onClick={() => move(1)} className="absolute right-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/45 text-brand-ink/65 transition-colors hover:bg-brand-paper/80 hover:text-brand-ink" aria-label="Próxima avaliação"><ChevronRight size={15} /></button></>}
           </div>
           <div className="hidden md:contents">{desktopTestimonials.map((testimonial) => <TestimonialCard key={testimonial.id} testimonial={testimonial} />)}</div>
