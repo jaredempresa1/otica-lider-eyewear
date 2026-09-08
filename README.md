@@ -135,3 +135,5 @@ O layout foi feito mobile-first. Para testar no computador, abra o site no Chrom
   Editor ou criando uma tela de admin extra, se quiser).
 - Trocar as cores em `tailwind.config.ts` (`brand.gold`, `brand.ink`, `brand.sage`) se quiser ajustar o tom exato da identidade visual.
 - Substituir `public/hero-eyewear.jpg` por uma imagem editorial própria da loja, mantendo o mesmo nome ou atualizando o caminho em `components/Hero.tsx`.
+
+<!-- deploy-test: 2026-09-08T00:04:10Z -->
