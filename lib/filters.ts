@@ -43,11 +43,22 @@ function maxTypoDistance(wordLength: number): number {
   return 2;
 }
 
+/** Tamanho mínimo de palavra pra entrar numa comparação por "contém": abaixo disso,
+ * palavras curtas (ex.: "sol", "aço", "de") batem por acaso dentro de termos maiores
+ * e digitados sem querer (ex.: "aço" aparecia contido em "lacoste"), gerando resultado
+ * errado na busca. Com esse mínimo, só faz sentido comparar por "contém" quando as duas
+ * palavras já são específicas o bastante. */
+const MIN_CONTAINS_LENGTH = 4;
+
 /** Uma palavra da busca "bate" com uma palavra do produto se: uma contém a outra
- * (busca parcial, ex.: "oculo" dentro de "oculos"), ou se a distância de edição
- * entre elas está dentro da tolerância a erro de digitação (ex.: "lascoste" ~ "lacoste"). */
+ * (busca parcial, ex.: "oculo" dentro de "oculos" — mas só quando ambas já têm um
+ * tamanho mínimo, pra não confundir com uma palavra curta qualquer), ou se a distância
+ * de edição entre elas está dentro da tolerância a erro de digitação (ex.: "lascoste" ~
+ * "lacoste"). */
 function wordsApproximatelyMatch(queryWord: string, productWord: string): boolean {
-  if (productWord.includes(queryWord) || queryWord.includes(productWord)) return true;
+  if (queryWord.length >= MIN_CONTAINS_LENGTH && productWord.length >= MIN_CONTAINS_LENGTH) {
+    if (productWord.includes(queryWord) || queryWord.includes(productWord)) return true;
+  }
   const tolerance = Math.min(maxTypoDistance(queryWord.length), maxTypoDistance(productWord.length));
   if (tolerance === 0) return false;
   if (Math.abs(queryWord.length - productWord.length) > tolerance) return false;
@@ -148,7 +159,11 @@ export function countActiveFilters(state: ProductFilterState, priceBounds?: { mi
 /** Um produto "unissex" (ou sem gênero definido) aparece nos dois filtros, masculino e feminino. */
 export function productMatchesFilters(product: Product, state: ProductFilterState): boolean {
   if (state.busca) {
-    const searchText = normalizeSearchText([product.name, product.brand, product.model, product.description].filter(Boolean).join(" "));
+    // Só busca em nome, marca e modelo — campos estruturados e específicos do produto.
+    // A descrição foi tirada daqui porque costuma ter texto livre/genérico repetido em
+    // vários produtos (ex.: menções a outras marcas como comparação), o que fazia uma
+    // busca por uma marca específica (ex.: "Lacoste") trazer óculos de outras marcas.
+    const searchText = normalizeSearchText([product.name, product.brand, product.model].filter(Boolean).join(" "));
     const productWords = searchText.split(" ").filter(Boolean);
     const normalizedQuery = normalizeSearchText(state.busca);
     const queryWords = normalizedQuery.split(" ").filter(Boolean);

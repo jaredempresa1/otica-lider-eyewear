@@ -18,5 +18,14 @@ export default async function ProdutoPage({
 
   if (!product) return notFound();
 
-  return <ProductDetail product={product as Product} />;
+  // Outros produtos pra seção "Outros clientes também viram" — os mais recentes,
+  // menos o próprio produto que está sendo visto.
+  const { data: otherProducts } = await supabase
+    .from("products")
+    .select("*")
+    .neq("slug", params.slug)
+    .order("created_at", { ascending: false })
+    .limit(12);
+
+  return <ProductDetail product={product as Product} relatedProducts={(otherProducts as Product[]) ?? []} />;
 }

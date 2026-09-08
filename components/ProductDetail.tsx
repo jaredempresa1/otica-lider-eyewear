@@ -13,6 +13,8 @@ import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
 import TryOnModal from "./TryOnModal";
 import PaymentMethodModal from "./PaymentMethodModal";
+import ProductGrid from "./ProductGrid";
+import WhatsAppSignup from "./WhatsAppSignup";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -173,7 +175,7 @@ function AccordionItem({ title, children, defaultOpen }: { title: string; childr
   );
 }
 
-export default function ProductDetail({ product }: { product: Product }) {
+export default function ProductDetail({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
   const router = useRouter();
   const { addItem } = useCart();
   const sortedColors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
@@ -303,6 +305,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   ].filter((row) => row.value);
 
   return (
+    <>
     <main className="section-shell py-8 sm:py-12">
       <button onClick={() => router.back()} className="mb-7 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold"><ArrowLeft size={14} /> Voltar para a coleção</button>
 
@@ -424,5 +427,18 @@ export default function ProductDetail({ product }: { product: Product }) {
         />
       )}
     </main>
+
+      {relatedProducts.length > 0 && (
+        <section className="section-shell border-t border-brand-ink/10 py-10 sm:py-14">
+          <div className="mb-6">
+            <p className="eyebrow">Você também pode gostar</p>
+            <h2 className="section-title">Outros clientes também viram</h2>
+          </div>
+          <ProductGrid products={relatedProducts} scroll />
+        </section>
+      )}
+
+      <WhatsAppSignup />
+    </>
   );
 }

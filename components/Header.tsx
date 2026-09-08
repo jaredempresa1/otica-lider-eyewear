@@ -72,7 +72,7 @@ export default function Header() {
           />
         </Link>
 
-        <nav className="hidden items-center gap-8 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-ink/65 sm:flex">
+        <nav className="hidden h-full items-center gap-8 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-ink/65 sm:flex">
           <Link href="/" className="transition-colors hover:text-brand-gold">
             Início
           </Link>
@@ -80,7 +80,7 @@ export default function Header() {
             Coleção
           </Link>
 
-          <div ref={filterMenuRef} className="relative">
+          <div ref={filterMenuRef} className="relative flex h-full items-center">
             <button
               type="button"
               onClick={() => setFilterMenuOpen((value) => !value)}
@@ -93,7 +93,7 @@ export default function Header() {
             </button>
 
             {filterMenuOpen && (
-              <div className="absolute left-1/2 top-full z-30 mt-4 w-56 -translate-x-1/2 rounded-2xl border border-brand-ink/10 bg-brand-paper p-3 normal-case shadow-soft">
+              <div className="absolute left-1/2 top-full z-50 mt-3 w-56 -translate-x-1/2 rounded-2xl border border-brand-ink/10 bg-brand-paper p-3 normal-case shadow-soft">
                 <p className="px-2 pb-2 pt-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/40">
                   Filtros rápidos
                 </p>
