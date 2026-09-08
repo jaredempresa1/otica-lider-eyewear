@@ -214,7 +214,8 @@ export default function ProductDetail({ product }: { product: Product }) {
     const timer = window.setTimeout(() => {
       checkShipping(cep, [{ productId: product.id, slug: product.slug, name: productLabel, price: product.price, image: shippingImage, colorName: selectedColor?.name || "Único", quantity: 1 }]).then((result) => {
         if (!cancelled) {
-          setShipping(result);
+          const fastestDelivery = result.options?.reduce((fastest, option) => Math.min(fastest, option.deliveryTime), Number.POSITIVE_INFINITY);
+          setShipping(fastestDelivery && Number.isFinite(fastestDelivery) ? { ...result, deliveryTime: fastestDelivery } : result);
           setCheckingShipping(false);
         }
       });

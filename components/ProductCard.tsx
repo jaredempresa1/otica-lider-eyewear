@@ -118,9 +118,7 @@ export default function ProductCard({ product }: { product: Product }) {
               <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Sob encomenda</span>
             ) : colorSoldOut && !productSoldOut ? (
               <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Cor esgotada</span>
-            ) : (
-              !productSoldOut && product.stock <= 1 && product.stock > 0 && <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Última peça</span>
-            )}
+            ) : null}
             {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
           </div>
         </div>
@@ -148,6 +146,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </>
           )}
         </button>
+        {!madeToOrder && !productSoldOut && product.stock === 1 && <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
       </div>
 
       <Link href={`/produtos/${product.slug}`} className="mt-4 block">
