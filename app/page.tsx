@@ -22,15 +22,16 @@ export default async function HomePage({
 }) {
   let products: Product[] = [];
   let testimonials: Testimonial[] = [];
+  let testimonialCount = 0;
   let collections: Collection[] = [];
   let promoBanner: { image_url: string; href: string; alt_text: string } | null = null;
 
   if (hasSupabaseConfig) {
-    const [{ data: productData }, { data: testimonialData }, { data: collectionData }, { data: bannerData }] = await Promise.all([
+    const [{ data: productData }, { data: testimonialData, count: testimonialTotal }, { data: collectionData }, { data: bannerData }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase
         .from("testimonials")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("created_at", { ascending: false })
         .limit(20),
       supabase.from("collections").select("*").order("sort_order", { ascending: true }),
@@ -38,6 +39,7 @@ export default async function HomePage({
     ]);
     products = (productData as Product[]) ?? [];
     testimonials = testimonialData ?? [];
+    testimonialCount = testimonialTotal ?? testimonials.length;
     collections = (collectionData as Collection[]) ?? [];
     promoBanner = bannerData ?? null;
   }
@@ -103,7 +105,7 @@ export default async function HomePage({
       </section>
 
       <TrustBadges />
-      <Testimonials testimonials={testimonials} />
+      <Testimonials testimonials={testimonials} totalCount={testimonialCount} />
       <WhatsAppSignup />
     </main>
   );

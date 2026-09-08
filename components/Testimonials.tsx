@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useState } from "react";
 import { Testimonial } from "@/types/product";
 
-export default function Testimonials({ testimonials }: { testimonials: Testimonial[] }) {
+export default function Testimonials({ testimonials, totalCount }: { testimonials: Testimonial[]; totalCount: number }) {
   const [start, setStart] = useState(0);
   if (!testimonials || testimonials.length === 0) return null;
 
@@ -40,15 +40,17 @@ export default function Testimonials({ testimonials }: { testimonials: Testimoni
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Experiências reais</p>
-            <h2 className="mt-2 font-heading text-3xl font-semibold tracking-[-0.03em] text-brand-ink sm:text-4xl">Avaliações de clientes</h2>
-            <p className="mt-2 font-body text-sm text-brand-ink/55">O que nossos clientes dizem no Google.</p>
-            <p className="mt-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-brand-moss">{testimonials.length} {testimonials.length === 1 ? "avaliação publicada" : "avaliações publicadas"}</p>
+            <h2 className="mt-2 whitespace-nowrap font-heading text-[clamp(1.65rem,8vw,2.25rem)] font-semibold tracking-[-0.04em] text-brand-ink sm:text-4xl">Avaliações de clientes</h2>
+            <p className="mt-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-brand-moss">{totalCount} {totalCount === 1 ? "avaliação publicada" : "avaliações publicadas"}</p>
           </div>
-          {canMove && <div className="flex gap-2"><button type="button" onClick={() => move(-1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Avaliação anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => move(1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Próxima avaliação"><ChevronRight size={18} /></button></div>}
+          {canMove && <div className="hidden gap-2 md:flex"><button type="button" onClick={() => move(-1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Avaliação anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => move(1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Próxima avaliação"><ChevronRight size={18} /></button></div>}
         </div>
         <div className="mt-8 md:grid md:grid-cols-3 md:gap-4">
-          <div className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto md:hidden">
-            {testimonials.map((testimonial) => <div key={testimonial.id} className="min-w-full snap-center"><TestimonialCard testimonial={testimonial} /></div>)}
+          <div className="overflow-hidden md:hidden">
+            <div className="flex transition-transform duration-300 ease-out" style={{ transform: `translateX(-${start * 100}%)` }}>
+              {testimonials.map((testimonial) => <div key={testimonial.id} className="min-w-full"><TestimonialCard testimonial={testimonial} /></div>)}
+            </div>
+            {canMove && <div className="mt-4 flex justify-center gap-3"><button type="button" onClick={() => move(-1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ink/15 bg-brand-paper text-brand-ink shadow-card transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Avaliação anterior"><ChevronLeft size={19} /></button><button type="button" onClick={() => move(1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ink/15 bg-brand-paper text-brand-ink shadow-card transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Próxima avaliação"><ChevronRight size={19} /></button></div>}
           </div>
           <div className="hidden md:contents">{desktopTestimonials.map((testimonial) => <TestimonialCard key={testimonial.id} testimonial={testimonial} />)}</div>
         </div>
