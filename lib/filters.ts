@@ -3,11 +3,11 @@ import { Collection, Product } from "@/types/product";
 export type QuickFilterValue = "menor-preco" | "maior-preco" | "destaques" | "mais-vendidos" | "ofertas";
 
 export const QUICK_FILTERS: { value: QuickFilterValue; label: string }[] = [
-  { value: "menor-preco", label: "Menor preço" },
-  { value: "maior-preco", label: "Maior preço" },
-  { value: "destaques", label: "Em destaque" },
-  { value: "mais-vendidos", label: "Mais vendidos" },
   { value: "ofertas", label: "Ofertas" },
+  { value: "mais-vendidos", label: "Mais vendidos" },
+  { value: "destaques", label: "Em destaque" },
+  { value: "maior-preco", label: "Maior preço" },
+  { value: "menor-preco", label: "Menor preço" },
 ];
 
 export type ProductFilterState = {
