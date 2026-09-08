@@ -55,6 +55,11 @@ function wordsApproximatelyMatch(queryWord: string, productWord: string): boolea
 }
 
 
+/** Única lista de formatos do site: usada no filtro da vitrine E no campo "Formato" do admin,
+ * pra nunca ficarem fora de sincronia (um formato digitado livremente no admin que não bata
+ * exatamente com essas opções nunca aparece quando o cliente filtra por formato). */
+export const FORMAT_OPTIONS = ["Redondo", "Quadrado", "Retangular", "Oval", "Gatinho", "Aviador", "Geométrico"];
+
 export type QuickFilterValue = "menor-preco" | "maior-preco" | "destaques" | "mais-vendidos" | "ofertas";
 
 export const QUICK_FILTERS: { value: QuickFilterValue; label: string }[] = [
@@ -176,7 +181,8 @@ export function productMatchesFilters(product: Product, state: ProductFilterStat
     if (!state.formato.some((value) => format === value.toLocaleLowerCase("pt-BR"))) return false;
   }
 
-  if (state.ia && (!product.images || product.images.length === 0)) return false;
+  // Óculos com IA = marcado manualmente no admin (ai_tryon), não "tem foto".
+  if (state.ia && !product.ai_tryon) return false;
 
   if (state.precoMin !== null && product.price < state.precoMin) return false;
   if (state.precoMax !== null && product.price > state.precoMax) return false;

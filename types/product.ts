@@ -52,6 +52,8 @@ export type Product = {
   made_to_order_note?: string;
   featured: boolean;
   more_sold?: boolean;
+  /** Controla o filtro rápido "Óculos com IA" (recursos como o provador virtual). Marcado manualmente no admin. */
+  ai_tryon?: boolean;
   collection_slugs?: string[];
   created_at?: string;
 };

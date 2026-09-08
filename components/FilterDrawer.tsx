@@ -6,6 +6,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { Collection, Product } from "@/types/product";
 import {
   EMPTY_FILTER_STATE,
+  FORMAT_OPTIONS,
   ProductFilterState,
   countActiveFilters,
   filterProducts,
@@ -23,8 +24,6 @@ const GENDER_OPTIONS = [
   { value: "masculino", label: "Masculino" },
   { value: "feminino", label: "Feminino" },
 ];
-
-const FORMAT_OPTIONS = ["Redondo", "Quadrado", "Retangular", "Oval", "Gatinho", "Aviador", "Geométrico"];
 
 export default function FilterDrawer({
   products,

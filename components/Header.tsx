@@ -3,10 +3,14 @@
 /** Direção visual: controles maiores e a logo oficial destacada, preservando o cabeçalho creme, verde e dourado da marca. */
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, Search, ShoppingBag, X } from "lucide-react";
+import { Menu, Search, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartContext";
+import { QUICK_FILTERS } from "@/lib/filters";
+
+// Os mesmos atalhos do menu mobile ("Filtrar por"), reaproveitados no dropdown de desktop.
+const NAV_QUICK_FILTERS = QUICK_FILTERS.filter((filter) => ["mais-vendidos", "destaques", "ofertas"].includes(filter.value));
 
 export default function Header() {
   const router = useRouter();
@@ -14,10 +18,28 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+  const filterMenuRef = useRef<HTMLDivElement>(null);
 
   function closeMenu() {
     setMenuOpen(false);
   }
+
+  useEffect(() => {
+    if (!filterMenuOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (filterMenuRef.current && !filterMenuRef.current.contains(event.target as Node)) setFilterMenuOpen(false);
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setFilterMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [filterMenuOpen]);
 
   function submitSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -57,6 +79,56 @@ export default function Header() {
           <Link href="/produtos" className="transition-colors hover:text-brand-gold">
             Coleção
           </Link>
+
+          <div ref={filterMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setFilterMenuOpen((value) => !value)}
+              className="flex items-center gap-1.5 transition-colors hover:text-brand-gold"
+              aria-expanded={filterMenuOpen}
+              aria-haspopup="true"
+            >
+              <SlidersHorizontal size={14} strokeWidth={1.8} />
+              Filtrar
+            </button>
+
+            {filterMenuOpen && (
+              <div className="absolute left-1/2 top-full z-30 mt-4 w-56 -translate-x-1/2 rounded-2xl border border-brand-ink/10 bg-brand-paper p-3 normal-case shadow-soft">
+                <p className="px-2 pb-2 pt-1 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/40">
+                  Filtros rápidos
+                </p>
+                <div className="flex flex-col">
+                  {NAV_QUICK_FILTERS.map((filter) => (
+                    <Link
+                      key={filter.value}
+                      href={`/produtos?ordenar=${filter.value}`}
+                      onClick={() => setFilterMenuOpen(false)}
+                      className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                    >
+                      {filter.label}
+                    </Link>
+                  ))}
+                </div>
+                <div className="my-2 border-t border-brand-ink/8" />
+                <div className="flex flex-col">
+                  <Link
+                    href="/produtos?genero=masculino"
+                    onClick={() => setFilterMenuOpen(false)}
+                    className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                  >
+                    Óculos de sol masculino
+                  </Link>
+                  <Link
+                    href="/produtos?genero=feminino"
+                    onClick={() => setFilterMenuOpen(false)}
+                    className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                  >
+                    Óculos de sol feminino
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
         </nav>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
@@ -128,6 +200,11 @@ export default function Header() {
                 Filtrar por
               </p>
               <div className="flex flex-col gap-4">
+                {NAV_QUICK_FILTERS.map((filter) => (
+                  <Link key={filter.value} href={`/produtos?ordenar=${filter.value}`} onClick={closeMenu}>
+                    {filter.label}
+                  </Link>
+                ))}
                 <Link href="/produtos?genero=masculino" onClick={closeMenu}>
                   Óculos de sol masculino
                 </Link>

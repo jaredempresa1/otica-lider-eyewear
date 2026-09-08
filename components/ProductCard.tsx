@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut } from "@/lib/productStatus";
+import { calculateDiscountPercent } from "@/lib/pricing";
 import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
 import PaymentMethodModal from "./PaymentMethodModal";
 
@@ -25,6 +26,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const selectedColorImages = selectedColor?.images?.filter(Boolean) ?? [];
   const mainImage = selectedColorImages[0] || selectedColor?.image_url || product.images?.[0];
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
+  const discountPercent = calculateDiscountPercent(product.price, product.compare_at_price);
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const madeToOrder = Boolean(product.made_to_order);
@@ -156,7 +158,10 @@ export default function ProductCard({ product }: { product: Product }) {
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
               {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
-              <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
+              <span className="flex items-baseline gap-1.5">
+                <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
+                {discountPercent !== null && <span className="text-[11px] font-bold text-red-600 sm:text-[12px]">{discountPercent}% OFF</span>}
+              </span>
               {installmentTotal !== null && product.installments && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[11px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}
             </div>
           </div>
