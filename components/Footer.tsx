@@ -21,7 +21,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">Navegação</h4>
-          <ul className="mt-4 space-y-3 font-body text-sm text-brand-paper/70"><li><Link href="/" className="transition-colors hover:text-brand-gold">Início</Link></li><li><Link href="/produtos" className="transition-colors hover:text-brand-gold">Coleção</Link></li><li><Link href="/sacola" className="transition-colors hover:text-brand-gold">Minha sacola</Link></li></ul>
+          <ul className="mt-4 space-y-3 font-body text-sm text-brand-paper/70"><li><Link href="/" className="underline decoration-brand-paper/30 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">Início</Link></li><li><Link href="/produtos" className="underline decoration-brand-paper/30 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">Coleção</Link></li><li><Link href="/sacola" className="underline decoration-brand-paper/30 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">Minha sacola</Link></li></ul>
         </div>
         <div>
           <h4 className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">A experiência Líder</h4>
@@ -36,7 +36,7 @@ export default function Footer() {
           <a href="https://www.instagram.com/oticaliderpe" target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-brand-paper/75 transition-colors hover:text-brand-gold"><Instagram size={16} /> <span>Instagram: <strong className="font-semibold text-brand-paper">@oticaliderpe</strong></span></a>
         </div>
       </div>
-      <div className="border-t border-brand-paper/10 px-5 py-5 text-center font-body text-[10px] text-brand-paper/35">© {new Date().getFullYear()} Ótica Líder Eyewear. Todos os direitos reservados. <span className="mx-1">·</span> CNPJ 04.786.494/0001-32</div>
+      <div className="border-t border-brand-paper/10 px-5 py-5 text-center font-body text-[10px] text-brand-paper/35">© {new Date().getFullYear()} Ótica Líder Eyewear. Todos os direitos reservados. <span className="mx-1">·</span> <span className="whitespace-nowrap">CNPJ: 04.786.494/0001-32</span></div>
     </footer>
   );
 }

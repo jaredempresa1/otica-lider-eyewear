@@ -113,7 +113,7 @@ export function productMatchesFilters(product: Product, state: ProductFilterStat
     if (!state.formato.some((value) => format === value.toLocaleLowerCase("pt-BR"))) return false;
   }
 
-  if (state.ia && (!product.images || product.images.length === 0)) return false;
+  if (state.ia && !product.specifications?.ai_try_on) return false;
 
   if (state.precoMin !== null && product.price < state.precoMin) return false;
   if (state.precoMax !== null && product.price > state.precoMax) return false;

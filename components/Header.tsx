@@ -3,7 +3,7 @@
 /** Direção visual: controles maiores e a logo oficial destacada, preservando o cabeçalho creme, verde e dourado da marca. */
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { Menu, Search, ShoppingBag, X } from "lucide-react";
 import { useState } from "react";
 import { useCart } from "./CartContext";
 
@@ -48,6 +48,14 @@ export default function Header() {
         </nav>
 
         <Link
+          href="/produtos"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold hover:text-brand-gold"
+          aria-label="Pesquisar óculos"
+        >
+          <Search size={20} strokeWidth={1.8} />
+        </Link>
+
+        <Link
           href="/sacola"
           className="relative flex h-12 items-center gap-2.5 rounded-full border border-brand-ink/10 px-4 text-brand-ink transition-colors hover:border-brand-gold sm:px-5"
           aria-label="Abrir sacola"
@@ -72,6 +80,12 @@ export default function Header() {
             </Link>
             <Link href="/produtos" onClick={closeMenu}>
               Coleção completa
+            </Link>
+            <Link href="/produtos?genero=masculino" onClick={closeMenu}>
+              Óculos de sol masculino
+            </Link>
+            <Link href="/produtos?genero=feminino" onClick={closeMenu}>
+              Óculos de sol feminino
             </Link>
             <Link href="/sacola" onClick={closeMenu}>
               Minha sacola {totalItems > 0 ? `(${totalItems})` : ""}
