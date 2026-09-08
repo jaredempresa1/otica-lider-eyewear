@@ -111,7 +111,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="-rotate-12 rounded-lg border-2 border-brand-ink/70 bg-brand-paper/90 px-4 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink/80 shadow-card backdrop-blur-sm">Esgotado</span>
           </div>
         )}
-        <div className="absolute inset-x-3 top-3 z-20 flex items-start justify-between gap-2">
+        <div className="absolute inset-x-3 top-3 z-20 flex items-start gap-1.5">
           <div className="flex flex-col items-start gap-1.5">
             {product.more_sold && <span className="rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
             {madeToOrder ? (
@@ -121,8 +121,8 @@ export default function ProductCard({ product }: { product: Product }) {
             ) : (
               !productSoldOut && product.stock <= 1 && product.stock > 0 && <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Última peça</span>
             )}
+            {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
           </div>
-          {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Oferta</span>}
         </div>
         <button
           type="button"

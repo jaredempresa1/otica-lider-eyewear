@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
+import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
 import TryOnModal from "./TryOnModal";
 import PaymentMethodModal from "./PaymentMethodModal";
@@ -182,8 +183,14 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [tryOnOpen, setTryOnOpen] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [cep, setCep] = useState("");
+  const [shipping, setShipping] = useState<ShippingResult | null>(null);
+  const [checkingShipping, setCheckingShipping] = useState(false);
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
   const selectedGallery = getColorImages(product, selectedColor);
+  const selectedGalleryKey = selectedGallery.join("|");
+  const shippingImage = activeImage || selectedGallery[0] || "";
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const madeToOrder = Boolean(product.made_to_order);
@@ -194,6 +201,30 @@ export default function ProductDetail({ product }: { product: Product }) {
   const displayBrand = product.brand?.trim() || product.name;
   const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
+
+  useEffect(() => {
+    if (!isValidCep(cep)) {
+      setShipping(null);
+      setCheckingShipping(false);
+      return;
+    }
+
+    let cancelled = false;
+    setCheckingShipping(true);
+    const timer = window.setTimeout(() => {
+      checkShipping(cep, [{ productId: product.id, slug: product.slug, name: productLabel, price: product.price, image: shippingImage, colorName: selectedColor?.name || "Único", quantity: 1 }]).then((result) => {
+        if (!cancelled) {
+          setShipping(result);
+          setCheckingShipping(false);
+        }
+      });
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [cep, product.id, product.price, product.slug, productLabel, selectedColor?.name, selectedGalleryKey, shippingImage]);
 
   function openLightbox(image: string) {
     const index = Math.max(0, selectedGallery.indexOf(image));
@@ -232,7 +263,8 @@ export default function ProductDetail({ product }: { product: Product }) {
   function handleAddToCart() {
     if (!canBuy) return;
     addItem({ productId: product.id, slug: product.slug, name: productLabel, price: product.price, image: activeImage || selectedGallery[0] || "", colorName: selectedColor?.name || "Único", quantity: 1 });
-    router.push("/sacola");
+    setAddedToCart(true);
+    window.setTimeout(() => setAddedToCart(false), 2400);
   }
 
   function handleWhatsAppInquiry() {
@@ -325,14 +357,24 @@ export default function ProductDetail({ product }: { product: Product }) {
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className={`mt-1 text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{installmentTotal !== null && product.installments && <span className="mt-2 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>
           {!madeToOrder && !productSoldOut && product.stock > 0 && product.stock <= 3 && <p className="mt-3 inline-flex rounded-full bg-brand-gold/15 px-3 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink">Só restam {product.stock} {product.stock === 1 ? "unidade" : "unidades"}</p>}
-          <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> Adicionar à sacola</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{madeToOrder ? `Sob encomenda${product.made_to_order_note?.trim() ? ` — prazo médio: ${product.made_to_order_note.trim()}` : ""}. O pedido é fechado direto no WhatsApp.` : productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
+          <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> {addedToCart ? "Adicionado à sacola" : "Adicionar à sacola"}</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{madeToOrder ? `Sob encomenda${product.made_to_order_note?.trim() ? ` — prazo médio: ${product.made_to_order_note.trim()}` : ""}. O pedido é fechado direto no WhatsApp.` : productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
 
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-8 hidden border-t border-brand-ink/10 pt-6 lg:block" />}
 
           <div className="mt-7 flex items-center justify-between border-y border-brand-ink/10 py-4 font-body text-[11px] uppercase tracking-[0.12em] text-brand-ink/55"><span>{madeToOrder ? "Sob encomenda" : productSoldOut ? "Esgotado" : colorSoldOut ? "Cor esgotada" : product.stock > 1 ? `${product.stock} unidades disponíveis` : product.stock === 1 ? "Última unidade" : "Fora de estoque"}</span><span>Proteção UV</span></div>
-          <p className="mt-3 font-body text-[12px] leading-5 text-brand-ink/55">Prazo estimado de entrega: de 3 a 7 dias úteis após a postagem. O prazo exato aparece quando você informa o CEP na sacola. A equipe responde no WhatsApp em até 1 minuto.</p>
+          <div className="mt-4 rounded-2xl bg-brand-paper p-4">
+            <label htmlFor="product-cep" className="block font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Consulte o prazo de entrega</label>
+            <div className="mt-2 flex gap-2">
+              <input id="product-cep" type="text" inputMode="numeric" placeholder="Digite seu CEP" value={cep} onChange={(event) => setCep(event.target.value)} className="min-w-0 flex-1 rounded-xl border border-brand-ink/15 bg-brand-cream px-3 py-2.5 font-body text-[14px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold" />
+              <span className="flex items-center rounded-xl bg-brand-ink px-3 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper">Calcular</span>
+            </div>
+            {checkingShipping && <p className="mt-2 font-body text-[12px] text-brand-ink/55">Calculando prazo estimado…</p>}
+            {!checkingShipping && shipping?.deliveryTime != null && <p className="mt-2 font-body text-[12px] leading-5 text-brand-ink/70">Entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem.</p>}
+            {!checkingShipping && shipping?.error && <p className="mt-2 font-body text-[12px] leading-5 text-brand-ink/60">Não foi possível calcular agora. Confirme o prazo pelo WhatsApp.</p>}
+            {!checkingShipping && !shipping && <p className="mt-2 font-body text-[12px] leading-5 text-brand-ink/50">Informe o CEP para consultar o prazo antes de adicionar à sacola.</p>}
+          </div>
           <div className="hidden lg:block">{canBuy ? (
-            <button onClick={handleAddToCart} className="btn-brand mt-7 w-full gap-3"><ShoppingBag size={16} strokeWidth={1.8} /> Adicionar à sacola</button>
+            <button onClick={handleAddToCart} className="btn-brand mt-7 w-full gap-3"><ShoppingBag size={16} strokeWidth={1.8} /> {addedToCart ? "Adicionado à sacola" : "Adicionar à sacola"}</button>
           ) : (
             <div className="mt-7 space-y-2">
               <button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={16} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button>
