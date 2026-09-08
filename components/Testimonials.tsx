@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { useState } from "react";
 import { Testimonial } from "@/types/product";
 
-export default function Testimonials({ testimonials, totalCount }: { testimonials: Testimonial[]; totalCount: number }) {
+export default function Testimonials({ testimonials, totalCount = testimonials.length }: { testimonials: Testimonial[]; totalCount?: number }) {
   const [start, setStart] = useState(0);
   if (!testimonials || testimonials.length === 0) return null;
 
