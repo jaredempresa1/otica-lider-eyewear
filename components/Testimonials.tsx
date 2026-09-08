@@ -1,18 +1,27 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Testimonial } from "@/types/product";
 
 export default function Testimonials({ testimonials, totalCount = testimonials.length }: { testimonials: Testimonial[]; totalCount?: number }) {
   const [start, setStart] = useState(0);
+  const randomizedTestimonials = useMemo(() => {
+    if (!testimonials) return [];
+    const shuffled = [...testimonials];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+      const randomIndex = Math.floor(Math.random() * (index + 1));
+      [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
+    }
+    return shuffled;
+  }, [testimonials]);
   if (!testimonials || testimonials.length === 0) return null;
 
-  const canMove = testimonials.length > 3;
-  const desktopTestimonials = Array.from({ length: Math.min(3, testimonials.length) }, (_, index) => testimonials[(start + index) % testimonials.length]);
+  const canMove = randomizedTestimonials.length > 1;
+  const desktopTestimonials = Array.from({ length: Math.min(3, randomizedTestimonials.length) }, (_, index) => randomizedTestimonials[(start + index) % randomizedTestimonials.length]);
 
   function move(direction: number) {
-    setStart((current) => (current + direction + testimonials.length) % testimonials.length);
+    setStart((current) => (current + direction + randomizedTestimonials.length) % randomizedTestimonials.length);
   }
 
   function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
@@ -46,11 +55,11 @@ export default function Testimonials({ testimonials, totalCount = testimonials.l
           {canMove && <div className="hidden gap-2 md:flex"><button type="button" onClick={() => move(-1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Avaliação anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => move(1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Próxima avaliação"><ChevronRight size={18} /></button></div>}
         </div>
         <div className="mt-8 md:grid md:grid-cols-3 md:gap-4">
-          <div className="overflow-hidden md:hidden">
+          <div className="relative overflow-hidden md:hidden">
             <div className="flex transition-transform duration-300 ease-out" style={{ transform: `translateX(-${start * 100}%)` }}>
-              {testimonials.map((testimonial) => <div key={testimonial.id} className="min-w-full"><TestimonialCard testimonial={testimonial} /></div>)}
+              {randomizedTestimonials.map((testimonial) => <div key={testimonial.id} className="min-w-full"><TestimonialCard testimonial={testimonial} /></div>)}
             </div>
-            {canMove && <div className="mt-4 flex justify-center gap-3"><button type="button" onClick={() => move(-1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ink/15 bg-brand-paper text-brand-ink shadow-card transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Avaliação anterior"><ChevronLeft size={19} /></button><button type="button" onClick={() => move(1)} className="flex h-11 w-11 items-center justify-center rounded-full border border-brand-ink/15 bg-brand-paper text-brand-ink shadow-card transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Próxima avaliação"><ChevronRight size={19} /></button></div>}
+            {canMove && <><button type="button" onClick={() => move(-1)} className="absolute left-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/45 text-brand-ink/65 transition-colors hover:bg-brand-paper/80 hover:text-brand-ink" aria-label="Avaliação anterior"><ChevronLeft size={15} /></button><button type="button" onClick={() => move(1)} className="absolute right-1 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/45 text-brand-ink/65 transition-colors hover:bg-brand-paper/80 hover:text-brand-ink" aria-label="Próxima avaliação"><ChevronRight size={15} /></button></>}
           </div>
           <div className="hidden md:contents">{desktopTestimonials.map((testimonial) => <TestimonialCard key={testimonial.id} testimonial={testimonial} />)}</div>
         </div>

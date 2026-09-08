@@ -32,8 +32,7 @@ export default async function HomePage({
       supabase
         .from("testimonials")
         .select("*", { count: "exact" })
-        .order("created_at", { ascending: false })
-        .limit(20),
+        .order("created_at", { ascending: false }),
       supabase.from("collections").select("*").order("sort_order", { ascending: true }),
       supabase.from("promo_banner").select("image_url, href, alt_text").eq("id", 1).maybeSingle(),
     ]);
