@@ -29,14 +29,14 @@ export default function Header() {
 
   return (
     <header className="border-b border-brand-ink/10 bg-brand-cream/95 backdrop-blur-md">
-      <div className="section-shell flex h-[76px] items-center justify-between gap-2 sm:h-[80px] sm:gap-5">
+      <div className="section-shell flex h-[72px] items-center justify-between gap-1.5 sm:h-[80px] sm:gap-5">
         <button
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
           onClick={() => setMenuOpen((value) => !value)}
           aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
           aria-expanded={menuOpen}
         >
-          {menuOpen ? <X size={21} strokeWidth={1.8} /> : <Menu size={23} strokeWidth={1.8} />}
+          {menuOpen ? <X size={19} strokeWidth={1.8} /> : <Menu size={21} strokeWidth={1.8} />}
         </button>
 
         <Link href="/" className="group flex min-w-0 shrink items-center" onClick={closeMenu} aria-label="Ótica Líder Eyewear — início">
@@ -46,7 +46,7 @@ export default function Header() {
             width={230}
             height={72}
             priority
-            className="h-9 w-auto max-w-[120px] object-contain object-left sm:h-14 sm:max-w-[230px]"
+            className="h-11 w-auto max-w-[155px] object-contain object-left sm:h-14 sm:max-w-[230px]"
           />
         </Link>
 
@@ -59,29 +59,29 @@ export default function Header() {
           </Link>
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-3">
           <button
             type="button"
             onClick={() => setSearchOpen((value) => !value)}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:w-12"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:w-12"
             aria-label={searchOpen ? "Fechar pesquisa" : "Pesquisar óculos"}
             aria-expanded={searchOpen}
           >
-            {searchOpen ? <X size={19} strokeWidth={1.8} /> : <Search size={19} strokeWidth={1.8} />}
+            {searchOpen ? <X size={18} strokeWidth={1.8} /> : <Search size={18} strokeWidth={1.8} />}
           </button>
 
           <Link
             href="/sacola"
-            className="relative flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-brand-ink/10 px-3 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:gap-2.5 sm:px-5"
+            className="relative flex h-10 shrink-0 items-center gap-1 rounded-full border border-brand-ink/10 px-2.5 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:gap-2.5 sm:px-5"
             aria-label="Abrir sacola"
           >
-            <ShoppingBag size={20} strokeWidth={1.8} className="sm:hidden" />
+            <ShoppingBag size={18} strokeWidth={1.8} className="sm:hidden" />
             <ShoppingBag size={22} strokeWidth={1.8} className="hidden sm:block" />
             <span className="hidden font-body text-[12px] font-semibold uppercase tracking-[0.15em] sm:inline">
               Sacola
             </span>
             {totalItems > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold text-brand-paper sm:h-6 sm:min-w-6 sm:text-[11px]">
+              <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold text-brand-paper sm:h-6 sm:min-w-6 sm:text-[11px]">
                 {totalItems}
               </span>
             )}

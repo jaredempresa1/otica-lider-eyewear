@@ -12,6 +12,49 @@ function normalizeSearchText(value: string): string {
     .trim();
 }
 
+/** Distância de edição entre duas palavras (quantas letras precisa trocar/tirar/adicionar
+ * pra uma virar a outra). É a base da busca "tolerante a erro de digitação". */
+function levenshteinDistance(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  const previousRow = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) previousRow[j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    let previousDiagonal = previousRow[0];
+    previousRow[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const temp = previousRow[j];
+      previousRow[j] = a[i - 1] === b[j - 1] ? previousDiagonal : 1 + Math.min(previousDiagonal, previousRow[j], previousRow[j - 1]);
+      previousDiagonal = temp;
+    }
+  }
+  return previousRow[b.length];
+}
+
+/** Quantas letras de diferença ainda aceitamos como "a mesma palavra digitada errado",
+ * proporcional ao tamanho da palavra: palavras curtas (até 3 letras) exigem exata,
+ * pra não confundir palavras curtas diferentes (ex.: "sol" com "sal"). */
+function maxTypoDistance(wordLength: number): number {
+  if (wordLength <= 3) return 0;
+  if (wordLength <= 6) return 1;
+  return 2;
+}
+
+/** Uma palavra da busca "bate" com uma palavra do produto se: uma contém a outra
+ * (busca parcial, ex.: "oculo" dentro de "oculos"), ou se a distância de edição
+ * entre elas está dentro da tolerância a erro de digitação (ex.: "lascoste" ~ "lacoste"). */
+function wordsApproximatelyMatch(queryWord: string, productWord: string): boolean {
+  if (productWord.includes(queryWord) || queryWord.includes(productWord)) return true;
+  const tolerance = Math.min(maxTypoDistance(queryWord.length), maxTypoDistance(productWord.length));
+  if (tolerance === 0) return false;
+  if (Math.abs(queryWord.length - productWord.length) > tolerance) return false;
+  return levenshteinDistance(queryWord, productWord) <= tolerance;
+}
+
+
 export type QuickFilterValue = "menor-preco" | "maior-preco" | "destaques" | "mais-vendidos" | "ofertas";
 
 export const QUICK_FILTERS: { value: QuickFilterValue; label: string }[] = [
@@ -101,9 +144,12 @@ export function countActiveFilters(state: ProductFilterState, priceBounds?: { mi
 export function productMatchesFilters(product: Product, state: ProductFilterState): boolean {
   if (state.busca) {
     const searchText = normalizeSearchText([product.name, product.brand, product.model, product.description].filter(Boolean).join(" "));
+    const productWords = searchText.split(" ").filter(Boolean);
     const normalizedQuery = normalizeSearchText(state.busca);
     const queryWords = normalizedQuery.split(" ").filter(Boolean);
-    const matchesByWord = queryWords.length > 0 && queryWords.every((word) => searchText.includes(word));
+    // Cada palavra da busca precisa achar uma palavra "parecida" no produto (contém,
+    // ou está a poucas letras de distância — cobre erro de digitação, ex.: "lascoste" ~ "lacoste").
+    const matchesByWord = queryWords.length > 0 && queryWords.every((queryWord) => productWords.some((productWord) => wordsApproximatelyMatch(queryWord, productWord)));
     // Também compara ignorando todos os espaços, para pegar buscas como "rayban" batendo com "Ray-Ban".
     const matchesCollapsed = normalizedQuery.length > 0 && searchText.replace(/ /g, "").includes(normalizedQuery.replace(/ /g, ""));
     if (!matchesByWord && !matchesCollapsed) return false;

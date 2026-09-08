@@ -60,10 +60,6 @@ export default async function ProdutosPage({
             <>
               <p className="eyebrow">A coleção inteira</p>
               <h1 className="section-title mt-2">Óculos de sol para ver e ser visto</h1>
-              <p className="mt-3 max-w-xl font-body text-sm leading-6 text-brand-ink/60 sm:text-base">
-                Modelos selecionados para acompanhar todos os seus dias — do essencial ao
-                mais marcante.
-              </p>
             </>
           )}
         </div>

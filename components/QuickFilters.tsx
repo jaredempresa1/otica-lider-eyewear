@@ -21,7 +21,7 @@ export default function QuickFilters({ anchor }: { anchor?: string } = {}) {
   }
 
   return (
-    <div role="listbox" aria-label="Filtros rápidos" className="no-scrollbar -mx-5 flex snap-x gap-2 overflow-x-auto px-5 sm:mx-0 sm:flex-wrap sm:px-0">
+    <div role="listbox" aria-label="Filtros rápidos" className="no-scrollbar flex min-w-0 snap-x gap-2 overflow-x-auto sm:flex-wrap">
       {QUICK_FILTERS.map((filter) => {
         const isSelected = filter.value === current;
         return (
