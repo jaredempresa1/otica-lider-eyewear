@@ -33,6 +33,7 @@ export function buildWhatsAppOrderMessage(
   cep: string,
   shipping: ShippingResult,
   payment: PaymentSelection,
+  coupon?: { code: string; discount: number },
 ): string {
   const lines: string[] = [];
 
@@ -49,8 +50,11 @@ export function buildWhatsAppOrderMessage(
   }
 
   lines.push("");
+  const discountedSubtotal = Math.max(0, subtotal - (coupon?.discount ?? 0));
   lines.push(`Subtotal: ${formatBRL(subtotal)}`);
-  lines.push(`Forma de pagamento: ${paymentDescription(payment, subtotal)}`);
+  if (coupon?.discount) lines.push(`Cupom ${coupon.code}: -${formatBRL(coupon.discount)}`);
+  lines.push(`Total dos produtos: ${formatBRL(discountedSubtotal)}`);
+  lines.push(`Forma de pagamento: ${paymentDescription(payment, discountedSubtotal)}`);
 
 	  if (cep) {
 	    lines.push(`CEP de entrega: ${cep}`);
@@ -64,6 +68,7 @@ export function buildWhatsAppOrderMessage(
   }
 
   lines.push("");
+  lines.push("A equipe da Ótica Líder costuma responder em até 1 minuto.");
   lines.push("Aguardo o retorno para confirmar pagamento e entrega. Obrigado(a)!");
 
   return lines.join("\n");
@@ -101,8 +106,9 @@ export function buildWhatsAppMadeToOrderMessage(product: {
     lines.push("");
     lines.push(`Vi que o prazo médio de entrega é ${options.leadTime.trim()}. Pode confirmar o pedido?`);
   } else {
-    lines.push("");
-    lines.push("Pode me confirmar o prazo médio de entrega e fechar o pedido?");
+  lines.push("");
+  lines.push("A equipe da Ótica Líder costuma responder em até 1 minuto.");
+  lines.push("Pode me confirmar o prazo médio de entrega e fechar o pedido?");
   }
 
   return lines.join("\n");
@@ -121,6 +127,7 @@ export function buildWhatsAppInquiryMessage(product: {
   lines.push("");
   lines.push(`• ${label}${options.colorName ? ` — cor ${options.colorName}` : ""} — ${formatBRL(product.price)}`);
   lines.push("");
+  lines.push("A equipe da Ótica Líder costuma responder em até 1 minuto.");
   lines.push(
     options.wholeProductSoldOut
       ? "Vi que está esgotado no momento. Vocês têm previsão de reposição ou conseguem separar uma unidade para mim?"

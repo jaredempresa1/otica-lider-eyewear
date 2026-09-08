@@ -107,7 +107,7 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
   // Atalho manual: CEPs já confirmados como frete grátis não dependem de
   // geocodificação nenhuma (veja lib/freeShippingOverrides.ts).
   if (FREE_SHIPPING_CEP_OVERRIDES.includes(digits)) {
-    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo" };
+    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo", deliveryTime: 3 };
   }
 
   const { coords, city } = await getCepInfo(digits);
@@ -120,7 +120,7 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
   }
 
   if (!isExcludedCity(city) && isInsideZone(coords, FREE_SHIPPING_ZONE)) {
-    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo" };
+    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo", deliveryTime: 3 };
   }
 
   return quoteOutsideFreeArea(digits, items);

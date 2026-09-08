@@ -5,11 +5,13 @@
  * usando o dourado para evidenciar escolhas de pagamento e conversão.
  */
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartContext";
 import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
+import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -23,8 +25,13 @@ export default function SacolaPage() {
   const [payment, setPayment] = useState<PaymentSelection>({ method: "pix", installments: 10 });
   const [shipping, setShipping] = useState<ShippingResult | null>(null);
   const [checkingShipping, setCheckingShipping] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [couponMessage, setCouponMessage] = useState("");
   const isFreeShipping = shipping?.freeShipping === true;
-  const installmentValue = subtotal / payment.installments;
+  const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
+  const discountedSubtotal = Math.max(0, subtotal - couponDiscount);
+  const installmentValue = discountedSubtotal / payment.installments;
 
   // Assim que o cliente termina de digitar o CEP (8 dígitos), esperamos
   // meio segundo (pra não disparar uma chamada a cada tecla) e então
@@ -73,14 +80,31 @@ export default function SacolaPage() {
 	  } : current);
 	}
 
-	function handleCheckout() {
-		const message = buildWhatsAppOrderMessage(
-			items,
-			cep,
-			shipping ?? { valid: false, freeShipping: false, regionLabel: null, source: "invalid" },
-			payment,
-		);
-    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+  function handleCheckout() {
+			const message = buildWhatsAppOrderMessage(
+				items,
+				cep,
+				shipping ?? { valid: false, freeShipping: false, regionLabel: null, source: "invalid" },
+				payment,
+				appliedCoupon ? { code: appliedCoupon, discount: couponDiscount } : undefined,
+			);
+	    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+  }
+
+  function handleApplyCoupon() {
+    const normalized = normalizeCoupon(couponInput);
+    if (normalized !== FIRST_PURCHASE_COUPON) {
+      setAppliedCoupon("");
+      setCouponMessage("Esse cupom não é válido. Confira o código e tente novamente.");
+      return;
+    }
+    if (subtotal <= FIRST_PURCHASE_MINIMUM) {
+      setAppliedCoupon("");
+      setCouponMessage("Esse cupom é válido apenas para compras acima de R$ 400.");
+      return;
+    }
+    setAppliedCoupon(normalized);
+    setCouponMessage("Cupom aplicado: você economizou R$ 50 na primeira compra.");
   }
 
   if (items.length === 0) {
@@ -124,8 +148,7 @@ export default function SacolaPage() {
                 <li key={`${item.productId}-${item.colorName}`} className="flex gap-4 py-5 sm:gap-5">
                   <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-brand-sage/60 sm:h-36 sm:w-32">
                     {item.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image} alt={item.name} className="h-full w-full object-contain p-2 mix-blend-multiply" />
+                      <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 96px, 128px" className="object-contain p-2 mix-blend-multiply" />
                     ) : <div className="flex h-full items-center justify-center font-body text-[10px] uppercase tracking-[0.1em] text-brand-ink/35">Sem foto</div>}
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-1">
@@ -157,26 +180,37 @@ export default function SacolaPage() {
 
           <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
             <div className="flex items-center justify-between text-brand-paper"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
+            <div className="mt-5">
+              <label htmlFor="coupon" className="block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper">Cupom de primeira compra</label>
+              <div className="mt-2 flex gap-2">
+                <input id="coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }} placeholder={FIRST_PURCHASE_COUPON} className="min-w-0 flex-1 rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] uppercase text-brand-paper outline-none placeholder:text-brand-paper/45 focus:border-brand-gold" />
+                <button type="button" onClick={handleApplyCoupon} className="rounded-xl border border-brand-gold px-3 font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-gold transition-colors hover:bg-brand-gold hover:text-brand-ink">Aplicar</button>
+              </div>
+              {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-paper/70"}`} role="status">{couponMessage}</p>}
+            </div>
+            {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Desconto ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
             <div>
-	            <div className="flex items-center justify-between text-brand-paper"><span>Frete</span><span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span></div>
+		            <div className="flex items-center justify-between text-brand-paper"><span>Frete</span><span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span></div>
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
               {checkingShipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
 	              {!checkingShipping && shipping && (
 	                <div className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
-	                  {isFreeShipping ? <p>Frete grátis</p> : shipping?.price != null ? (
-	                    <>
-	                      {shipping.options && shipping.options.length > 1 && (
-	                        <label className="block">
-	                          <span className="sr-only">Escolha o tipo de frete</span>
-	                          <select value={shipping.options.find((option) => option.name === shipping.serviceName)?.id ?? shipping.serviceName ?? ""} onChange={(event) => handleShippingOption(event.target.value)} className="w-full rounded-xl border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none focus:border-brand-gold">
-                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · entrega estimada em até {option.deliveryTime} dias úteis após a postagem</option>)}
+		                  {isFreeShipping ? (
+		                    <p>Prazo estimado: até {shipping.deliveryTime || 3} dias úteis.</p>
+		                  ) : shipping?.price != null ? (
+		                    <>
+		                      {shipping.options && shipping.options.length > 1 && (
+		                        <label className="block">
+		                          <span className="sr-only">Escolha o tipo de frete</span>
+		                          <select value={shipping.options.find((option) => option.name === shipping.serviceName)?.id ?? shipping.serviceName ?? ""} onChange={(event) => handleShippingOption(event.target.value)} className="w-full rounded-xl border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none focus:border-brand-gold">
+	                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · entrega estimada em até {option.deliveryTime} dias úteis após a postagem</option>)}
 	                          </select>
 	                        </label>
 	                      )}
-                      {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem</p>}
+	                      {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · {formatBRL(shipping.price)} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem.</p>}
 	                    </>
-	                  ) : <p>{shipping?.error || "Frete a combinar pelo WhatsApp."}</p>}
+	                  ) : <p>{shipping?.error || "Prazo de entrega a confirmar pelo WhatsApp."}</p>}
                 </div>
               )}
             </div>
@@ -203,19 +237,19 @@ export default function SacolaPage() {
               <div className="mt-3 rounded-xl bg-brand-paper/10 p-3">
                 <label htmlFor="installments" className="block font-body text-[12px] font-semibold uppercase tracking-[0.13em] text-brand-paper">Escolha as parcelas</label>
                 <select id="installments" value={payment.installments} onChange={(event) => handleInstallments(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[15px] text-brand-paper outline-none focus:border-brand-gold">
-                  {INSTALLMENT_OPTIONS.map((installments) => <option key={installments} value={installments}>{installments}x de {formatBRL(subtotal / installments)} sem juros</option>)}
+                  {INSTALLMENT_OPTIONS.map((installments) => <option key={installments} value={installments}>{installments}x de {formatBRL(discountedSubtotal / installments)} sem juros</option>)}
                 </select>
               </div>
             )}
           </fieldset>
 
-	          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[16px] text-brand-paper">Total do pedido</span><span className="text-right font-heading text-[26px] font-semibold text-brand-paper">{formatBRL(subtotal + (shipping?.price || 0))}</span></div>
+		          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[16px] text-brand-paper">Total do pedido</span><span className="text-right font-heading text-[26px] font-semibold text-brand-paper">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
           <div className="mt-2 rounded-xl bg-brand-paper/10 px-3 py-2.5 font-body text-[12px] leading-5 text-brand-paper" aria-live="polite">
             <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper">Pagamento escolhido</span>
             {payment.method === "pix" ? "Pix à vista" : `Cartão de crédito · ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`}
           </div>
           <button onClick={handleCheckout} className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand-gold px-5 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>
-          <p className="mt-3 text-center font-body text-[11px] leading-4 text-brand-paper/70">Seu pedido será enviado já organizado, com a forma de pagamento escolhida.</p>
+          <p className="mt-3 text-center font-body text-[11px] leading-4 text-brand-paper/70">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
         </aside>
       </div>
     </main>

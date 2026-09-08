@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
-import { Collection, Product } from "@/types/product";
+import { Collection, Product, Testimonial } from "@/types/product";
 import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
@@ -21,7 +21,7 @@ export default async function HomePage({
   searchParams?: { genero?: string; marca?: string; cor?: string; precoMin?: string; precoMax?: string; ordenar?: string };
 }) {
   let products: Product[] = [];
-  let testimonials: Array<{ id: string; author_name: string; content: string }> = [];
+  let testimonials: Testimonial[] = [];
   let collections: Collection[] = [];
   let promoBanner: { image_url: string; href: string; alt_text: string } | null = null;
 
@@ -32,7 +32,7 @@ export default async function HomePage({
         .from("testimonials")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(4),
+        .limit(20),
       supabase.from("collections").select("*").order("sort_order", { ascending: true }),
       supabase.from("promo_banner").select("image_url, href, alt_text").eq("id", 1).maybeSingle(),
     ]);

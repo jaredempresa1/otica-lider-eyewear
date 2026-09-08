@@ -69,6 +69,15 @@ export type Collection = {
   created_at?: string;
 };
 
+export type Testimonial = {
+  id: string;
+  author_name: string;
+  content: string;
+  image_url?: string;
+  rating?: number;
+  created_at?: string;
+};
+
 export type CartItem = {
   productId: string;
   slug: string;

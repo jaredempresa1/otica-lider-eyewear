@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Collection, Product, ProductColor, ProductDownload } from "@/types/product";
+import { Collection, Product, ProductColor, ProductDownload, Testimonial } from "@/types/product";
 import { isProductSoldOut } from "@/lib/productStatus";
 import {
   ArrowDown,
@@ -45,6 +45,9 @@ type PromoBannerSettings = {
   destination_type: "none" | "collection" | "product";
   destination_id: string;
 };
+
+type TestimonialFormState = { id?: string; author_name: string; content: string; image_url: string; rating: string };
+const EMPTY_TESTIMONIAL_FORM: TestimonialFormState = { author_name: "", content: "", image_url: "", rating: "5" };
 
 type FormState = {
   id?: string;
@@ -165,13 +168,18 @@ export default function AdminDashboardPage() {
   const [collectionError, setCollectionError] = useState("");
 
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [testimonialForm, setTestimonialForm] = useState<TestimonialFormState>(EMPTY_TESTIMONIAL_FORM);
+  const [showTestimonialForm, setShowTestimonialForm] = useState(false);
+  const [testimonialSaving, setTestimonialSaving] = useState(false);
+  const [testimonialMessage, setTestimonialMessage] = useState("");
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>({ width: "15", height: "10", length: "20", weight: "0.5" });
   const [shippingSaving, setShippingSaving] = useState(false);
   const [shippingMessage, setShippingMessage] = useState("");
   const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false, destination_type: "none", destination_id: "" });
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque">("produtos");
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque" | "avaliacoes">("produtos");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -182,6 +190,7 @@ export default function AdminDashboardPage() {
         void loadProducts();
         void loadCollections();
         void loadLeads();
+        void loadTestimonials();
         void loadShippingSettings();
         void loadPromoBanner();
       }
@@ -201,6 +210,41 @@ export default function AdminDashboardPage() {
   async function loadLeads() {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
     setLeads((data as Lead[]) ?? []);
+  }
+
+  async function loadTestimonials() {
+    const { data } = await supabase.from("testimonials").select("*").order("created_at", { ascending: false });
+    setTestimonials((data as Testimonial[]) ?? []);
+  }
+
+  function openNewTestimonialForm() {
+    setTestimonialForm(EMPTY_TESTIMONIAL_FORM);
+    setTestimonialMessage("");
+    setShowTestimonialForm(true);
+  }
+
+  function openEditTestimonialForm(testimonial: Testimonial) {
+    setTestimonialForm({ id: testimonial.id, author_name: testimonial.author_name, content: testimonial.content, image_url: testimonial.image_url || "", rating: String(testimonial.rating || 5) });
+    setTestimonialMessage("");
+    setShowTestimonialForm(true);
+  }
+
+  async function saveTestimonial(event: React.FormEvent) {
+    event.preventDefault();
+    if (!testimonialForm.author_name.trim() || !testimonialForm.content.trim()) { setTestimonialMessage("Preencha o nome e o texto da avaliação."); return; }
+    setTestimonialSaving(true);
+    const payload = { author_name: testimonialForm.author_name.trim(), content: testimonialForm.content.trim(), image_url: testimonialForm.image_url.trim(), rating: Math.min(5, Math.max(1, Number(testimonialForm.rating) || 5)) };
+    const query = testimonialForm.id ? supabase.from("testimonials").update(payload).eq("id", testimonialForm.id) : supabase.from("testimonials").insert(payload);
+    const { error } = await query;
+    setTestimonialMessage(error ? "Não foi possível salvar. Rode a atualização da tabela testimonials no Supabase." : "Avaliação salva e publicada na home.");
+    if (!error) { setShowTestimonialForm(false); await loadTestimonials(); }
+    setTestimonialSaving(false);
+  }
+
+  async function deleteTestimonial(id: string) {
+    if (!window.confirm("Remover esta avaliação da home?")) return;
+    const { error } = await supabase.from("testimonials").delete().eq("id", id);
+    if (error) setTestimonialMessage("Não foi possível remover a avaliação."); else await loadTestimonials();
   }
 
   async function loadShippingSettings() {
@@ -621,14 +665,14 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "frete" ? "Frete" : "Destaque"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : "Destaque"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : "Publique uma novidade opcional na home."}
+              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : "Publique uma novidade opcional na home."}
           </p>
         </div>
         <div className="flex gap-3">
@@ -643,6 +687,7 @@ export default function AdminDashboardPage() {
           { key: "colecoes", label: "Coleções" },
           { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
           { key: "frete", label: "Frete" },
+          { key: "avaliacoes", label: `Avaliações${testimonials.length > 0 ? ` (${testimonials.length})` : ""}` },
           { key: "destaque", label: "Destaque" },
         ] as const).map((tab) => (
           <button
@@ -689,6 +734,17 @@ export default function AdminDashboardPage() {
             <label className="flex items-center gap-3 font-body text-sm font-semibold text-brand-ink/70"><input type="checkbox" checked={promoBanner.active} onChange={(event) => setPromoBanner((current) => ({ ...current, active: event.target.checked }))} className="h-4 w-4 accent-brand-gold" /> Mostrar destaque na home</label>
             <div className="flex items-center gap-4"><button type="submit" disabled={promoSaving || !promoBanner.image_url} className="btn-brand">{promoSaving ? "Salvando..." : "Salvar destaque"}</button>{promoMessage && <p className="font-body text-sm text-brand-ink/65">{promoMessage}</p>}</div>
           </form>
+        </section>
+      )}
+
+      {activeTab === "avaliacoes" && (
+        <section className="space-y-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div><p className="eyebrow">Prova social</p><h2 className="mt-2 font-heading text-2xl font-semibold text-brand-ink">Avaliações do Google</h2><p className="mt-2 max-w-2xl font-body text-sm leading-6 text-brand-ink/55">Cadastre manualmente as avaliações que você já tem no Google. Elas aparecerão em grupos de até três no final da home.</p></div>
+            <button type="button" onClick={openNewTestimonialForm} className="btn-brand shrink-0"><Plus size={15} className="mr-2" /> Nova avaliação</button>
+          </div>
+          {showTestimonialForm && <form onSubmit={saveTestimonial} className="max-w-2xl rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8"><div className="grid gap-4 sm:grid-cols-2"><label className="font-body text-xs font-semibold text-brand-ink/65">Nome do cliente<input required value={testimonialForm.author_name} onChange={(event) => setTestimonialForm((current) => ({ ...current, author_name: event.target.value }))} className="input-premium mt-1" /></label><label className="font-body text-xs font-semibold text-brand-ink/65">Estrelas<select value={testimonialForm.rating} onChange={(event) => setTestimonialForm((current) => ({ ...current, rating: event.target.value }))} className="input-premium mt-1">{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating} estrelas</option>)}</select></label></div><label className="mt-4 block font-body text-xs font-semibold text-brand-ink/65">Texto da avaliação<textarea required value={testimonialForm.content} onChange={(event) => setTestimonialForm((current) => ({ ...current, content: event.target.value }))} className="input-premium mt-1 min-h-28 resize-y" /></label><label className="mt-4 block font-body text-xs font-semibold text-brand-ink/65">URL da foto do cliente (opcional)<input type="url" value={testimonialForm.image_url} onChange={(event) => setTestimonialForm((current) => ({ ...current, image_url: event.target.value }))} className="input-premium mt-1" placeholder="https://..." /></label><p className="mt-2 font-body text-xs leading-5 text-brand-ink/45">Prefira uma imagem pública e autorizada pelo cliente. Se deixar vazio, mostramos a inicial do nome.</p><div className="mt-5 flex flex-wrap items-center gap-3"><button type="submit" disabled={testimonialSaving} className="btn-brand">{testimonialSaving ? "Salvando..." : "Salvar avaliação"}</button><button type="button" onClick={() => setShowTestimonialForm(false)} className="btn-brand-outline">Cancelar</button>{testimonialMessage && <span className="font-body text-sm text-brand-ink/60">{testimonialMessage}</span>}</div></form>}
+          {testimonials.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhuma avaliação cadastrada.</div> : <div className="grid gap-4 md:grid-cols-2">{testimonials.map((testimonial) => <article key={testimonial.id} className="rounded-2xl bg-brand-paper p-5 shadow-card"><div className="flex items-start justify-between gap-3"><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{testimonial.author_name}</h3><p className="mt-1 text-sm text-brand-gold">{"★".repeat(testimonial.rating || 5)}{"☆".repeat(5 - (testimonial.rating || 5))}</p></div><div className="flex gap-3"><button type="button" onClick={() => openEditTestimonialForm(testimonial)} className="text-brand-ink/55 hover:text-brand-gold" aria-label={`Editar avaliação de ${testimonial.author_name}`}><Pencil size={17} /></button><button type="button" onClick={() => void deleteTestimonial(testimonial.id)} className="text-brand-ink/40 hover:text-red-600" aria-label={`Remover avaliação de ${testimonial.author_name}`}><Trash2 size={17} /></button></div></div><p className="mt-4 font-body text-sm leading-6 text-brand-ink/65">“{testimonial.content}”</p></article>)}</div>}
         </section>
       )}
 
