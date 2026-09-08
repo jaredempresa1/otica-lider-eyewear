@@ -6,6 +6,7 @@ import { Collection, Product } from "@/types/product";
 import ProductGrid from "@/components/ProductGrid";
 import FilterDrawer from "@/components/FilterDrawer";
 import QuickFilters from "@/components/QuickFilters";
+import ProductSearch from "@/components/ProductSearch";
 import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
 
 export const revalidate = 60;
@@ -13,7 +14,7 @@ export const revalidate = 60;
 export default async function ProdutosPage({
   searchParams,
 }: {
-  searchParams: { colecao?: string; genero?: string; marca?: string; cor?: string; precoMin?: string; precoMax?: string; ordenar?: string };
+  searchParams: { colecao?: string; q?: string; genero?: string; marca?: string; cor?: string; formato?: string; ia?: string; precoMin?: string; precoMax?: string; ordenar?: string };
 }) {
   const colecao = searchParams?.colecao;
   let products: Product[] = [];
@@ -37,7 +38,7 @@ export default async function ProdutosPage({
   const collectionScopedProducts = colecao ? products.filter((product) => (product.collection_slugs ?? []).includes(colecao)) : products;
 
   const filterState = parseFilterState(searchParams ?? {});
-  const hasActiveFilters = filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.precoMin !== null || filterState.precoMax !== null;
+  const hasActiveFilters = filterState.busca.length > 0 || filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.formato.length > 0 || filterState.ia || filterState.precoMin !== null || filterState.precoMax !== null;
   const visibleProducts = applyQuickFilter(filterProducts(collectionScopedProducts, filterState), searchParams?.ordenar);
 
   return (
@@ -68,6 +69,7 @@ export default async function ProdutosPage({
         </div>
       </div>
       <div className="mb-8 flex flex-wrap items-center gap-3">
+        <ProductSearch />
         <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}>
           <FilterDrawer products={collectionScopedProducts} collections={collections} />
         </Suspense>

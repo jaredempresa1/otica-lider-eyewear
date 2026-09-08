@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import CouponBanner from "@/components/CouponBanner";
+import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 const piazzolla = Piazzolla({
   subsets: ["latin"],
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
           {children}
           <Footer />
+          <FloatingWhatsApp />
         </CartProvider>
       </body>
     </html>

@@ -11,17 +11,23 @@ export const QUICK_FILTERS: { value: QuickFilterValue; label: string }[] = [
 ];
 
 export type ProductFilterState = {
+  busca: string;
   genero: string[];
   marca: string[];
   cor: string[];
+  formato: string[];
+  ia: boolean;
   precoMin: number | null;
   precoMax: number | null;
 };
 
 export const EMPTY_FILTER_STATE: ProductFilterState = {
+  busca: "",
   genero: [],
   marca: [],
   cor: [],
+  formato: [],
+  ia: false,
   precoMin: null,
   precoMax: null,
 };
@@ -41,9 +47,12 @@ function parseNumberParam(value?: string | null): number | null {
 }
 
 type FilterSearchParams = {
+  q?: string;
   genero?: string;
   marca?: string;
   cor?: string;
+  formato?: string;
+  ia?: string;
   precoMin?: string;
   precoMax?: string;
 };
@@ -51,16 +60,21 @@ type FilterSearchParams = {
 /** Lê o estado de filtros a partir dos searchParams da URL (gênero, marca, cor, preço). */
 export function parseFilterState(searchParams: FilterSearchParams): ProductFilterState {
   return {
+    busca: searchParams.q?.trim() ?? "",
     genero: parseListParam(searchParams.genero).filter((value) => value === "masculino" || value === "feminino"),
     marca: parseListParam(searchParams.marca),
     cor: parseListParam(searchParams.cor),
+    formato: parseListParam(searchParams.formato),
+    ia: searchParams.ia === "1",
     precoMin: parseNumberParam(searchParams.precoMin),
     precoMax: parseNumberParam(searchParams.precoMax),
   };
 }
 
 export function countActiveFilters(state: ProductFilterState, priceBounds?: { min: number; max: number }): number {
-  let count = state.genero.length + state.marca.length + state.cor.length;
+  let count = state.genero.length + state.marca.length + state.cor.length + state.formato.length;
+  if (state.busca) count += 1;
+  if (state.ia) count += 1;
   if (priceBounds) {
     const minChanged = state.precoMin !== null && state.precoMin > priceBounds.min;
     const maxChanged = state.precoMax !== null && state.precoMax < priceBounds.max;
@@ -73,6 +87,11 @@ export function countActiveFilters(state: ProductFilterState, priceBounds?: { mi
 
 /** Um produto "unissex" (ou sem gênero definido) aparece nos dois filtros, masculino e feminino. */
 export function productMatchesFilters(product: Product, state: ProductFilterState): boolean {
+  if (state.busca) {
+    const searchText = [product.name, product.brand, product.model, product.description].filter(Boolean).join(" ").toLocaleLowerCase("pt-BR");
+    if (!searchText.includes(state.busca.toLocaleLowerCase("pt-BR"))) return false;
+  }
+
   if (state.genero.length > 0) {
     const isUnissex = !product.gender || product.gender === "unissex";
     const matchesGender = isUnissex || state.genero.includes(product.gender as string);
@@ -88,6 +107,13 @@ export function productMatchesFilters(product: Product, state: ProductFilterStat
     const colorNames = (product.colors ?? []).map((color) => color.name);
     if (!state.cor.some((name) => colorNames.includes(name))) return false;
   }
+
+  if (state.formato.length > 0) {
+    const format = product.specifications?.format?.trim().toLocaleLowerCase("pt-BR") ?? "";
+    if (!state.formato.some((value) => format === value.toLocaleLowerCase("pt-BR"))) return false;
+  }
+
+  if (state.ia && (!product.images || product.images.length === 0)) return false;
 
   if (state.precoMin !== null && product.price < state.precoMin) return false;
   if (state.precoMax !== null && product.price > state.precoMax) return false;

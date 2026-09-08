@@ -24,6 +24,8 @@ const GENDER_OPTIONS = [
   { value: "feminino", label: "Feminino" },
 ];
 
+const FORMAT_OPTIONS = ["Redondo", "Quadrado", "Retangular", "Oval", "Gatinho", "Aviador", "Geométrico"];
+
 export default function FilterDrawer({
   products,
   collections,
@@ -44,9 +46,12 @@ export default function FilterDrawer({
   const appliedState = useMemo(
     () =>
       parseFilterState({
+        q: searchParams.get("q") ?? undefined,
         genero: searchParams.get("genero") ?? undefined,
         marca: searchParams.get("marca") ?? undefined,
         cor: searchParams.get("cor") ?? undefined,
+        formato: searchParams.get("formato") ?? undefined,
+        ia: searchParams.get("ia") ?? undefined,
         precoMin: searchParams.get("precoMin") ?? undefined,
         precoMax: searchParams.get("precoMax") ?? undefined,
       }),
@@ -82,7 +87,7 @@ export default function FilterDrawer({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  function toggleValue(field: "genero" | "marca" | "cor", value: string) {
+  function toggleValue(field: "genero" | "marca" | "cor" | "formato", value: string) {
     setDraft((current) => {
       const list = current[field];
       const has = list.includes(value);
@@ -106,6 +111,12 @@ export default function FilterDrawer({
 
   function applyFilters() {
     const params = new URLSearchParams(searchParams.toString());
+
+    if (draft.formato.length > 0) params.set("formato", draft.formato.join(","));
+    else params.delete("formato");
+
+    if (draft.ia) params.set("ia", "1");
+    else params.delete("ia");
 
     if (draft.genero.length > 0) params.set("genero", draft.genero.join(","));
     else params.delete("genero");
@@ -237,6 +248,19 @@ export default function FilterDrawer({
                 </section>
               )}
 
+              <section className="border-b border-brand-ink/8 px-5 py-5">
+                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Formato</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {FORMAT_OPTIONS.map((format) => {
+                    const isSelected = draft.formato.includes(format);
+                    return <button key={format} type="button" onClick={() => toggleValue("formato", format)} className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>{format}</button>;
+                  })}
+                </div>
+              </section>
+              <section className="border-b border-brand-ink/8 px-5 py-5">
+                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Recursos</p>
+                <button type="button" onClick={() => setDraft((current) => ({ ...current, ia: !current.ia }))} className={`mt-3 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.ia ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos com IA</button>
+              </section>
               {hasPriceRange && (
                 <section className="px-5 py-5">
                   <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Preço</p>

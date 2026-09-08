@@ -11,6 +11,7 @@ import Testimonials from "@/components/Testimonials";
 import WhatsAppSignup from "@/components/WhatsAppSignup";
 import FilterDrawer from "@/components/FilterDrawer";
 import QuickFilters from "@/components/QuickFilters";
+import ProductSearch from "@/components/ProductSearch";
 import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
 
 export const revalidate = 60;
@@ -18,7 +19,7 @@ export const revalidate = 60;
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams?: { genero?: string; marca?: string; cor?: string; precoMin?: string; precoMax?: string; ordenar?: string };
+  searchParams?: { q?: string; genero?: string; marca?: string; cor?: string; formato?: string; ia?: string; precoMin?: string; precoMax?: string; ordenar?: string };
 }) {
   let products: Product[] = [];
   let testimonials: Testimonial[] = [];
@@ -45,7 +46,7 @@ export default async function HomePage({
 
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
   const filterState = parseFilterState(searchParams ?? {});
-  const hasActiveFilters = filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.precoMin !== null || filterState.precoMax !== null;
+  const hasActiveFilters = filterState.busca.length > 0 || filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.formato.length > 0 || filterState.ia || filterState.precoMin !== null || filterState.precoMax !== null;
   const catalogProducts = applyQuickFilter(filterProducts(products, filterState), searchParams?.ordenar);
 
   return (
@@ -90,6 +91,7 @@ export default async function HomePage({
           </Link>
         </div>
         <div className="mb-7 flex flex-wrap items-center gap-3">
+          <ProductSearch anchor="catalogo" />
           <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}>
             <FilterDrawer products={products} collections={collections} anchor="catalogo" />
           </Suspense>
