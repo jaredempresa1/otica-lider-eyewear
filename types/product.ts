@@ -25,7 +25,6 @@ export type ProductGender = "masculino" | "feminino" | "unissex";
 export type ProductSpecifications = {
   material?: string;
   format?: string;
-  ai_try_on?: boolean;
   warranty?: string;
   lens_type?: string;
   package_contents?: string;
