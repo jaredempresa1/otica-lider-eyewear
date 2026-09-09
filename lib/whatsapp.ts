@@ -81,6 +81,49 @@ export function buildWhatsAppLink(message: string): string {
 }
 
 /**
+ * Link para a EQUIPE mandar mensagem para o CLIENTE (usado no admin, ex.:
+ * carrinho abandonado). Diferente de buildWhatsAppLink acima, que monta o
+ * link do cliente para a loja.
+ */
+export function buildWhatsAppLinkTo(number: string, message: string): string {
+  const encoded = encodeURIComponent(message);
+  return `https://wa.me/${number}?text=${encoded}`;
+}
+
+/**
+ * Mensagem pronta para a equipe reengajar quem deixou o WhatsApp na sacola
+ * mas não fechou o pedido (carrinho abandonado). Lembra especificamente do(s)
+ * óculos que ficaram separados, para o cliente reconhecer na hora.
+ */
+export function buildAbandonedCartWhatsAppMessage(
+  items: { name: string; colorName?: string; price: number; quantity: number }[],
+  subtotal: number,
+): string {
+  const lines: string[] = [];
+
+  lines.push("Oi! Aqui é da Ótica Líder Eyewear 😊");
+  lines.push("");
+
+  if (items.length === 1) {
+    const item = items[0];
+    lines.push(
+      `Vi que você separou o ${item.name}${item.colorName ? ` (cor ${item.colorName})` : ""} na sacola e não chegou a finalizar o pedido.`,
+    );
+  } else {
+    lines.push("Vi que você separou estes óculos na sacola e não chegou a finalizar o pedido:");
+    lines.push("");
+    for (const item of items) {
+      lines.push(`• ${item.quantity}x ${item.name}${item.colorName ? ` (${item.colorName})` : ""}`);
+    }
+  }
+
+  lines.push("");
+  lines.push(`Ainda dá pra garantir, no valor de ${formatBRL(subtotal)}. Posso te ajudar a fechar o pedido agora?`);
+
+  return lines.join("\n");
+}
+
+/**
  * Mensagem pronta para produtos marcados como "pedido especial" (sob
  * encomenda) no admin — ex.: um óculos de pouco giro que só é comprado
  * depois que o cliente confirma o pedido. Diferente da mensagem de

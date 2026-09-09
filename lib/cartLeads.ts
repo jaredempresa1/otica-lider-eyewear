@@ -30,6 +30,9 @@
  *
  *   create policy "Permitir leitura autenticada de carrinho abandonado"
  *     on cart_whatsapp_leads for select to authenticated using (true);
+ *
+ *   create policy "Permitir exclusão autenticada de carrinho abandonado"
+ *     on cart_whatsapp_leads for delete to authenticated using (true);
  */
 
 import { supabase, hasSupabaseConfig } from "./supabaseClient";

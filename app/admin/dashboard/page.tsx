@@ -7,6 +7,7 @@ import { Collection, Product, ProductColor, ProductDownload, Testimonial } from 
 import { isProductSoldOut } from "@/lib/productStatus";
 import { FORMAT_OPTIONS } from "@/lib/filters";
 import { calculateDiscountPercent } from "@/lib/pricing";
+import { buildAbandonedCartWhatsAppMessage, buildWhatsAppLinkTo } from "@/lib/whatsapp";
 import {
   ArrowDown,
   ArrowUp,
@@ -165,8 +166,11 @@ function formatWhatsAppDigits(digits: string) {
   return `(${clean.slice(0, 2)}) ${clean.slice(2, 7)}-${clean.slice(7, 11)}`;
 }
 
-function formatLeadDate(value: string) {
-  return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+function formatLeadDateTime(value: string) {
+  const date = new Date(value);
+  const datePart = date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+  const timePart = date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return `${datePart} às ${timePart}`;
 }
 
 /** Chave "AAAA-MM-DD" no fuso local, usada pra agrupar leads/cliques por dia. */
@@ -250,9 +254,23 @@ export default function AdminDashboardPage() {
     setLeads((data as Lead[]) ?? []);
   }
 
+  async function deleteLead(id: string) {
+    if (!window.confirm("Apagar este número de WhatsApp?")) return;
+    const { error } = await supabase.from("leads").delete().eq("id", id);
+    if (error) window.alert("Não foi possível apagar. Confirme se a tabela leads tem uma policy de exclusão para usuários autenticados.");
+    else await loadLeads();
+  }
+
   async function loadCartLeads() {
     const { data } = await supabase.from("cart_whatsapp_leads").select("*").order("created_at", { ascending: false });
     setCartLeads((data as CartWhatsAppLead[]) ?? []);
+  }
+
+  async function deleteCartLead(id: string) {
+    if (!window.confirm("Apagar este carrinho abandonado?")) return;
+    const { error } = await supabase.from("cart_whatsapp_leads").delete().eq("id", id);
+    if (error) window.alert("Não foi possível apagar. Confirme se a tabela cart_whatsapp_leads tem uma policy de exclusão para usuários autenticados.");
+    else await loadCartLeads();
   }
 
   async function loadProductClicks() {
@@ -992,13 +1010,13 @@ export default function AdminDashboardPage() {
 
       {activeTab === "whatsapp" && (
       <div className="overflow-hidden rounded-[1.5rem] bg-brand-paper shadow-card">
-        <div className="hidden grid-cols-[1fr_170px_110px_90px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
-          <span>Nome</span><span>WhatsApp</span><span>Público</span><span>Data</span>
+        <div className="hidden grid-cols-[1fr_170px_110px_120px_36px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
+          <span>Nome</span><span>WhatsApp</span><span>Público</span><span>Data</span><span></span>
         </div>
         {leads.length === 0 ? (
           <div className="px-6 py-14 text-center"><p className="font-heading text-2xl text-brand-ink">Nenhum cadastro ainda</p><p className="mt-2 font-body text-sm text-brand-ink/55">Assim que alguém se cadastrar na home, o contato aparece aqui.</p></div>
         ) : leads.map((lead) => (
-          <div key={lead.id} className="grid gap-3 border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[1fr_170px_110px_90px] sm:items-center sm:gap-4 sm:px-6">
+          <div key={lead.id} className="grid gap-3 border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[1fr_170px_110px_120px_36px] sm:items-center sm:gap-4 sm:px-6">
             <p className="truncate font-body text-sm font-semibold text-brand-ink">{lead.name?.trim() || "Sem nome"}</p>
             <a
               href={`https://wa.me/55${lead.whatsapp}`}
@@ -1011,7 +1029,14 @@ export default function AdminDashboardPage() {
               {formatWhatsAppDigits(lead.whatsapp)}
             </a>
             <span className="font-body text-xs uppercase tracking-[0.08em] text-brand-ink/55">{lead.gender === "masculino" ? "Masculino" : lead.gender === "feminino" ? "Feminino" : "—"}</span>
-            <span className="font-body text-xs text-brand-ink/45">{formatLeadDate(lead.created_at)}</span>
+            <span className="font-body text-xs text-brand-ink/45">{formatLeadDateTime(lead.created_at)}</span>
+            <button
+              onClick={() => deleteLead(lead.id)}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-brand-ink/35 transition-colors hover:bg-red-50 hover:text-red-600 justify-self-start sm:justify-self-center"
+              aria-label={`Apagar cadastro de ${lead.name || lead.whatsapp}`}
+            >
+              <Trash2 size={15} />
+            </button>
           </div>
         ))}
       </div>
@@ -1025,18 +1050,25 @@ export default function AdminDashboardPage() {
           <div key={lead.id} className="border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <a
-                href={`https://wa.me/55${lead.whatsapp}`}
+                href={buildWhatsAppLinkTo(`55${lead.whatsapp}`, buildAbandonedCartWhatsAppMessage(lead.items, lead.subtotal))}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-2 font-body text-sm font-semibold text-brand-ink transition-colors hover:text-brand-gold"
-                aria-label={`Abrir conversa no WhatsApp com ${lead.whatsapp}`}
+                aria-label={`Mandar mensagem pronta no WhatsApp para ${lead.whatsapp}`}
               >
                 <MessageCircle size={16} className="shrink-0 text-green-600" />
                 {formatWhatsAppDigits(lead.whatsapp)}
               </a>
               <div className="flex items-center gap-4">
                 <span className="font-body text-sm font-semibold text-brand-ink">{formatBRL(lead.subtotal)}</span>
-                <span className="font-body text-xs text-brand-ink/45">{formatLeadDate(lead.created_at)}</span>
+                <span className="font-body text-xs text-brand-ink/45">{formatLeadDateTime(lead.created_at)}</span>
+                <button
+                  onClick={() => deleteCartLead(lead.id)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-brand-ink/35 transition-colors hover:bg-red-50 hover:text-red-600"
+                  aria-label={`Apagar carrinho abandonado de ${lead.whatsapp}`}
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             </div>
             <ul className="mt-3 space-y-1">
