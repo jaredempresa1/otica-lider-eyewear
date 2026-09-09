@@ -181,9 +181,9 @@ export default function SacolaPage() {
           <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
             <div className="flex items-center justify-between text-brand-paper"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
             {!isFreeShipping && (
-              <div className="rounded-xl bg-brand-paper/10 px-3 py-2.5" role="status">
+              <div className={`rounded-xl bg-brand-paper/10 px-3 py-2.5 ${subtotal >= NATIONAL_FREE_SHIPPING_MINIMUM ? "free-shipping-celebrate-bg" : ""}`} role="status">
                 {subtotal >= NATIONAL_FREE_SHIPPING_MINIMUM ? (
-                  <p className="font-body text-[12px] font-semibold leading-5 text-brand-gold">Seu pedido já garantiu frete grátis para todo o Brasil 🎉</p>
+                  <p className="free-shipping-celebrate font-body text-[12px] font-semibold leading-5 text-brand-gold">🎉 Seu pedido tem frete grátis para todo o Brasil</p>
                 ) : (
                   <>
                     <p className="font-body text-[12px] leading-5 text-brand-paper">

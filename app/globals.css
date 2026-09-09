@@ -175,3 +175,39 @@ select:focus-visible {
     transform: translateY(0);
   }
 }
+
+/* Comemoração ao bater a meta de frete grátis (barra de progresso na página do
+   produto e na sacola): um "pop" de escala + brilho rápido no fundo. */
+@media (prefers-reduced-motion: no-preference) {
+  .free-shipping-celebrate {
+    animation: free-shipping-pop 550ms var(--ease-premium) both;
+  }
+
+  .free-shipping-celebrate-bg {
+    animation: free-shipping-glow 900ms ease-out both;
+  }
+}
+
+@keyframes free-shipping-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes free-shipping-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(184, 138, 69, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(184, 138, 69, 0);
+  }
+}

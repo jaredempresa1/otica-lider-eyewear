@@ -158,25 +158,22 @@ function ColorPicker({ colors, selectedColor, onSelect, className = "" }: { colo
 }
 
 /** Barra discreta de progresso até o frete grátis nacional (a partir de NATIONAL_FREE_SHIPPING_MINIMUM,
- * veja lib/shipping.ts). Usa o subtotal real da sacola — some quando o carrinho está vazio, já que aí
- * não há "progresso" nenhum pra mostrar. Clientes da área de entrega grátis (João Pessoa e região) já
- * ganham frete grátis independente de valor, por isso o aviso abaixo da barra. */
+ * veja lib/shipping.ts). Aparece mesmo com a sacola vazia (barra zerada) pra já incentivar o cliente a
+ * passar de R$500 desde a primeira visita ao produto. Usa o subtotal real da sacola. */
 function FreeShippingProgress({ subtotal }: { subtotal: number }) {
-  if (subtotal <= 0) return null;
   const remaining = Math.max(0, NATIONAL_FREE_SHIPPING_MINIMUM - subtotal);
   const percent = Math.min(100, (subtotal / NATIONAL_FREE_SHIPPING_MINIMUM) * 100);
   const reached = remaining === 0;
 
   return (
-    <div className="mt-4 rounded-2xl bg-brand-paper p-4">
+    <div className={`mt-4 rounded-2xl bg-brand-paper p-4 ${reached ? "free-shipping-celebrate-bg" : ""}`}>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-brand-ink/10">
         <div className="h-full rounded-full bg-brand-gold transition-all duration-500" style={{ width: `${percent}%` }} />
       </div>
-      <p className="mt-2.5 flex items-center gap-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-ink/70">
+      <p key={reached ? "reached" : "pending"} className={`mt-2.5 flex items-center gap-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-ink/70 ${reached ? "free-shipping-celebrate" : ""}`}>
         <Truck size={13} className="shrink-0 text-brand-gold" />
-        {reached ? "Sua sacola já garante frete grátis para todo o Brasil" : `Faltam ${formatBRL(remaining)} na sacola para frete grátis em todo o Brasil`}
+        {reached ? "Você garantiu frete grátis para todo o Brasil" : `Faltam ${formatBRL(remaining)} na sacola para frete grátis em todo o Brasil`}
       </p>
-      <p className="mt-1 font-body text-[10px] leading-4 text-brand-ink/45">Se você é da área de entrega em João Pessoa e região, o frete já sai grátis direto, sem precisar bater esse valor.</p>
     </div>
   );
 }
