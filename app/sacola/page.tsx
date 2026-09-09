@@ -170,14 +170,14 @@ export default function SacolaPage() {
               const itemTotal = item.price * item.quantity;
               return (
                 <li key={`${item.productId}-${item.colorName}`} className="flex gap-4 py-5 sm:gap-5">
-                  <div className="relative h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-brand-sage/60 sm:h-36 sm:w-32">
+                  <Link href={`/produtos/${item.slug}`} className="relative block h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-brand-sage/60 transition-opacity hover:opacity-90 sm:h-36 sm:w-32" aria-label={`Ver detalhes de ${item.name}`}>
                     {item.image ? (
                       <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 96px, 128px" className="object-contain p-2 mix-blend-multiply" />
                     ) : <div className="flex h-full items-center justify-center font-body text-[10px] uppercase tracking-[0.1em] text-brand-ink/35">Sem foto</div>}
-                  </div>
+                  </Link>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-1">
                     <div>
-                      <p className="font-heading text-[19px] font-semibold tracking-[-0.02em] text-brand-ink">{item.name}</p>
+                      <Link href={`/produtos/${item.slug}`} className="font-heading text-[19px] font-semibold tracking-[-0.02em] text-brand-ink transition-colors hover:text-brand-gold">{item.name}</Link>
                       <p className="mt-1 font-body text-[13px] text-brand-ink/55">Cor: {item.colorName}</p>
                     </div>
                     <div className="flex items-center justify-between gap-3">
