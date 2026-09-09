@@ -18,14 +18,30 @@ export default async function ProdutoPage({
 
   if (!product) return notFound();
 
-  // Outros produtos pra seção "Outros clientes também viram" — os mais recentes,
-  // menos o próprio produto que está sendo visto.
-  const { data: otherProducts } = await supabase
-    .from("products")
-    .select("*")
-    .neq("slug", params.slug)
-    .order("created_at", { ascending: false })
-    .limit(12);
+  // Outros produtos pra seção "Outros clientes também viram" — só do mesmo formato
+  // (redondo, quadrado, aviador...) e do mesmo público (ou unissex, que aparece pros
+  // dois), pra recomendação ficar realmente parecida com o que o cliente está vendo.
+  const currentFormat = product.specifications?.format?.trim().toLocaleLowerCase("pt-BR") ?? "";
+  const currentGender = product.gender || "unissex";
 
-  return <ProductDetail product={product as Product} relatedProducts={(otherProducts as Product[]) ?? []} />;
+  let relatedProducts: Product[] = [];
+
+  if (currentFormat) {
+    const { data: candidateProducts } = await supabase
+      .from("products")
+      .select("*")
+      .neq("slug", params.slug)
+      .order("created_at", { ascending: false });
+
+    relatedProducts = ((candidateProducts as Product[]) ?? [])
+      .filter((candidate) => {
+        const format = candidate.specifications?.format?.trim().toLocaleLowerCase("pt-BR") ?? "";
+        if (format !== currentFormat) return false;
+        const gender = candidate.gender || "unissex";
+        return gender === currentGender || gender === "unissex" || currentGender === "unissex";
+      })
+      .slice(0, 12);
+  }
+
+  return <ProductDetail product={product as Product} relatedProducts={relatedProducts} />;
 }
