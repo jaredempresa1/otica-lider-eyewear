@@ -12,11 +12,19 @@ import { useCart } from "@/components/CartContext";
 import { checkShipping, isValidCep, NATIONAL_FREE_SHIPPING_MINIMUM, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
 import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
+import { saveCartWhatsAppLead } from "@/lib/cartLeads";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatWhatsAppInput(value: string): string {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
 export default function SacolaPage() {
@@ -28,6 +36,9 @@ export default function SacolaPage() {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
+  const [saveWhatsapp, setSaveWhatsapp] = useState("");
+  const [saveWhatsappStatus, setSaveWhatsappStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [saveWhatsappError, setSaveWhatsappError] = useState("");
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
   const discountedSubtotal = Math.max(0, subtotal - couponDiscount);
@@ -105,6 +116,19 @@ export default function SacolaPage() {
     }
     setAppliedCoupon(normalized);
     setCouponMessage("Cupom aplicado: você economizou R$ 50 na primeira compra.");
+  }
+
+  async function handleSaveWhatsapp(event: React.FormEvent) {
+    event.preventDefault();
+    setSaveWhatsappStatus("loading");
+    setSaveWhatsappError("");
+    const { error } = await saveCartWhatsAppLead(saveWhatsapp, items, subtotal);
+    if (error) {
+      setSaveWhatsappStatus("error");
+      setSaveWhatsappError(error);
+      return;
+    }
+    setSaveWhatsappStatus("success");
   }
 
   if (items.length === 0) {
@@ -266,6 +290,28 @@ export default function SacolaPage() {
           </div>
           <button onClick={handleCheckout} className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-brand-gold px-5 py-4 font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>
           <p className="mt-3 text-center font-body text-[11px] leading-4 text-brand-paper/70">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
+
+          {saveWhatsappStatus === "success" ? (
+            <p className="mt-5 rounded-xl border border-brand-gold/30 bg-brand-gold/10 px-3 py-3 text-center font-body text-[12px] leading-5 text-brand-gold" role="status">Prontinho! Separamos seu pedido — se você não voltar, a gente chama no WhatsApp.</p>
+          ) : (
+            <div className="mt-5 rounded-xl border border-brand-paper/15 bg-brand-paper/5 px-3 py-3.5">
+              <p className="font-body text-[12px] font-semibold leading-5 text-brand-paper">Quer que a gente separe esse pedido caso você não finalize agora?</p>
+              <form onSubmit={handleSaveWhatsapp} className="mt-2.5 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  placeholder="Seu WhatsApp com DDD"
+                  value={saveWhatsapp}
+                  onChange={(event) => setSaveWhatsapp(formatWhatsAppInput(event.target.value))}
+                  className="min-w-0 flex-1 rounded-lg border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/45 focus:border-brand-gold"
+                />
+                <button type="submit" disabled={saveWhatsappStatus === "loading"} className="shrink-0 rounded-lg border border-brand-gold px-4 py-2.5 font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-gold transition-colors hover:bg-brand-gold hover:text-brand-ink disabled:opacity-60">
+                  {saveWhatsappStatus === "loading" ? "Salvando…" : "Salvar"}
+                </button>
+              </form>
+              {saveWhatsappStatus === "error" && <p className="mt-2 font-body text-[11px] leading-4 text-red-300">{saveWhatsappError}</p>}
+            </div>
+          )}
         </aside>
       </div>
     </main>

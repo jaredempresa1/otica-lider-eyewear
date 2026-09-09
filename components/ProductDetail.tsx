@@ -10,6 +10,7 @@ import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
 import { checkShipping, isValidCep, NATIONAL_FREE_SHIPPING_MINIMUM, ShippingResult } from "@/lib/shipping";
+import { registerProductClick } from "@/lib/analytics";
 import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
 import TryOnModal from "./TryOnModal";
 import PaymentMethodModal from "./PaymentMethodModal";
@@ -226,6 +227,14 @@ export default function ProductDetail({ product, relatedProducts = [] }: { produ
   const displayBrand = product.brand?.trim() || product.name;
   const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
+
+  // Registra 1 clique por abertura da página do produto (usado no dashboard
+  // em "Produtos mais clicados"). Roda só quando o id do produto muda, não a
+  // cada troca de cor/imagem.
+  useEffect(() => {
+    void registerProductClick({ id: product.id, slug: product.slug, name: productLabel });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id]);
 
   useEffect(() => {
     if (!isValidCep(cep)) {

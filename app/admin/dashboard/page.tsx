@@ -10,11 +10,13 @@ import { calculateDiscountPercent } from "@/lib/pricing";
 import {
   ArrowDown,
   ArrowUp,
+  BarChart3,
   Check,
   FileText,
   ImageIcon,
   LogOut,
   MessageCircle,
+  MousePointerClick,
   PackageCheck,
   PackageX,
   Pencil,
@@ -29,6 +31,14 @@ type Lead = {
   name: string | null;
   whatsapp: string;
   gender: string | null;
+  created_at: string;
+};
+
+type ProductClick = {
+  id: string;
+  product_id: string;
+  product_slug: string;
+  product_name: string;
   created_at: string;
 };
 
@@ -151,6 +161,17 @@ function formatLeadDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+/** Chave "AAAA-MM-DD" no fuso local, usada pra agrupar leads/cliques por dia. */
+function dayKey(value: string) {
+  const date = new Date(value);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function dayLabel(key: string) {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [checking, setChecking] = useState(true);
@@ -172,6 +193,7 @@ export default function AdminDashboardPage() {
   const [collectionError, setCollectionError] = useState("");
 
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [productClicks, setProductClicks] = useState<ProductClick[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [testimonialForm, setTestimonialForm] = useState<TestimonialFormState>(EMPTY_TESTIMONIAL_FORM);
   const [showTestimonialForm, setShowTestimonialForm] = useState(false);
@@ -184,7 +206,7 @@ export default function AdminDashboardPage() {
   const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false, destination_type: "none", destination_id: "" });
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque" | "avaliacoes">("produtos");
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque" | "avaliacoes" | "metricas">("produtos");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -195,6 +217,7 @@ export default function AdminDashboardPage() {
         void loadProducts();
         void loadCollections();
         void loadLeads();
+        void loadProductClicks();
         void loadTestimonials();
         void loadShippingSettings();
         void loadPromoBanner();
@@ -215,6 +238,13 @@ export default function AdminDashboardPage() {
   async function loadLeads() {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
     setLeads((data as Lead[]) ?? []);
+  }
+
+  async function loadProductClicks() {
+    // Últimos 5000 cliques bastam pro ranking "mais clicados" de uma loja
+    // deste porte, sem puxar a tabela inteira pra sempre.
+    const { data } = await supabase.from("product_clicks").select("*").order("created_at", { ascending: false }).limit(5000);
+    setProductClicks((data as ProductClick[]) ?? []);
   }
 
   async function loadTestimonials() {
@@ -678,6 +708,43 @@ export default function AdminDashboardPage() {
     [products]
   );
 
+  // Leads/dia: agrupa a tabela `leads` (já carregada) por dia, últimos 14 dias.
+  const leadsPerDay = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const lead of leads) {
+      const key = dayKey(lead.created_at);
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    const days: { key: string; count: number }[] = [];
+    for (let offset = 13; offset >= 0; offset--) {
+      const date = new Date();
+      date.setDate(date.getDate() - offset);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      days.push({ key, count: counts.get(key) ?? 0 });
+    }
+    return days;
+  }, [leads]);
+
+  const leadsLast7Days = useMemo(() => leadsPerDay.slice(-7).reduce((sum, day) => sum + day.count, 0), [leadsPerDay]);
+  const maxLeadsPerDay = useMemo(() => Math.max(1, ...leadsPerDay.map((day) => day.count)), [leadsPerDay]);
+
+  // Produtos mais clicados: agrupa `product_clicks` por produto e ordena
+  // pelo total de cliques (todo o período carregado).
+  const topClickedProducts = useMemo(() => {
+    const byProduct = new Map<string, { product_id: string; product_name: string; count: number }>();
+    for (const click of productClicks) {
+      const current = byProduct.get(click.product_id);
+      if (current) {
+        current.count += 1;
+      } else {
+        byProduct.set(click.product_id, { product_id: click.product_id, product_name: click.product_name, count: 1 });
+      }
+    }
+    return [...byProduct.values()].sort((a, b) => b.count - a.count).slice(0, 10);
+  }, [productClicks]);
+
+  const maxProductClicks = useMemo(() => Math.max(1, ...topClickedProducts.map((product) => product.count)), [topClickedProducts]);
+
   if (checking) return <p className="section-shell py-20 text-center font-body text-sm text-brand-ink/60">Carregando painel...</p>;
 
   return (
@@ -686,14 +753,14 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : "Destaque"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : activeTab === "metricas" ? "Métricas" : "Destaque"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : "Publique uma novidade opcional na home."}
+              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : activeTab === "metricas" ? "Leads por dia e os produtos que mais recebem cliques." : "Publique uma novidade opcional na home."}
           </p>
         </div>
         <div className="flex gap-3">
@@ -702,11 +769,12 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="mb-8 flex gap-2 border-b border-brand-ink/10">
+      <div className="mb-8 flex gap-2 overflow-x-auto border-b border-brand-ink/10">
         {([
           { key: "produtos", label: "Produtos" },
           { key: "colecoes", label: "Coleções" },
           { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
+          { key: "metricas", label: "Métricas" },
           { key: "frete", label: "Frete" },
           { key: "avaliacoes", label: `Avaliações${testimonials.length > 0 ? ` (${testimonials.length})` : ""}` },
           { key: "destaque", label: "Destaque" },
@@ -848,6 +916,62 @@ export default function AdminDashboardPage() {
           </div>
         );})}
       </div>
+      )}
+
+      {activeTab === "metricas" && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <section className="overflow-hidden rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={17} className="text-brand-gold" />
+              <p className="eyebrow">Cadastros de WhatsApp</p>
+            </div>
+            <h2 className="mt-1 font-heading text-2xl font-semibold text-brand-ink">Leads por dia</h2>
+            <p className="mt-1 font-body text-xs text-brand-ink/50">Últimos 14 dias · {leadsLast7Days} nos últimos 7 dias</p>
+            {leads.length === 0 ? (
+              <p className="mt-6 font-body text-sm text-brand-ink/45">Nenhum cadastro ainda.</p>
+            ) : (
+              <div className="mt-6 flex h-40 items-end gap-1.5">
+                {leadsPerDay.map((day) => (
+                  <div key={day.key} className="flex flex-1 flex-col items-center gap-1.5">
+                    <span className="font-body text-[10px] font-semibold text-brand-ink/55">{day.count > 0 ? day.count : ""}</span>
+                    <div
+                      className={`w-full rounded-t-md transition-all ${day.count > 0 ? "bg-brand-gold" : "bg-brand-ink/10"}`}
+                      style={{ height: `${Math.max(4, (day.count / maxLeadsPerDay) * 120)}px` }}
+                    />
+                    <span className="font-body text-[9px] text-brand-ink/40">{dayLabel(day.key)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="overflow-hidden rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8">
+            <div className="flex items-center gap-2">
+              <MousePointerClick size={17} className="text-brand-gold" />
+              <p className="eyebrow">Vitrine</p>
+            </div>
+            <h2 className="mt-1 font-heading text-2xl font-semibold text-brand-ink">Produtos mais clicados</h2>
+            <p className="mt-1 font-body text-xs text-brand-ink/50">Top 10 · desde que o rastreamento foi ativado</p>
+            {topClickedProducts.length === 0 ? (
+              <p className="mt-6 font-body text-sm text-brand-ink/45">Ainda sem cliques registrados.</p>
+            ) : (
+              <div className="mt-6 space-y-3">
+                {topClickedProducts.map((product, index) => (
+                  <div key={product.product_id} className="flex items-center gap-3">
+                    <span className="w-4 shrink-0 font-body text-xs font-semibold text-brand-ink/35">{index + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-body text-sm font-medium text-brand-ink">{product.product_name}</p>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-brand-ink/10">
+                        <div className="h-full rounded-full bg-brand-gold" style={{ width: `${(product.count / maxProductClicks) * 100}%` }} />
+                      </div>
+                    </div>
+                    <span className="shrink-0 font-body text-xs font-semibold text-brand-ink/60">{product.count} {product.count === 1 ? "clique" : "cliques"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       )}
 
       {activeTab === "whatsapp" && (
