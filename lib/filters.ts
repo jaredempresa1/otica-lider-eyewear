@@ -156,19 +156,45 @@ export function countActiveFilters(state: ProductFilterState, priceBounds?: { mi
   return count;
 }
 
+/** Sinônimos do dia a dia da ótica: a palavra à esquerda normalmente já aparece no
+ * texto do produto (ex.: a categoria "Óculos de Sol" contém a palavra "sol"); as da
+ * direita são como o cliente pode digitar na busca e precisam achar o mesmo produto,
+ * mesmo não sendo "parecidas" o bastante pra passar pela tolerância a erro de digitação
+ * (ex.: "solar" e "sol" têm letras demais de diferença pra serem tratadas como typo). */
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  sol: ["solar", "solares"],
+  grau: ["receituario", "receita", "dioptria", "oftalmico", "graduado"],
+};
+
+/** Expande a lista de palavras do produto com os sinônimos cadastrados acima, para que
+ * a busca do cliente encontre o produto mesmo usando um termo diferente do que está
+ * escrito ali (ex.: cliente busca "solar", produto só tem "sol" na categoria). */
+function expandWithSynonyms(words: string[]): string[] {
+  const expanded = new Set(words);
+  for (const word of words) {
+    SEARCH_SYNONYMS[word]?.forEach((synonym) => expanded.add(synonym));
+  }
+  return Array.from(expanded);
+}
+
 /** Um produto "unissex" (ou sem gênero definido) aparece nos dois filtros, masculino e feminino. */
 export function productMatchesFilters(product: Product, state: ProductFilterState): boolean {
   if (state.busca) {
-    // Só busca em nome, marca e modelo — campos estruturados e específicos do produto.
-    // A descrição foi tirada daqui porque costuma ter texto livre/genérico repetido em
-    // vários produtos (ex.: menções a outras marcas como comparação), o que fazia uma
-    // busca por uma marca específica (ex.: "Lacoste") trazer óculos de outras marcas.
-    const searchText = normalizeSearchText([product.name, product.brand, product.model].filter(Boolean).join(" "));
-    const productWords = searchText.split(" ").filter(Boolean);
+    // Nome, marca, modelo, categoria e tipo de lente — campos estruturados e específicos
+    // do produto. A descrição foi deixada de fora porque costuma ter texto livre/genérico
+    // repetido em vários produtos (ex.: menções a outras marcas como comparação), o que
+    // fazia uma busca por uma marca específica (ex.: "Lacoste") trazer óculos de outras marcas.
+    // "oculos" entra sempre, à parte, pra buscas genéricas como "óculos" ou "óculos de sol"
+    // sempre trazerem alguma coisa em vez de vitrine vazia.
+    const searchText = normalizeSearchText(
+      [product.name, product.brand, product.model, product.category, product.specifications?.lens_type, "oculos"].filter(Boolean).join(" "),
+    );
+    const productWords = expandWithSynonyms(searchText.split(" ").filter(Boolean));
     const normalizedQuery = normalizeSearchText(state.busca);
     const queryWords = normalizedQuery.split(" ").filter(Boolean);
     // Cada palavra da busca precisa achar uma palavra "parecida" no produto (contém,
-    // ou está a poucas letras de distância — cobre erro de digitação, ex.: "lascoste" ~ "lacoste").
+    // é sinônimo cadastrado, ou está a poucas letras de distância — cobre erro de
+    // digitação, ex.: "lascoste" ~ "lacoste").
     const matchesByWord = queryWords.length > 0 && queryWords.every((queryWord) => productWords.some((productWord) => wordsApproximatelyMatch(queryWord, productWord)));
     // Também compara ignorando todos os espaços, para pegar buscas como "rayban" batendo com "Ray-Ban".
     const matchesCollapsed = normalizedQuery.length > 0 && searchText.replace(/ /g, "").includes(normalizedQuery.replace(/ /g, ""));

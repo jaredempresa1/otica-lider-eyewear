@@ -10,6 +10,14 @@ import { CartItem } from "@/types/product";
 
 const EXCLUDED_CITIES = ["lucena", "santa rita", "conde"];
 
+/** A partir desse valor de carrinho, o frete sai grátis pra qualquer lugar do Brasil,
+ * não só dentro da área geográfica de frete grátis (FREE_SHIPPING_ZONE). */
+export const NATIONAL_FREE_SHIPPING_MINIMUM = 500;
+
+function cartSubtotal(items: CartItem[]): number {
+  return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+}
+
 function normalizeCityName(city: string): string {
   return city
     .normalize("NFD")
@@ -115,13 +123,28 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
   if (!coords) {
     // Não temos como confirmar se este CEP está dentro da área de frete
     // grátis — em vez de presumir que sim (como acontecia antes), calculamos
-    // o frete pago normalmente. Mais seguro que dar frete grátis "no escuro".
-    return quoteOutsideFreeArea(digits, items);
+    // o frete pago normalmente (que ainda pode zerar pelo mínimo nacional
+    // logo abaixo). Mais seguro que dar frete grátis "no escuro".
+    return applyNationalFreeShippingThreshold(await quoteOutsideFreeArea(digits, items), items);
   }
 
   if (!isExcludedCity(city) && isInsideZone(coords, FREE_SHIPPING_ZONE)) {
     return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo", deliveryTime: 3 };
   }
 
-  return quoteOutsideFreeArea(digits, items);
+  return applyNationalFreeShippingThreshold(await quoteOutsideFreeArea(digits, items), items);
+}
+
+/** Fora da área geográfica de frete grátis, o carrinho ainda pode ganhar frete grátis
+ * se o subtotal bater o mínimo nacional — mantém o prazo de entrega vindo da cotação
+ * real (Melhor Envio), só zera o valor cobrado. */
+function applyNationalFreeShippingThreshold(quote: ShippingResult, items: CartItem[]): ShippingResult {
+  if (cartSubtotal(items) < NATIONAL_FREE_SHIPPING_MINIMUM) return quote;
+  return {
+    ...quote,
+    freeShipping: true,
+    price: 0,
+    regionLabel: quote.regionLabel ?? "todo o Brasil",
+    options: quote.options?.map((option) => ({ ...option, price: 0 })),
+  };
 }

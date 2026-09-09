@@ -9,7 +9,7 @@ import Image from "next/image";
 import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartContext";
-import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
+import { checkShipping, isValidCep, NATIONAL_FREE_SHIPPING_MINIMUM, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
 import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
 
@@ -180,10 +180,26 @@ export default function SacolaPage() {
 
           <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
             <div className="flex items-center justify-between text-brand-paper"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
+            {!isFreeShipping && (
+              <div className="rounded-xl bg-brand-paper/10 px-3 py-2.5" role="status">
+                {subtotal >= NATIONAL_FREE_SHIPPING_MINIMUM ? (
+                  <p className="font-body text-[12px] font-semibold leading-5 text-brand-gold">Seu pedido já garantiu frete grátis para todo o Brasil 🎉</p>
+                ) : (
+                  <>
+                    <p className="font-body text-[12px] leading-5 text-brand-paper">
+                      Faltam <span className="font-semibold text-brand-gold">{formatBRL(NATIONAL_FREE_SHIPPING_MINIMUM - subtotal)}</span> para frete grátis em todo o Brasil
+                    </p>
+                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-brand-paper/15">
+                      <div className="h-full rounded-full bg-brand-gold transition-all" style={{ width: `${Math.min(100, (subtotal / NATIONAL_FREE_SHIPPING_MINIMUM) * 100)}%` }} />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
             <div className="mt-5">
               <label htmlFor="coupon" className="block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper">Cupom de primeira compra</label>
               <div className="mt-2 flex gap-2">
-                <input id="coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }} placeholder={FIRST_PURCHASE_COUPON} className="min-w-0 flex-1 rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] uppercase text-brand-paper outline-none placeholder:text-brand-paper/45 focus:border-brand-gold" />
+                <input id="coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }} placeholder="Digite seu cupom" className="min-w-0 flex-1 rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] uppercase text-brand-paper outline-none placeholder:text-brand-paper/45 focus:border-brand-gold" />
                 <button type="button" onClick={handleApplyCoupon} className="rounded-xl border border-brand-gold px-3 font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-gold transition-colors hover:bg-brand-gold hover:text-brand-ink">Aplicar</button>
               </div>
               {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-paper/70"}`} role="status">{couponMessage}</p>}
