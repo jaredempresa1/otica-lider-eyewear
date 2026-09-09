@@ -42,6 +42,14 @@ type ProductClick = {
   created_at: string;
 };
 
+type CartWhatsAppLead = {
+  id: string;
+  whatsapp: string;
+  subtotal: number;
+  items: { name: string; colorName?: string; price: number; quantity: number }[];
+  created_at: string;
+};
+
 type ShippingSettings = {
   width: string;
   height: string;
@@ -193,6 +201,7 @@ export default function AdminDashboardPage() {
   const [collectionError, setCollectionError] = useState("");
 
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [cartLeads, setCartLeads] = useState<CartWhatsAppLead[]>([]);
   const [productClicks, setProductClicks] = useState<ProductClick[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [testimonialForm, setTestimonialForm] = useState<TestimonialFormState>(EMPTY_TESTIMONIAL_FORM);
@@ -206,7 +215,7 @@ export default function AdminDashboardPage() {
   const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false, destination_type: "none", destination_id: "" });
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "frete" | "destaque" | "avaliacoes" | "metricas">("produtos");
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinho" | "frete" | "destaque" | "avaliacoes" | "metricas">("produtos");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -217,6 +226,7 @@ export default function AdminDashboardPage() {
         void loadProducts();
         void loadCollections();
         void loadLeads();
+        void loadCartLeads();
         void loadProductClicks();
         void loadTestimonials();
         void loadShippingSettings();
@@ -238,6 +248,11 @@ export default function AdminDashboardPage() {
   async function loadLeads() {
     const { data } = await supabase.from("leads").select("*").order("created_at", { ascending: false });
     setLeads((data as Lead[]) ?? []);
+  }
+
+  async function loadCartLeads() {
+    const { data } = await supabase.from("cart_whatsapp_leads").select("*").order("created_at", { ascending: false });
+    setCartLeads((data as CartWhatsAppLead[]) ?? []);
   }
 
   async function loadProductClicks() {
@@ -753,14 +768,14 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : activeTab === "metricas" ? "Métricas" : "Destaque"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "carrinho" ? "Carrinho abandonado" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : activeTab === "metricas" ? "Métricas" : "Destaque"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : activeTab === "metricas" ? "Leads por dia e os produtos que mais recebem cliques." : "Publique uma novidade opcional na home."}
+              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "carrinho" ? "WhatsApp de quem deixou o número na sacola sem fechar o pedido — chame antes que esfrie." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : activeTab === "metricas" ? "Leads por dia e os produtos que mais recebem cliques." : "Publique uma novidade opcional na home."}
           </p>
         </div>
         <div className="flex gap-3">
@@ -774,6 +789,7 @@ export default function AdminDashboardPage() {
           { key: "produtos", label: "Produtos" },
           { key: "colecoes", label: "Coleções" },
           { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
+          { key: "carrinho", label: `Carrinho abandonado${cartLeads.length > 0 ? ` (${cartLeads.length})` : ""}` },
           { key: "metricas", label: "Métricas" },
           { key: "frete", label: "Frete" },
           { key: "avaliacoes", label: `Avaliações${testimonials.length > 0 ? ` (${testimonials.length})` : ""}` },
@@ -996,6 +1012,40 @@ export default function AdminDashboardPage() {
             </a>
             <span className="font-body text-xs uppercase tracking-[0.08em] text-brand-ink/55">{lead.gender === "masculino" ? "Masculino" : lead.gender === "feminino" ? "Feminino" : "—"}</span>
             <span className="font-body text-xs text-brand-ink/45">{formatLeadDate(lead.created_at)}</span>
+          </div>
+        ))}
+      </div>
+      )}
+
+      {activeTab === "carrinho" && (
+      <div className="overflow-hidden rounded-[1.5rem] bg-brand-paper shadow-card">
+        {cartLeads.length === 0 ? (
+          <div className="px-6 py-14 text-center"><p className="font-heading text-2xl text-brand-ink">Nenhum carrinho com WhatsApp ainda</p><p className="mt-2 font-body text-sm text-brand-ink/55">Assim que alguém deixar o número na sacola sem fechar o pedido, o contato aparece aqui.</p></div>
+        ) : cartLeads.map((lead) => (
+          <div key={lead.id} className="border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:px-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <a
+                href={`https://wa.me/55${lead.whatsapp}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 font-body text-sm font-semibold text-brand-ink transition-colors hover:text-brand-gold"
+                aria-label={`Abrir conversa no WhatsApp com ${lead.whatsapp}`}
+              >
+                <MessageCircle size={16} className="shrink-0 text-green-600" />
+                {formatWhatsAppDigits(lead.whatsapp)}
+              </a>
+              <div className="flex items-center gap-4">
+                <span className="font-body text-sm font-semibold text-brand-ink">{formatBRL(lead.subtotal)}</span>
+                <span className="font-body text-xs text-brand-ink/45">{formatLeadDate(lead.created_at)}</span>
+              </div>
+            </div>
+            <ul className="mt-3 space-y-1">
+              {lead.items.map((item, index) => (
+                <li key={index} className="font-body text-xs text-brand-ink/60">
+                  {item.quantity}x {item.name}{item.colorName ? ` (${item.colorName})` : ""} — {formatBRL(item.price * item.quantity)}
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>
