@@ -51,7 +51,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-brand-ink/10 bg-brand-cream/95 backdrop-blur-md">
-      <div className="section-shell flex h-[72px] items-center justify-between gap-1.5 sm:h-[80px] sm:gap-5">
+      <div className="section-shell flex h-20 items-center justify-between gap-1.5 sm:h-[92px] sm:gap-5">
         <button
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
           onClick={() => setMenuOpen((value) => !value)}
@@ -68,7 +68,7 @@ export default function Header() {
             width={460}
             height={203}
             priority
-            className="h-11 w-auto max-w-[175px] object-contain object-left sm:h-14 sm:max-w-[260px]"
+            className="h-[68px] w-auto max-w-[230px] object-contain object-left sm:h-[84px] sm:max-w-[320px]"
           />
         </Link>
 
