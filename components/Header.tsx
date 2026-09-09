@@ -65,8 +65,8 @@ export default function Header() {
           <Image
             src="/logo.png"
             alt="Ótica Líder Eyewear"
-            width={460}
-            height={203}
+            width={1983}
+            height={793}
             priority
             className="h-[68px] w-auto max-w-[230px] object-contain object-left sm:h-[84px] sm:max-w-[320px]"
           />
