@@ -3,13 +3,13 @@
 /** Direção visual: no mobile, escolha de cor e ação de compra ficam próximas da galeria e do preço para reduzir fricção. */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingBag, X, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingBag, Truck, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
-import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
+import { checkShipping, isValidCep, NATIONAL_FREE_SHIPPING_MINIMUM, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
 import TryOnModal from "./TryOnModal";
 import PaymentMethodModal from "./PaymentMethodModal";
@@ -157,6 +157,30 @@ function ColorPicker({ colors, selectedColor, onSelect, className = "" }: { colo
   );
 }
 
+/** Barra discreta de progresso até o frete grátis nacional (a partir de NATIONAL_FREE_SHIPPING_MINIMUM,
+ * veja lib/shipping.ts). Usa o subtotal real da sacola — some quando o carrinho está vazio, já que aí
+ * não há "progresso" nenhum pra mostrar. Clientes da área de entrega grátis (João Pessoa e região) já
+ * ganham frete grátis independente de valor, por isso o aviso abaixo da barra. */
+function FreeShippingProgress({ subtotal }: { subtotal: number }) {
+  if (subtotal <= 0) return null;
+  const remaining = Math.max(0, NATIONAL_FREE_SHIPPING_MINIMUM - subtotal);
+  const percent = Math.min(100, (subtotal / NATIONAL_FREE_SHIPPING_MINIMUM) * 100);
+  const reached = remaining === 0;
+
+  return (
+    <div className="mt-4 rounded-2xl bg-brand-paper p-4">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-brand-ink/10">
+        <div className="h-full rounded-full bg-brand-gold transition-all duration-500" style={{ width: `${percent}%` }} />
+      </div>
+      <p className="mt-2.5 flex items-center gap-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-ink/70">
+        <Truck size={13} className="shrink-0 text-brand-gold" />
+        {reached ? "Sua sacola já garante frete grátis para todo o Brasil" : `Faltam ${formatBRL(remaining)} na sacola para frete grátis em todo o Brasil`}
+      </p>
+      <p className="mt-1 font-body text-[10px] leading-4 text-brand-ink/45">Se você é da área de entrega em João Pessoa e região, o frete já sai grátis direto, sem precisar bater esse valor.</p>
+    </div>
+  );
+}
+
 function AccordionItem({ title, children, defaultOpen }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(Boolean(defaultOpen));
   return (
@@ -177,7 +201,7 @@ function AccordionItem({ title, children, defaultOpen }: { title: string; childr
 
 export default function ProductDetail({ product, relatedProducts = [] }: { product: Product; relatedProducts?: Product[] }) {
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, subtotal: cartSubtotal } = useCart();
   const sortedColors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>(sortedColors[0]);
   const initialGallery = getColorImages(product, sortedColors[0]);
@@ -363,6 +387,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: { produ
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className="mt-1 flex items-baseline gap-2"><span className={`text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{discountPercent !== null && <span className="text-[13px] font-bold text-red-600">{discountPercent}% OFF</span>}</span>{installmentTotal !== null && product.installments && <span className="mt-2 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>
           {!madeToOrder && !productSoldOut && product.stock > 0 && product.stock <= 3 && <p className="mt-3 inline-flex rounded-full bg-brand-gold/15 px-3 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink">Só restam {product.stock} {product.stock === 1 ? "unidade" : "unidades"}</p>}
+          <FreeShippingProgress subtotal={cartSubtotal} />
           <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingBag size={18} strokeWidth={1.8} /> {addedToCart ? "Adicionado à sacola" : "Adicionar à sacola"}</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{madeToOrder ? `Sob encomenda${product.made_to_order_note?.trim() ? ` — prazo médio: ${product.made_to_order_note.trim()}` : ""}. O pedido é fechado direto no WhatsApp.` : productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
 
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-8 hidden border-t border-brand-ink/10 pt-6 lg:block" />}
