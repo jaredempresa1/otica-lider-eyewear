@@ -46,6 +46,9 @@ export async function saveCartWhatsAppLead(whatsapp: string, items: CartItem[], 
     items: items.map((item) => ({ name: item.name, colorName: item.colorName, price: item.price, quantity: item.quantity })),
   });
 
-  if (error) return { error: "Não foi possível salvar agora. Tente novamente." };
+  // TEMPORÁRIO: mostrando a mensagem real do Supabase (em vez do texto genérico)
+  // só pra diagnosticar por que o salvamento está falhando. Depois de resolver,
+  // trocar de volta pra "Não foi possível salvar agora. Tente novamente."
+  if (error) return { error: `Erro (diagnóstico): ${error.message}` };
   return { error: null };
 }
