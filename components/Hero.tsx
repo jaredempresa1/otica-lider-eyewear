@@ -39,8 +39,8 @@ export default function Hero() {
 
         {/* Foto única do hero: composição já pronta (ciclismo + casal na praia + corrida)
             em uma imagem só, o que ocupa bem menos altura no mobile do que o mosaico anterior. */}
-        <div className="relative p-2 sm:p-3 lg:h-full">
-          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[1.4rem] bg-brand-sage sm:aspect-[16/10] lg:aspect-auto lg:h-full">
+        <div className="relative flex items-center p-2 sm:p-3 lg:h-full">
+          <div className="relative aspect-[16/9] w-full overflow-hidden rounded-[1.4rem] bg-brand-sage sm:aspect-[16/10]">
             <Image
               src={HERO_PHOTO.src}
               alt={HERO_PHOTO.alt}
