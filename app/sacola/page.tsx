@@ -14,7 +14,6 @@ import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
 import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
 import AbandonedCartSignup from "@/components/AbandonedCartSignup";
-import FreeShippingBar from "@/components/FreeShippingBar";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -184,7 +183,6 @@ export default function SacolaPage() {
 
           <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
             <div className="flex items-center justify-between text-brand-paper"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
-            <FreeShippingBar subtotal={subtotal} context="cart" variant="dark" />
             <div className="mt-5">
               <label htmlFor="coupon" className="block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper">Cupom de primeira compra</label>
               <div className="mt-2 flex gap-2">
