@@ -6,6 +6,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingBag, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/components/CartContext";
@@ -28,6 +29,7 @@ function formatWhatsAppInput(value: string): string {
 }
 
 export default function SacolaPage() {
+  const router = useRouter();
   const { items, removeItem, updateQuantity, subtotal, totalItems } = useCart();
   const [cep, setCep] = useState("");
   const [payment, setPayment] = useState<PaymentSelection>({ method: "pix", installments: 10 });
@@ -169,18 +171,26 @@ export default function SacolaPage() {
             {items.map((item) => {
               const itemTotal = item.price * item.quantity;
               return (
-                <li key={`${item.productId}-${item.colorName}`} className="flex gap-4 py-5 sm:gap-5">
-                  <Link href={`/produtos/${item.slug}`} className="relative block h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-brand-sage/60 transition-opacity hover:opacity-90 sm:h-36 sm:w-32" aria-label={`Ver detalhes de ${item.name}`}>
+                <li
+                  key={`${item.productId}-${item.colorName}`}
+                  onClick={() => router.push(`/produtos/${item.slug}`)}
+                  className="flex cursor-pointer gap-4 py-5 transition-colors hover:bg-brand-sage/20 sm:gap-5"
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`Ver detalhes de ${item.name}`}
+                  onKeyDown={(event) => { if (event.key === "Enter") router.push(`/produtos/${item.slug}`); }}
+                >
+                  <div className="relative block h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-brand-sage/60 sm:h-36 sm:w-32">
                     {item.image ? (
                       <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 96px, 128px" className="object-contain p-2 mix-blend-multiply" />
                     ) : <div className="flex h-full items-center justify-center font-body text-[10px] uppercase tracking-[0.1em] text-brand-ink/35">Sem foto</div>}
-                  </Link>
+                  </div>
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-1">
                     <div>
-                      <Link href={`/produtos/${item.slug}`} className="font-heading text-[19px] font-semibold tracking-[-0.02em] text-brand-ink transition-colors hover:text-brand-gold">{item.name}</Link>
+                      <span className="font-heading text-[19px] font-semibold tracking-[-0.02em] text-brand-ink">{item.name}</span>
                       <p className="mt-1 font-body text-[13px] text-brand-ink/55">Cor: {item.colorName}</p>
                     </div>
-                    <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center justify-between gap-3" onClick={(event) => event.stopPropagation()}>
                       <div className="flex items-center rounded-full border border-brand-ink/15 p-1">
                         <button onClick={() => updateQuantity(item.productId, item.colorName, item.quantity - 1)} className="flex h-8 w-8 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Diminuir quantidade"><Minus size={14} /></button>
                         <span className="w-7 text-center font-body text-[13px] font-semibold">{item.quantity}</span>
