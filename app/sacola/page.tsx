@@ -170,8 +170,7 @@ export default function SacolaPage() {
                     </div>
                   </div>
                   <div className="min-w-0 self-start pt-1 text-right font-body">
-                    <FreeShippingBar subtotal={subtotal} />
-                    <span className="mt-3 block text-[17px] font-semibold text-brand-ink">{formatBRL(itemTotal)}</span>
+                    <span className="block text-[17px] font-semibold text-brand-ink">{formatBRL(itemTotal)}</span>
                     <span className="mt-1 block text-[12px] leading-4 text-brand-ink">ou até 10x de {formatBRL(itemTotal / 10)}</span>
                   </div>
                 </li>
