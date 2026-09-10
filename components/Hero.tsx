@@ -13,15 +13,15 @@ export default function Hero() {
         <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full border border-brand-sage/20" />
         <div className="absolute -bottom-32 left-1/3 h-80 w-80 rounded-full border border-brand-gold/20" />
 
-        <div className="relative z-10 flex flex-col justify-end px-6 pb-6 pt-7 sm:px-12 sm:pb-12 sm:pt-16 lg:justify-center lg:py-16">
+        <div className="relative z-10 flex flex-col items-center justify-end px-6 pb-6 pt-7 text-center sm:items-start sm:px-12 sm:pb-12 sm:pt-16 sm:text-left lg:justify-center lg:py-16">
           <p className="eyebrow text-[13px] leading-6 text-brand-gold sm:text-[14px]"><span className="block sm:inline">Desde 1999</span><span className="hidden sm:inline"> · </span><span className="block sm:inline">Paraíba e Pernambuco</span></p>
-          <h1 className="mt-5 max-w-xl font-heading text-[2.1rem] font-medium leading-[0.98] tracking-[-0.04em] text-brand-paper sm:text-6xl lg:text-[4.2rem]">
+          <h1 className="mt-3 max-w-xl font-heading text-[2.1rem] font-medium leading-[0.98] tracking-[-0.04em] text-brand-paper sm:mt-5 sm:text-6xl lg:text-[4.2rem]">
             Melhores Escolhas do Verão
           </h1>
-          <p className="mt-6 max-w-md font-body text-base leading-6 text-brand-paper/65 sm:text-lg">
+          <p className="mt-3 max-w-md font-body text-base leading-6 text-brand-paper/65 sm:mt-6 sm:text-lg">
             Proteção e estilo para curtir a praia e praticar esportes.
           </p>
-          <div className="mt-5 inline-flex w-fit flex-col gap-1 rounded-2xl border border-brand-gold/30 bg-brand-paper/[0.06] px-5 py-3.5 backdrop-blur-sm">
+          <div className="mt-4 inline-flex w-fit flex-col gap-1 rounded-2xl border border-brand-gold/30 bg-brand-paper/[0.06] px-7 py-3.5 backdrop-blur-sm sm:mt-5 sm:px-5">
             <span className="whitespace-nowrap font-heading text-xl font-semibold leading-tight tracking-[-0.01em] text-brand-paper sm:text-2xl">
               Do Acessível ao Premium
             </span>
@@ -29,7 +29,7 @@ export default function Hero() {
               Óculos a partir de R$ 180,00
             </span>
           </div>
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-4 sm:mt-8 sm:justify-start">
             <Link href="/produtos" className="rounded-full bg-brand-gold px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-paper transition-all duration-200 hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">
               Explorar coleção
             </Link>
@@ -49,9 +49,6 @@ export default function Hero() {
               className="object-cover object-center mix-blend-multiply opacity-90 transition-transform duration-500 hover:scale-105"
               sizes="(max-width: 1024px) 96vw, 55vw"
             />
-            <span className="absolute right-3 top-3 rounded-full border border-brand-paper/60 px-3 py-1.5 text-center font-body text-[8px] font-semibold uppercase leading-3 tracking-[0.12em] text-brand-paper sm:right-4 sm:top-4 sm:text-[9px]">
-              Coleção 2026
-            </span>
           </div>
         </div>
       </div>
