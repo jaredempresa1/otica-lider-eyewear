@@ -16,7 +16,7 @@ export default function CollectionTiles({ collections }: { collections: Collecti
         <Link
           key={collection.id}
           href={`/produtos?colecao=${encodeURIComponent(collection.slug)}`}
-          className="group relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-brand-ink shadow-card transition-transform duration-200 active:scale-[0.98]"
+          className="group relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-brand-ink shadow-card transition-transform duration-200 active:scale-[0.98] lg:aspect-[3/1] lg:w-[calc((100%-2.5rem)/3)]"
         >
           {collection.image_url ? (
             <Image

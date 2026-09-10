@@ -39,6 +39,7 @@ export default async function ProdutosPage({
 
   const filterState = parseFilterState(searchParams ?? {});
   const hasActiveFilters = filterState.busca.length > 0 || filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.formato.length > 0 || filterState.ia || filterState.precoMin !== null || filterState.precoMax !== null;
+  const hasAnyCatalogFilter = Boolean(colecao || searchParams?.ordenar || hasActiveFilters);
   const visibleProducts = applyQuickFilter(filterProducts(collectionScopedProducts, filterState), searchParams?.ordenar);
 
   return (
@@ -66,7 +67,7 @@ export default async function ProdutosPage({
         </div>
       </div>
       <div className="mb-8 flex flex-wrap items-center gap-3">
-        {!colecao && !hasActiveFilters && <ProductSearch />}
+        {!hasAnyCatalogFilter && <ProductSearch />}
         <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}>
           <FilterDrawer products={collectionScopedProducts} collections={collections} />
         </Suspense>
