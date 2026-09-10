@@ -48,8 +48,8 @@ export default function Footer() {
             <p className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">Central de atendimento ao cliente</p>
             {whatsappDigits && <a href={`https://wa.me/${whatsappDigits}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-2 text-base font-semibold text-brand-paper transition-colors hover:text-[#25D366]"><MessageCircle size={18} fill="currentColor" className="text-[#25D366]" /> {formatWhatsAppNumber(whatsappNumber)}</a>}
           </div>
-          <p><span className="font-semibold text-brand-paper/80">Endereço:</span> R. Gal Joaquim Barbosa Cordeiro de Farias, 31 B - Centro, Goiana - PE, 55900-000</p>
-          <a href="https://www.instagram.com/oticaliderpe" target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-brand-paper/75 transition-colors hover:text-brand-gold"><Instagram size={16} /> <span>Instagram: <strong className="font-semibold text-brand-paper">@oticaliderpe</strong></span></a>
+          <a href="https://www.instagram.com/oticaliderpe" target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 font-semibold text-brand-paper underline decoration-brand-gold/70 underline-offset-4 transition-colors hover:text-brand-gold"><Instagram size={17} /> <span>Instagram: @oticaliderpe</span></a>
+          <p className="mt-4"><span className="font-semibold text-brand-paper/80">Endereço:</span> R. Gal Joaquim Barbosa Cordeiro de Farias, 31 B - Centro, Goiana - PE, 55900-000</p>
         </div>
       </div>
       <div className="border-t border-brand-paper/10 px-5 py-5 text-center font-body text-[10px] text-brand-paper/35">

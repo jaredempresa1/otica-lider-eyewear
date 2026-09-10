@@ -176,6 +176,7 @@ export default function AdminDashboardPage() {
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [abandonedCarts, setAbandonedCarts] = useState<AbandonedCart[]>([]);
+  const [sentCartIds, setSentCartIds] = useState<string[]>([]);
   const [productClicks, setProductClicks] = useState<ProductClick[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [testimonialForm, setTestimonialForm] = useState<TestimonialFormState>(EMPTY_TESTIMONIAL_FORM);
@@ -192,6 +193,7 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes">("produtos");
 
   useEffect(() => {
+    try { setSentCartIds(JSON.parse(localStorage.getItem("otica-sent-cart-ids") || "[]")); } catch { setSentCartIds([]); }
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) {
         router.push("/admin");
@@ -208,6 +210,14 @@ export default function AdminDashboardPage() {
       }
     });
   }, [router]);
+
+  function toggleSentCart(id: string) {
+    setSentCartIds((current) => {
+      const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
+      localStorage.setItem("otica-sent-cart-ids", JSON.stringify(next));
+      return next;
+    });
+  }
 
   async function loadProducts() {
     const { data } = await supabase.from("products").select("*").order("created_at", { ascending: false });
@@ -871,7 +881,7 @@ export default function AdminDashboardPage() {
 
       {activeTab === "carrinhos" && (
         <section className="space-y-4">
-          {abandonedCarts.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhum carrinho salvo ainda.</div> : abandonedCarts.map((cart) => { const message = `Olá! Aqui é da Ótica Líder. 😊\n\nNotamos que você deixou estes itens na sua sacola:\n${cart.items.map((item) => `• ${item.name} — ${item.quantity} unidade(s)`).join("\n")}\n\nPodemos separar tudo para você e ajudar a finalizar seu pedido com segurança. Quer que eu reserve esses óculos?`; return <article key={cart.id} className="flex flex-col gap-3 rounded-2xl bg-brand-paper p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{cart.items.map((item) => item.name).join(" + ")}</h3><p className="mt-1 font-body text-xs text-brand-ink/55">{new Date(cart.created_at).toLocaleString("pt-BR")} · Total {formatBRL(Number(cart.total))}</p></div><a href={`https://wa.me/55${cart.whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start rounded-full bg-[#25D366] px-4 py-2.5 font-body text-xs font-semibold text-white"><MessageCircle size={15} /> {formatWhatsAppDigits(cart.whatsapp)}</a></article>; })}
+          {abandonedCarts.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhum carrinho salvo ainda.</div> : abandonedCarts.map((cart) => { const message = `Olá! Aqui é da Ótica Líder. 😊\n\nNotamos que você deixou estes itens na sua sacola:\n${cart.items.map((item) => `• ${item.name} — ${item.quantity} unidade(s)`).join("\n")}\n\nPodemos separar tudo para você e ajudar a finalizar seu pedido com segurança. Quer que eu reserve esses óculos?`; return <article key={cart.id} className="flex flex-col gap-4 rounded-2xl bg-brand-paper p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><input type="checkbox" checked={sentCartIds.includes(cart.id)} onChange={() => toggleSentCart(cart.id)} className="mt-1 h-5 w-5 shrink-0 accent-brand-gold" aria-label="Marcar mensagem enviada" /><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{cart.items.map((item) => item.name).join(" + ")}</h3><p className="mt-1 font-body text-xs text-brand-ink/55">{new Date(cart.created_at).toLocaleString("pt-BR")} · Total {formatBRL(Number(cart.total))}</p></div></div><a href={`https://wa.me/55${cart.whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start rounded-full bg-[#25D366] px-4 py-2.5 font-body text-xs font-semibold text-white"><MessageCircle size={15} /> {formatWhatsAppDigits(cart.whatsapp)}</a></article>; })}
         </section>
       )}
 

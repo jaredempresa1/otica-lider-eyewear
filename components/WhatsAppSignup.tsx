@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 
 type Gender = "masculino" | "feminino";
@@ -19,9 +19,15 @@ export default function WhatsAppSignup() {
   const [gender, setGender] = useState<Gender | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [website, setWebsite] = useState("");
+  const [startedAt, setStartedAt] = useState(Date.now());
+  useEffect(() => setStartedAt(Date.now()), []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (website || Date.now() - startedAt < 1800) return;
+    const last = Number(localStorage.getItem("otica-lead-last-submit") || 0);
+    if (Date.now() - last < 30000) { setStatus("error"); setErrorMessage("Aguarde alguns segundos e tente novamente."); return; }
     const digits = whatsapp.replace(/\D/g, "");
 
     if (!name.trim()) {
@@ -45,6 +51,8 @@ export default function WhatsAppSignup() {
       return;
     }
 
+    const { data: existing } = await supabase.from("leads").select("id").eq("whatsapp", digits).limit(1);
+    if (existing && existing.length > 0) { setStatus("success"); return; }
     const { error } = await supabase.from("leads").insert({ name: name.trim(), whatsapp: digits, gender });
 
     if (error) {
@@ -53,8 +61,9 @@ export default function WhatsAppSignup() {
       return;
     }
 
+    localStorage.setItem("otica-lead-last-submit", String(Date.now()));
     setStatus("success");
-    setName("");
+    setName("")
     setWhatsapp("");
     setGender(null);
   }
@@ -82,6 +91,7 @@ export default function WhatsAppSignup() {
         </h2>
 
         <form onSubmit={handleSubmit} className="mt-8 flex max-w-xl flex-col gap-3">
+          <input tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} className="hidden" aria-hidden="true" />
           <input
             type="tel"
             inputMode="numeric"
