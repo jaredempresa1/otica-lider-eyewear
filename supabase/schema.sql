@@ -1,0 +1,268 @@
+create extension if not exists "uuid-ossp";
+
+create table if not exists products (
+  id uuid primary key default uuid_generate_v4(),
+  slug text unique not null,
+  name text not null,
+  brand text default '',
+  model text default '',
+  description text default '',
+  price numeric(10, 2) not null default 0,
+  compare_at_price numeric(10, 2),
+  installments jsonb,
+  category text default 'Óculos de Sol',
+  images jsonb not null default '[]'::jsonb,
+  colors jsonb not null default '[]'::jsonb,
+  downloads jsonb not null default '[]'::jsonb,
+  stock integer not null default 0,
+  sold_out boolean not null default false,
+  featured boolean not null default false,
+  more_sold boolean not null default false,
+  created_at timestamp with time zone default now()
+);
+
+-- Compatibilidade com instalações que já possuem a tabela products.
+alter table products add column if not exists downloads jsonb not null default '[]'::jsonb;
+alter table products add column if not exists more_sold boolean not null default false;
+alter table products add column if not exists brand text default '';
+alter table products add column if not exists model text default '';
+alter table products add column if not exists installments jsonb;
+alter table products add column if not exists sold_out boolean not null default false;
+
+-- Coleções (marcas como Ray-Ban/Voogue e também recortes livres como "Ciclista", "HB").
+-- Cada produto guarda a lista de slugs das coleções em que aparece, então o mesmo
+-- óculos pode aparecer em várias vitrines (ex.: marca "HB" + categoria "Ciclista")
+-- sem nunca duplicar na tabela products — a "coleção completa" continua sendo
+-- simplesmente 1 linha por produto, então nunca repete.
+alter table products add column if not exists collection_slugs jsonb not null default '[]'::jsonb;
+
+-- Público do produto: masculino, feminino ou unissex (aparece nos dois filtros).
+alter table products add column if not exists gender text not null default 'unissex';
+alter table products drop constraint if exists products_gender_check;
+alter table products add constraint products_gender_check check (gender in ('masculino', 'feminino', 'unissex'));
+
+-- Segurança: qualquer visitante pode LER os produtos (catálogo público).
+-- Só usuários autenticados (você, logado no /admin) podem criar/editar/apagar.
+alter table products enable row level security;
+
+drop policy if exists "Produtos são visíveis para todos" on products;
+create policy "Produtos são visíveis para todos"
+  on products for select
+  using (true);
+
+drop policy if exists "Somente logados podem inserir produtos" on products;
+create policy "Somente logados podem inserir produtos"
+  on products for insert
+  to authenticated
+  with check (true);
+
+drop policy if exists "Somente logados podem editar produtos" on products;
+create policy "Somente logados podem editar produtos"
+  on products for update
+  to authenticated
+  using (true);
+
+drop policy if exists "Somente logados podem apagar produtos" on products;
+create policy "Somente logados podem apagar produtos"
+  on products for delete
+  to authenticated
+  using (true);
+
+-- Coleções/vitrines administráveis (marcas como Ray-Ban, Voogue, ou recortes
+-- como "Ciclista", "HB"). Aparecem em retângulos na home e filtram /produtos.
+create table if not exists collections (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  slug text unique not null,
+  image_url text default '',
+  sort_order integer not null default 0,
+  created_at timestamp with time zone default now()
+);
+
+alter table collections enable row level security;
+
+drop policy if exists "Coleções são visíveis para todos" on collections;
+create policy "Coleções são visíveis para todos"
+  on collections for select
+  using (true);
+
+drop policy if exists "Somente logados podem gerenciar coleções" on collections;
+create policy "Somente logados podem gerenciar coleções"
+  on collections for all
+  to authenticated
+  using (true)
+  with check (true);
+
+-- Depoimentos (opcional, usado na home)
+create table if not exists testimonials (
+  id uuid primary key default uuid_generate_v4(),
+  author_name text not null,
+  content text not null,
+  created_at timestamp with time zone default now()
+);
+
+alter table testimonials enable row level security;
+
+drop policy if exists "Depoimentos são visíveis para todos" on testimonials;
+create policy "Depoimentos são visíveis para todos"
+  on testimonials for select
+  using (true);
+
+drop policy if exists "Somente logados podem gerenciar depoimentos" on testimonials;
+create policy "Somente logados podem gerenciar depoimentos"
+  on testimonials for all
+  to authenticated
+  using (true)
+  with check (true);
+
+-- Depois de rodar isso, crie o usuário admin em:
+-- Supabase > Authentication > Users > Add user (email + senha)
+-- Esse email/senha é o login usado em /admin no site.
+insert into storage.buckets (id, name, public)
+values ('product-media', 'product-media', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Arquivos de produtos são públicos" on storage.objects;
+create policy "Arquivos de produtos são públicos"
+  on storage.objects for select
+  using (bucket_id = 'product-media');
+
+drop policy if exists "Logados podem enviar arquivos de produtos" on storage.objects;
+create policy "Logados podem enviar arquivos de produtos"
+  on storage.objects for insert
+  to authenticated
+  with check (bucket_id = 'product-media');
+
+drop policy if exists "Logados podem atualizar arquivos de produtos" on storage.objects;
+create policy "Logados podem atualizar arquivos de produtos"
+  on storage.objects for update
+  to authenticated
+  using (bucket_id = 'product-media');
+
+drop policy if exists "Logados podem apagar arquivos de produtos" on storage.objects;
+create policy "Logados podem apagar arquivos de produtos"
+  on storage.objects for delete
+  to authenticated
+  using (bucket_id = 'product-media');
+
+-- Cadastro de WhatsApp (formulário "Cadastre-se e receba novidades" no fim da home).
+create table if not exists leads (
+  id uuid primary key default uuid_generate_v4(),
+  name text default '',
+  whatsapp text not null,
+  gender text check (gender in ('masculino', 'feminino')),
+  created_at timestamp with time zone default now()
+);
+
+-- Compatibilidade com instalações que já tinham a tabela leads sem o campo nome.
+alter table leads add column if not exists name text default '';
+
+alter table leads enable row level security;
+
+-- Qualquer visitante pode se cadastrar (enviar o formulário), mas ninguém
+-- de fora consegue LER a lista — só você, logado no Supabase, visualiza os
+-- contatos em Table Editor > leads.
+drop policy if exists "Qualquer um pode se cadastrar" on leads;
+create policy "Qualquer um pode se cadastrar"
+  on leads for insert
+  with check (true);
+
+drop policy if exists "Somente logados podem ver os cadastros" on leads;
+create policy "Somente logados podem ver os cadastros"
+  on leads for select
+  to authenticated
+  using (true);
+
+-- Especificações técnicas exibidas no acordeão da página do produto.
+alter table products add column if not exists specifications jsonb not null default '{}'::jsonb;
+
+-- Pedido especial (sob encomenda): produtos de baixo giro que a loja só
+-- compra depois que o cliente pede (ex.: Ray-Ban Meta). Quando marcado, o
+-- site pula o carrinho normal e leva direto para uma mensagem pronta no
+-- WhatsApp, avisando o prazo médio cadastrado aqui.
+alter table products add column if not exists made_to_order boolean not null default false;
+alter table products add column if not exists made_to_order_note text default '';
+
+-- Configuração do pacote usada na cotação automática de frete.
+create table if not exists shipping_settings (
+  id integer primary key default 1 check (id = 1),
+  width numeric(8, 2) not null default 15,
+  height numeric(8, 2) not null default 10,
+  length numeric(8, 2) not null default 20,
+  weight numeric(8, 3) not null default 0.5,
+  updated_at timestamp with time zone default now()
+);
+
+insert into shipping_settings (id) values (1) on conflict (id) do nothing;
+alter table shipping_settings enable row level security;
+drop policy if exists "Configuração de frete é pública para cotação" on shipping_settings;
+create policy "Configuração de frete é pública para cotação"
+  on shipping_settings for select using (true);
+drop policy if exists "Somente logados podem alterar configuração de frete" on shipping_settings;
+create policy "Somente logados podem alterar configuração de frete"
+  on shipping_settings for all to authenticated using (true) with check (true);
+
+-- Guarda o token de acesso e o refresh token do Melhor Envio para a
+-- renovação automática (ver lib/melhorEnvio.ts). Não recebe NENHUMA
+-- política pública: com RLS ligado e sem policies, só a chave de SERVIÇO
+-- (SUPABASE_SERVICE_ROLE_KEY, usada apenas em rotas de servidor) consegue
+-- ler ou escrever aqui — nem o anon key do site público, nem um usuário
+-- autenticado comum têm acesso a esses tokens.
+create table if not exists melhor_envio_tokens (
+  id integer primary key default 1 check (id = 1),
+  access_token text not null,
+  refresh_token text not null,
+  expires_at timestamp with time zone not null,
+  updated_at timestamp with time zone default now()
+);
+
+alter table melhor_envio_tokens enable row level security;
+
+-- Banner promocional opcional exibido entre os produtos em destaque e as coleções.
+create table if not exists promo_banner (
+  id integer primary key default 1 check (id = 1),
+  image_url text not null default '',
+  alt_text text not null default 'Novidade da Ótica Líder',
+  href text not null default '',
+  active boolean not null default false,
+  updated_at timestamp with time zone default now()
+);
+
+alter table promo_banner add column if not exists destination_type text not null default 'none';
+alter table promo_banner add column if not exists destination_id text not null default '';
+
+insert into promo_banner (id) values (1) on conflict (id) do nothing;
+alter table promo_banner enable row level security;
+drop policy if exists "Banner ativo é público" on promo_banner;
+create policy "Banner ativo é público" on promo_banner for select using (active = true);
+drop policy if exists "Somente logados podem gerenciar banner" on promo_banner;
+create policy "Somente logados podem gerenciar banner" on promo_banner for all to authenticated using (true) with check (true);
+
+
+-- Carrinhos abandonados: contato, itens e momento em que a seleção foi salva.
+create table if not exists abandoned_carts (
+  id uuid primary key default uuid_generate_v4(),
+  whatsapp text not null,
+  items jsonb not null default '[]'::jsonb,
+  total numeric(10, 2) not null default 0,
+  created_at timestamp with time zone default now()
+);
+alter table abandoned_carts enable row level security;
+drop policy if exists "Qualquer visitante pode salvar carrinho" on abandoned_carts;
+create policy "Qualquer visitante pode salvar carrinho" on abandoned_carts for insert with check (true);
+drop policy if exists "Somente logados podem ver carrinhos" on abandoned_carts;
+create policy "Somente logados podem ver carrinhos" on abandoned_carts for select to authenticated using (true);
+
+-- Rastreamento simples de abertura de produto para a vitrine de métricas.
+create table if not exists product_clicks (
+  id uuid primary key default uuid_generate_v4(),
+  product_id uuid references products(id) on delete cascade,
+  product_slug text not null,
+  product_name text not null,
+  created_at timestamp with time zone default now()
+);
+alter table product_clicks enable row level security;
+drop policy if exists "Qualquer visitante pode registrar clique" on product_clicks;
+create policy "Qualquer visitante pode registrar clique" on product_clicks for insert with check (true);
+drop policy if exists "Somente logados podem ver cliques" on product_clicks;
+create policy "Somente logados podem ver cliques" on product_clicks for select to authenticated using (true);

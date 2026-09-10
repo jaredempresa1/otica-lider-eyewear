@@ -1,0 +1,177 @@
+/* Direção visual: Arial dá leitura direta aos controles; a paleta creme, verde-musgo e dourado preserva a assinatura da Ótica Líder. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ease-premium: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  background: #f4f1ea;
+}
+
+body {
+  background-color: #f4f1ea;
+  color: #1e211d;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+}
+
+::selection {
+  background: #b88a45;
+  color: #fbfaf7;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #b88a45;
+  outline-offset: 3px;
+}
+
+@layer base {
+  .font-body {
+    font-family: Arial, Helvetica, sans-serif !important;
+  }
+}
+
+@layer components {
+  .section-shell {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+
+  .eyebrow {
+    @apply font-body text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-gold;
+  }
+
+  .section-title {
+    @apply font-heading text-3xl font-semibold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
+  }
+
+  .text-link {
+    @apply inline-flex items-center gap-2 border-b border-brand-gold/60 pb-1 font-body text-[13px] font-semibold uppercase tracking-[0.15em] text-brand-ink transition-colors duration-200 hover:border-brand-ink hover:text-brand-gold;
+  }
+
+  .btn-brand {
+    @apply inline-flex items-center justify-center rounded-full bg-brand-ink px-6 py-3.5 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-paper shadow-card transition-all duration-200 hover:bg-brand-moss hover:shadow-soft active:scale-[0.97];
+  }
+
+  .btn-brand-outline {
+    @apply inline-flex items-center justify-center rounded-full border border-brand-ink/20 bg-transparent px-6 py-3.5 font-body text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-ink transition-all duration-200 hover:border-brand-ink hover:bg-brand-ink hover:text-brand-paper active:scale-[0.97];
+  }
+
+  .input-premium {
+    @apply w-full rounded-2xl border border-brand-ink/15 bg-brand-paper px-4 py-3.5 font-body text-[15px] text-brand-ink outline-none transition-colors placeholder:text-brand-ink/35 focus:border-brand-gold;
+  }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.testimonial-enter {
+  animation: testimonial-enter 280ms var(--ease-premium) both;
+  transform-origin: center;
+}
+
+@keyframes testimonial-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .testimonial-enter {
+    animation: none;
+  }
+}
+
+/* Slider de faixa de preço com dois cursores sobrepostos (filtro de preço). */
+.dual-range {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.dual-range::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent;
+  height: 4px;
+}
+
+.dual-range::-moz-range-track {
+  background: transparent;
+  height: 4px;
+}
+
+.dual-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  margin-top: 0;
+  border-radius: 9999px;
+  background: #b88a45;
+  border: 3px solid #fbfaf7;
+  box-shadow: 0 2px 6px rgba(30, 33, 29, 0.3);
+  cursor: pointer;
+}
+
+.dual-range::-moz-range-thumb {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #b88a45;
+  border: 3px solid #fbfaf7;
+  box-shadow: 0 2px 6px rgba(30, 33, 29, 0.3);
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-up {
+    animation: reveal-up 700ms var(--ease-premium) both;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
