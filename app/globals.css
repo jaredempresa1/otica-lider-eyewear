@@ -175,3 +175,42 @@ select:focus-visible {
     transform: translateY(0);
   }
 }
+
+/* Animação disparada quando o carrinho cruza os R$500 e ganha frete grátis nacional (FreeShippingBar). */
+.free-shipping-celebrate {
+  animation: free-shipping-pop 620ms var(--ease-premium);
+}
+
+@keyframes free-shipping-pop {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(184, 138, 69, 0.45);
+  }
+  35% {
+    transform: scale(1.035);
+    box-shadow: 0 0 0 8px rgba(184, 138, 69, 0.16);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(184, 138, 69, 0);
+  }
+}
+
+.free-shipping-truck {
+  animation: free-shipping-truck-move 900ms var(--ease-premium);
+}
+
+@keyframes free-shipping-truck-move {
+  0% {
+    transform: translateX(-6px);
+    opacity: 0.3;
+  }
+  60% {
+    transform: translateX(2px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

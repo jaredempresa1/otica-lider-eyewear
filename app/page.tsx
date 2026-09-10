@@ -89,7 +89,7 @@ export default async function HomePage({
             Ver todos <span aria-hidden="true">↗</span>
           </Link>
         </div>
-        <div className="mb-7 flex min-w-0 items-center gap-3 overflow-hidden">
+        <div className="mb-7 flex flex-wrap items-center gap-3">
           <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}>
             <FilterDrawer products={products} collections={collections} anchor="catalogo" />
           </Suspense>

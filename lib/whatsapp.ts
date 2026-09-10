@@ -114,6 +114,36 @@ export function buildWhatsAppMadeToOrderMessage(product: {
   return lines.join("\n");
 }
 
+/**
+ * Mensagem enviada pela equipe (aba "Carrinhos abandonados" do admin) para
+ * quem deixou o WhatsApp e não fechou a compra. Organizada em blocos (saudação
+ * → itens separados → gatilho de escassez/urgência → chamada para ação) em vez
+ * do parágrafo único anterior, para ficar mais fácil de ler no celular e soar
+ * como um atendimento de verdade, não um disparo automático.
+ */
+export function buildAbandonedCartMessage(cart: {
+  items: { name: string; quantity: number }[];
+  total: number;
+}): string {
+  const lines: string[] = [];
+
+  lines.push("Oi! 👋 Passando aqui da Ótica Líder Eyewear.");
+  lines.push("");
+  lines.push("Vi que você separou esses óculos mas não finalizou o pedido:");
+  lines.push("");
+  for (const item of cart.items) {
+    lines.push(`• ${item.quantity}x ${item.name}`);
+  }
+  lines.push("");
+  lines.push(`Total da seleção: ${formatBRL(cart.total)}`);
+  lines.push("");
+  lines.push("Ainda estão reservados aqui pra você, mas o estoque é limitado e outros clientes estão vendo os mesmos modelos 👀");
+  lines.push("");
+  lines.push("Posso fechar o pedido agora mesmo por aqui e já te passo o prazo de entrega. Consigo te ajudar?");
+
+  return lines.join("\n");
+}
+
 export function buildWhatsAppInquiryMessage(product: {
   brand?: string;
   model?: string;

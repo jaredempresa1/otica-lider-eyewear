@@ -143,7 +143,7 @@ export default function FilterDrawer({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-brand-ink/10 bg-brand-paper px-4 font-body text-[13px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
+        className="flex h-10 items-center gap-2 rounded-full border border-brand-ink/10 bg-brand-paper px-4 font-body text-[13px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
       >
         <SlidersHorizontal size={15} className="text-brand-ink/45" />
         Filtrar{activeCount > 0 ? ` (${activeCount})` : ""}

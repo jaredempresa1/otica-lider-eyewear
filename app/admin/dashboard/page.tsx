@@ -7,6 +7,7 @@ import { Collection, Product, ProductColor, ProductDownload, Testimonial } from 
 import { isProductSoldOut } from "@/lib/productStatus";
 import { FORMAT_OPTIONS } from "@/lib/filters";
 import { calculateDiscountPercent } from "@/lib/pricing";
+import { buildAbandonedCartMessage } from "@/lib/whatsapp";
 import {
   ArrowDown,
   ArrowUp,
@@ -871,7 +872,7 @@ export default function AdminDashboardPage() {
 
       {activeTab === "carrinhos" && (
         <section className="space-y-4">
-          {abandonedCarts.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhum carrinho salvo ainda.</div> : abandonedCarts.map((cart) => { const message = `Oi! Você deixou ${cart.items.map((item) => `${item.name} (${item.quantity}x)`).join(", ")} na sua sacola da Ótica Líder. Quer que a gente separe para você?`; return <article key={cart.id} className="flex flex-col gap-3 rounded-2xl bg-brand-paper p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{cart.items.map((item) => item.name).join(" + ")}</h3><p className="mt-1 font-body text-xs text-brand-ink/55">{new Date(cart.created_at).toLocaleString("pt-BR")} · Total {formatBRL(Number(cart.total))}</p></div><a href={`https://wa.me/55${cart.whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start rounded-full bg-[#25D366] px-4 py-2.5 font-body text-xs font-semibold text-white"><MessageCircle size={15} /> {formatWhatsAppDigits(cart.whatsapp)}</a></article>; })}
+          {abandonedCarts.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhum carrinho salvo ainda.</div> : abandonedCarts.map((cart) => { const message = buildAbandonedCartMessage({ items: cart.items, total: Number(cart.total) }); return <article key={cart.id} className="flex flex-col gap-3 rounded-2xl bg-brand-paper p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{cart.items.map((item) => item.name).join(" + ")}</h3><p className="mt-1 font-body text-xs text-brand-ink/55">{new Date(cart.created_at).toLocaleString("pt-BR")} · Total {formatBRL(Number(cart.total))}</p></div><a href={`https://wa.me/55${cart.whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start rounded-full bg-[#25D366] px-4 py-2.5 font-body text-xs font-semibold text-white"><MessageCircle size={15} /> {formatWhatsAppDigits(cart.whatsapp)}</a></article>; })}
         </section>
       )}
 
