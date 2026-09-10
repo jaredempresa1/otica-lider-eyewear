@@ -395,7 +395,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: { produ
       {(product.description || specRows.length > 0) && (
         <div className="mx-auto mt-10 max-w-3xl border-t border-brand-ink/10 lg:mt-14">
           {product.description && (
-            <AccordionItem title="Descrição do produto" defaultOpen>
+            <AccordionItem title="Descrição do produto">
               <p className="whitespace-pre-line">{product.description}</p>
             </AccordionItem>
           )}
