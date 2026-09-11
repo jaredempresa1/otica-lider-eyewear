@@ -130,6 +130,9 @@ export default function FilterDrawer({
     if (draft.ia) params.set("ia", "1");
     else params.delete("ia");
 
+    if (draft.esportivo) params.set("esportivo", "1");
+    else params.delete("esportivo");
+
     if (draft.genero.length > 0) params.set("genero", draft.genero.join(","));
     else params.delete("genero");
 
@@ -283,6 +286,7 @@ export default function FilterDrawer({
               <section className="border-b border-brand-ink/8 px-5 py-5">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Recursos</p>
                 <button type="button" onClick={() => setDraft((current) => ({ ...current, ia: !current.ia }))} className={`mt-3 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.ia ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos com IA</button>
+                <button type="button" onClick={() => setDraft((current) => ({ ...current, esportivo: !current.esportivo }))} className={`mt-3 ml-2 inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.esportivo ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}><span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-current text-[10px] font-extrabold leading-none">S</span> Óculos esportivo</button>
               </section>
               {hasPriceRange && (
                 <section className="px-5 py-5">

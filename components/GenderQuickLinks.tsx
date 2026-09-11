@@ -29,7 +29,7 @@ export default function GenderQuickLinks() {
             />
             <span className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
             <span className="absolute inset-x-0 bottom-0 flex items-center justify-center px-4 pb-2 sm:pb-3">
-              <span className="font-body text-[13px] font-extrabold uppercase tracking-[0.14em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.65)] sm:text-[16px]">
+              <span className="rounded-full border-2 border-white px-6 py-2.5 font-body text-[13px] font-extrabold uppercase tracking-[0.14em] text-white [text-shadow:0_1px_6px_rgba(0,0,0,0.65)] sm:px-9 sm:py-3 sm:text-[16px]">
                 {item.label}
               </span>
             </span>

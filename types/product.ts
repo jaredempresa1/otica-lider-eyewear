@@ -54,6 +54,8 @@ export type Product = {
   more_sold?: boolean;
   /** Controla o filtro rápido "Óculos com IA" (recursos como o provador virtual). Marcado manualmente no admin. */
   ai_tryon?: boolean;
+  /** Controla o filtro "Óculos esportivo". Marcado manualmente no admin; o produto continua aparecendo nos demais filtros normalmente. */
+  sportivo?: boolean;
   collection_slugs?: string[];
   created_at?: string;
 };

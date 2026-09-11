@@ -182,6 +182,7 @@ alter table products add column if not exists specifications jsonb not null defa
 -- WhatsApp, avisando o prazo médio cadastrado aqui.
 alter table products add column if not exists made_to_order boolean not null default false;
 alter table products add column if not exists made_to_order_note text default '';
+alter table products add column if not exists sportivo boolean not null default false;
 
 -- Configuração do pacote usada na cotação automática de frete.
 create table if not exists shipping_settings (

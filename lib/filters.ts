@@ -88,6 +88,7 @@ export type ProductFilterState = {
   cor: string[];
   formato: string[];
   ia: boolean;
+  esportivo: boolean;
   precoMin: number | null;
   precoMax: number | null;
 };
@@ -99,6 +100,7 @@ export const EMPTY_FILTER_STATE: ProductFilterState = {
   cor: [],
   formato: [],
   ia: false,
+  esportivo: false,
   precoMin: null,
   precoMax: null,
 };
@@ -124,6 +126,7 @@ type FilterSearchParams = {
   cor?: string;
   formato?: string;
   ia?: string;
+  esportivo?: string;
   precoMin?: string;
   precoMax?: string;
 };
@@ -137,6 +140,7 @@ export function parseFilterState(searchParams: FilterSearchParams): ProductFilte
     cor: parseListParam(searchParams.cor),
     formato: parseListParam(searchParams.formato),
     ia: searchParams.ia === "1",
+    esportivo: searchParams.esportivo === "1",
     precoMin: parseNumberParam(searchParams.precoMin),
     precoMax: parseNumberParam(searchParams.precoMax),
   };
@@ -146,6 +150,7 @@ export function countActiveFilters(state: ProductFilterState, priceBounds?: { mi
   let count = state.genero.length + state.marca.length + state.cor.length + state.formato.length;
   if (state.busca) count += 1;
   if (state.ia) count += 1;
+  if (state.esportivo) count += 1;
   if (priceBounds) {
     const minChanged = state.precoMin !== null && state.precoMin > priceBounds.min;
     const maxChanged = state.precoMax !== null && state.precoMax < priceBounds.max;
@@ -203,6 +208,10 @@ export function productMatchesFilters(product: Product, state: ProductFilterStat
 
   // Óculos com IA = marcado manualmente no admin (ai_tryon), não "tem foto".
   if (state.ia && !product.ai_tryon) return false;
+
+  // Óculos esportivo = marcado manualmente no admin, filtro à parte — mas o
+  // produto continua aparecendo normalmente nos demais filtros também.
+  if (state.esportivo && !product.sportivo) return false;
 
   if (state.precoMin !== null && product.price < state.precoMin) return false;
   if (state.precoMax !== null && product.price > state.precoMax) return false;

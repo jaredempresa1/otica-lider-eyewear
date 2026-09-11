@@ -25,6 +25,16 @@ const NAV_GENDER_LINKS: { href: string; label: string; shape: FaceShape }[] = [
   { href: "/produtos?genero=infantil", label: "Óculos infantil", shape: "infantil" },
 ];
 
+const SPORT_LINK = { href: "/produtos?esportivo=1", label: "Óculos esportivo" };
+
+function SportBadge({ className = "" }: { className?: string }) {
+  return (
+    <span className={`flex shrink-0 items-center justify-center rounded-full border border-current text-[10px] font-extrabold leading-none ${className}`}>
+      S
+    </span>
+  );
+}
+
 export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
@@ -134,6 +144,13 @@ export default function Header() {
                       <FaceIcon shape={item.shape} className="h-5 w-5 shrink-0 text-brand-gold" /> {item.label}
                     </Link>
                   ))}
+                  <Link
+                    href={SPORT_LINK.href}
+                    onClick={() => setFilterMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                  >
+                    <SportBadge className="h-5 w-5 text-brand-gold" /> {SPORT_LINK.label}
+                  </Link>
                 </div>
               </div>
             )}
@@ -219,6 +236,9 @@ export default function Header() {
                     <FaceIcon shape={item.shape} className="h-5 w-5 shrink-0 text-brand-gold" /> {item.label}
                   </Link>
                 ))}
+                <Link href={SPORT_LINK.href} onClick={closeMenu} className="flex items-center gap-2.5">
+                  <SportBadge className="h-5 w-5 text-brand-gold" /> {SPORT_LINK.label}
+                </Link>
               </div>
             </div>
           </div>
