@@ -103,7 +103,7 @@ export default function ProductCard({ product }: { product: Product }) {
             src={mainImage}
             alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
             fill
-            className={`object-contain p-3 mix-blend-multiply transition-opacity duration-300 sm:p-4`}
+            className={`object-contain p-2 mix-blend-multiply transition-opacity duration-300 sm:p-4`}
             sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
           />
         ) : (
@@ -115,15 +115,14 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         <div className="absolute inset-x-3 top-3 z-20 flex items-start gap-1.5">
-          <div className="flex max-w-[75%] flex-col items-start gap-1.5">
-            {!madeToOrder && !productSoldOut && product.stock === 1 && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
-            {product.more_sold && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
+          <div className="flex flex-col items-start gap-1.5">
+            {product.more_sold && <span className="rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
             {madeToOrder ? (
-              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Sob encomenda</span>
+              <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Sob encomenda</span>
             ) : colorSoldOut && !productSoldOut ? (
-              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Cor esgotada</span>
+              <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Cor esgotada</span>
             ) : null}
-            {hasDiscount && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
+            {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
           </div>
         </div>
         <button
@@ -136,8 +135,8 @@ export default function ProductCard({ product }: { product: Product }) {
               ? "h-11 w-11 bg-brand-paper text-brand-ink hover:bg-brand-gold hover:text-brand-paper sm:h-12 sm:w-12"
               : "h-9 pl-3 pr-3.5 bg-brand-ink text-brand-paper hover:bg-brand-gold sm:h-10 sm:pl-3.5 sm:pr-4"
           }`}
-          aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} ao carrinho` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
-          title={canBuy ? "Adicionar ao carrinho" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
+          aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} à sacola` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
+          title={canBuy ? "Adicionar à sacola" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
         >
           {added ? (
             <Check size={19} strokeWidth={2} />
@@ -150,6 +149,7 @@ export default function ProductCard({ product }: { product: Product }) {
             </>
           )}
         </button>
+        {!madeToOrder && !productSoldOut && product.stock === 1 && <span className="absolute bottom-3 left-3 z-20 max-w-[calc(100%-4.75rem)] rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm sm:max-w-none">Última peça</span>}
       </div>
 
       <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">
@@ -193,7 +193,7 @@ export default function ProductCard({ product }: { product: Product }) {
       )}
       {(selectedColor?.frame_color || selectedColor?.lens_color) && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-body text-[10px] text-brand-ink/50"><span>Armação <strong className="font-semibold text-brand-ink/70">{selectedColor.frame_color || "—"}</strong></span><span>Lentes <strong className="font-semibold text-brand-ink/70">{selectedColor.lens_color || "—"}</strong></span></div>}
 
-      <p className={`mt-2 min-h-[16px] font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 ${added ? "text-brand-moss" : "text-transparent"}`}>{added ? "Adicionado ao carrinho" : " "}</p>
+      <p className={`mt-2 min-h-[16px] font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 ${added ? "text-brand-moss" : "text-transparent"}`}>{added ? "Adicionado à sacola" : " "}</p>
 
       {showPaymentModal && (
         <PaymentMethodModal

@@ -21,20 +21,9 @@ function formatBRL(value: number): string {
 }
 
 const GENDER_OPTIONS = [
-  { value: "masculino", label: "Masculino", icon: "👨" },
-  { value: "feminino", label: "Feminino", icon: "👩" },
-  { value: "infantil", label: "Infantil", icon: "🧒" },
+  { value: "masculino", label: "Masculino" },
+  { value: "feminino", label: "Feminino" },
 ];
-
-const FORMAT_ICONS: Record<string, string> = {
-  Redondo: "⚪",
-  Quadrado: "◼️",
-  Retangular: "▬",
-  Oval: "🥚",
-  Gatinho: "🐱",
-  Aviador: "✈️",
-  Geométrico: "🔷",
-};
 
 export default function FilterDrawer({
   products,
@@ -154,7 +143,7 @@ export default function FilterDrawer({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex h-10 shrink-0 items-center gap-2 rounded-full border border-brand-ink/10 bg-brand-paper px-4 font-body text-[13px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
+        className="flex h-10 items-center gap-2 rounded-full border border-brand-ink/10 bg-brand-paper px-4 font-body text-[13px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
       >
         <SlidersHorizontal size={15} className="text-brand-ink/45" />
         Filtrar{activeCount > 0 ? ` (${activeCount})` : ""}
@@ -203,7 +192,7 @@ export default function FilterDrawer({
                           isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"
                         }`}
                       >
-                        {option.icon} {option.label}
+                        {option.label}
                       </button>
                     );
                   })}
@@ -263,7 +252,7 @@ export default function FilterDrawer({
                 <div className="mt-3 flex flex-wrap gap-2">
                   {FORMAT_OPTIONS.map((format) => {
                     const isSelected = draft.formato.includes(format);
-                    return <button key={format} type="button" onClick={() => toggleValue("formato", format)} className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>{FORMAT_ICONS[format] ?? "👓"} {format}</button>;
+                    return <button key={format} type="button" onClick={() => toggleValue("formato", format)} className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>{format}</button>;
                   })}
                 </div>
               </section>

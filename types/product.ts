@@ -20,7 +20,7 @@ export type ProductInstallments = {
   amount: number;
 };
 
-export type ProductGender = "masculino" | "feminino" | "unissex" | "infantil";
+export type ProductGender = "masculino" | "feminino" | "unissex";
 
 export type ProductSpecifications = {
   material?: string;

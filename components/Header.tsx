@@ -3,7 +3,7 @@
 /** Direção visual: controles maiores e a logo oficial destacada, preservando o cabeçalho creme, verde e dourado da marca. */
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, Search, ShoppingCart, SlidersHorizontal, X, Tag, Flame, Star } from "lucide-react";
+import { Menu, Search, ShoppingBag, SlidersHorizontal, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartContext";
@@ -11,18 +11,6 @@ import { QUICK_FILTERS } from "@/lib/filters";
 
 // Os mesmos atalhos do menu mobile ("Filtrar por"), reaproveitados no dropdown de desktop.
 const NAV_QUICK_FILTERS = QUICK_FILTERS.filter((filter) => ["mais-vendidos", "destaques", "ofertas"].includes(filter.value));
-
-const QUICK_FILTER_ICONS: Record<string, React.ReactNode> = {
-  "mais-vendidos": <Flame size={14} className="shrink-0 text-brand-gold" />,
-  destaques: <Star size={14} className="shrink-0 text-brand-gold" />,
-  ofertas: <Tag size={14} className="shrink-0 text-brand-gold" />,
-};
-
-const NAV_GENDER_LINKS = [
-  { href: "/produtos?genero=masculino", label: "Óculos de sol masculino", icon: "👨" },
-  { href: "/produtos?genero=feminino", label: "Óculos de sol feminino", icon: "👩" },
-  { href: "/produtos?genero=infantil", label: "Óculos infantil", icon: "🧒" },
-];
 
 export default function Header() {
   const router = useRouter();
@@ -77,10 +65,10 @@ export default function Header() {
           <Image
             src="/logo.png"
             alt="Ótica Líder Eyewear"
-            width={496}
-            height={198}
+            width={460}
+            height={203}
             priority
-            className="h-16 w-auto max-w-[255px] object-contain object-left sm:h-[5.25rem] sm:max-w-[360px]"
+            className="h-14 w-auto max-w-[225px] object-contain object-left sm:h-[4.5rem] sm:max-w-[320px]"
           />
         </Link>
 
@@ -115,24 +103,28 @@ export default function Header() {
                       key={filter.value}
                       href={`/produtos?ordenar=${filter.value}`}
                       onClick={() => setFilterMenuOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                      className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
                     >
-                      {QUICK_FILTER_ICONS[filter.value]} {filter.label}
+                      {filter.label}
                     </Link>
                   ))}
                 </div>
                 <div className="my-2 border-t border-brand-ink/8" />
                 <div className="flex flex-col">
-                  {NAV_GENDER_LINKS.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setFilterMenuOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
-                    >
-                      <span>{item.icon}</span> {item.label}
-                    </Link>
-                  ))}
+                  <Link
+                    href="/produtos?genero=masculino"
+                    onClick={() => setFilterMenuOpen(false)}
+                    className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                  >
+                    Óculos de sol masculino
+                  </Link>
+                  <Link
+                    href="/produtos?genero=feminino"
+                    onClick={() => setFilterMenuOpen(false)}
+                    className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                  >
+                    Óculos de sol feminino
+                  </Link>
                 </div>
               </div>
             )}
@@ -153,12 +145,12 @@ export default function Header() {
           <Link
             href="/sacola"
             className="relative flex h-10 shrink-0 items-center gap-1 rounded-full border border-brand-ink/10 px-2.5 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:gap-2.5 sm:px-5"
-            aria-label="Abrir carrinho"
+            aria-label="Abrir sacola"
           >
-            <ShoppingCart size={18} strokeWidth={1.8} className="sm:hidden" />
-            <ShoppingCart size={22} strokeWidth={1.8} className="hidden sm:block" />
+            <ShoppingBag size={18} strokeWidth={1.8} className="sm:hidden" />
+            <ShoppingBag size={22} strokeWidth={1.8} className="hidden sm:block" />
             <span className="hidden font-body text-[12px] font-semibold uppercase tracking-[0.15em] sm:inline">
-              Carrinho
+              Sacola
             </span>
             {totalItems > 0 && (
               <span className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-brand-gold px-1 text-[10px] font-bold text-brand-paper sm:h-6 sm:min-w-6 sm:text-[11px]">
@@ -200,7 +192,7 @@ export default function Header() {
               Coleção completa
             </Link>
             <Link href="/sacola" onClick={closeMenu}>
-              Meu carrinho {totalItems > 0 ? `(${totalItems})` : ""}
+              Minha sacola {totalItems > 0 ? `(${totalItems})` : ""}
             </Link>
 
             <div className="mt-1 border-t border-brand-ink/10 pt-5">
@@ -209,15 +201,16 @@ export default function Header() {
               </p>
               <div className="flex flex-col gap-4">
                 {NAV_QUICK_FILTERS.map((filter) => (
-                  <Link key={filter.value} href={`/produtos?ordenar=${filter.value}`} onClick={closeMenu} className="flex items-center gap-2.5">
-                    {QUICK_FILTER_ICONS[filter.value]} {filter.label}
+                  <Link key={filter.value} href={`/produtos?ordenar=${filter.value}`} onClick={closeMenu}>
+                    {filter.label}
                   </Link>
                 ))}
-                {NAV_GENDER_LINKS.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={closeMenu} className="flex items-center gap-2.5">
-                    <span>{item.icon}</span> {item.label}
-                  </Link>
-                ))}
+                <Link href="/produtos?genero=masculino" onClick={closeMenu}>
+                  Óculos de sol masculino
+                </Link>
+                <Link href="/produtos?genero=feminino" onClick={closeMenu}>
+                  Óculos de sol feminino
+                </Link>
               </div>
             </div>
           </div>

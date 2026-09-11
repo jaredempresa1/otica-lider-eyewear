@@ -34,32 +34,22 @@ export default function Footer() {
             </li>
             <li>
               <Link href="/sacola" className="inline-flex items-center gap-1 underline decoration-brand-paper/25 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">
-                <ChevronRight size={13} className="shrink-0" /> Meu carrinho
-              </Link>
-            </li>
-            <li>
-              <Link href="/politica-de-garantia" className="inline-flex items-center gap-1 underline decoration-brand-paper/25 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">
-                <ChevronRight size={13} className="shrink-0" /> Política de Garantia
-              </Link>
-            </li>
-            <li>
-              <Link href="/politica-de-privacidade" className="inline-flex items-center gap-1 underline decoration-brand-paper/25 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">
-                <ChevronRight size={13} className="shrink-0" /> Política de Privacidade
+                <ChevronRight size={13} className="shrink-0" /> Minha sacola
               </Link>
             </li>
           </ul>
         </div>
         <div>
           <h4 className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">A experiência Líder</h4>
-          <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Troca garantida</li><li>Frete grátis para João Pessoa e Região</li></ul>
+          <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Troca garantida — não gostou, a gente resolve</li><li>Frete grátis para João Pessoa e Região</li></ul>
         </div>
         <div className="border-t border-brand-paper/10 pt-6 font-body text-sm leading-6 text-brand-paper/60 sm:col-span-3">
-          <div className="mb-2">
+          <div className="mb-5">
             <p className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">Central de atendimento ao cliente</p>
             {whatsappDigits && <a href={`https://wa.me/${whatsappDigits}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex items-center gap-2 text-base font-semibold text-brand-paper transition-colors hover:text-[#25D366]"><MessageCircle size={18} fill="currentColor" className="text-[#25D366]" /> {formatWhatsAppNumber(whatsappNumber)}</a>}
           </div>
-          <a href="https://www.instagram.com/oticaliderpe" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 font-semibold text-brand-paper underline decoration-brand-gold/70 underline-offset-4 transition-colors hover:text-brand-gold"><Instagram size={17} /> <span>Instagram: @oticaliderpe</span></a>
-          <p className="mt-4"><span className="font-semibold text-brand-paper/80">Endereço:</span> R. Gal Joaquim Barbosa Cordeiro de Farias, 31 B - Centro, Goiana - PE, 55900-000</p>
+          <p><span className="font-semibold text-brand-paper/80">Endereço:</span> R. Gal Joaquim Barbosa Cordeiro de Farias, 31 B - Centro, Goiana - PE, 55900-000</p>
+          <a href="https://www.instagram.com/oticaliderpe" target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-brand-paper/75 transition-colors hover:text-brand-gold"><Instagram size={16} /> <span>Instagram: <strong className="font-semibold text-brand-paper">@oticaliderpe</strong></span></a>
         </div>
       </div>
       <div className="border-t border-brand-paper/10 px-5 py-5 text-center font-body text-[10px] text-brand-paper/35">
