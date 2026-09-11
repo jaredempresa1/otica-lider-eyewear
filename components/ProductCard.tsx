@@ -123,9 +123,13 @@ export default function ProductCard({ product }: { product: Product }) {
             ) : colorSoldOut && !productSoldOut ? (
               <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Cor esgotada</span>
             ) : null}
-            {hasDiscount && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
           </div>
         </div>
+        {hasDiscount && (
+          <div className="absolute bottom-3 left-3 z-20">
+            <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>
+          </div>
+        )}
         <button
           type="button"
           onClick={canBuy ? handleQuickAdd : handleQuickInquiry}

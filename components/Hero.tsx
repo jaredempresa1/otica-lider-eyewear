@@ -7,30 +7,23 @@ const HERO_IMAGE = "/hero-eyewear.png";
 export default function Hero() {
   return (
     <section className="w-full">
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-ink sm:aspect-[16/10] lg:aspect-[21/9]">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-ink sm:aspect-[16/10] lg:aspect-auto lg:h-[440px] xl:h-[500px]">
+        {/* No desktop a foto é retrato e o container é bem mais largo que alto, então uma
+            cópia borrada e ampliada preenche as laterais em vez de deixar barra lisa. */}
+        <div className="absolute inset-0 hidden lg:block" aria-hidden="true">
+          <Image src={HERO_IMAGE} alt="" fill className="scale-110 object-cover object-top opacity-50 blur-2xl" />
+        </div>
         <Image
           src={HERO_IMAGE}
           alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
           fill
           priority
-          className="object-cover object-top"
+          className="object-cover object-top lg:object-contain"
           sizes="100vw"
         />
 
         {/* Escurece a base da foto só o suficiente pra manter a barra de benefícios legível. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent sm:h-36" />
-
-        {/* Título e "Desde 1999" ficam presos bem no topo, dentro de um bloco com fundo
-            desfocado (mesma linguagem visual da barra "Até 10x no cartão*"), pra nunca
-            cair em cima do rosto de quem aparece na foto, em nenhum recorte de tela. */}
-        <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-3 sm:pt-5">
-          <div className="w-full max-w-xl rounded-2xl border border-brand-paper/15 bg-brand-ink/55 px-5 py-3 text-center shadow-card backdrop-blur-md sm:max-w-2xl sm:px-8 sm:py-4">
-            <h1 className="font-heading text-[1.6rem] font-medium leading-[0.98] tracking-[-0.03em] text-brand-paper drop-shadow-sm sm:text-5xl lg:text-6xl">
-              Melhores escolhas do verão
-            </h1>
-            <p className="eyebrow mt-1.5 text-[12px] font-semibold text-brand-gold sm:mt-2 sm:text-[14px]">Desde 1999</p>
-          </div>
-        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent sm:h-36 lg:hidden" />
 
         <div className="absolute inset-x-0 bottom-0 border-t border-brand-paper/15 bg-brand-ink/55 backdrop-blur-sm">
           <div className="grid grid-cols-3 divide-x divide-brand-paper/20">

@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import { Collection, Product } from "@/types/product";
 import GlassesIcon, { GlassesShape } from "./icons/GlassesIcon";
+import FaceIcon, { FaceShape } from "./icons/FaceIcon";
 import {
   EMPTY_FILTER_STATE,
   FORMAT_OPTIONS,
@@ -21,7 +22,7 @@ function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const GENDER_OPTIONS: { value: string; label: string; shape: GlassesShape }[] = [
+const GENDER_OPTIONS: { value: string; label: string; shape: FaceShape }[] = [
   { value: "masculino", label: "Masculino", shape: "masculino" },
   { value: "feminino", label: "Feminino", shape: "feminino" },
   { value: "infantil", label: "Infantil", shape: "infantil" },
@@ -204,7 +205,7 @@ export default function FilterDrawer({
                           isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"
                         }`}
                       >
-                        <GlassesIcon shape={option.shape} className={`h-4 w-7 shrink-0 ${isSelected ? "text-brand-gold" : "text-brand-ink/55"}`} />
+                        <FaceIcon shape={option.shape} className={`h-5 w-5 shrink-0 ${isSelected ? "text-brand-gold" : "text-brand-ink/55"}`} />
                         {option.label}
                       </button>
                     );

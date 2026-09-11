@@ -18,7 +18,7 @@ export default function GenderQuickLinks() {
           <Link
             key={item.href}
             href={item.href}
-            className="group relative block aspect-[16/9] w-full overflow-hidden sm:aspect-[4/5] sm:flex-1"
+            className="group relative block aspect-[16/9] w-full overflow-hidden sm:aspect-[21/9] sm:flex-1"
           >
             <Image
               src={item.image}

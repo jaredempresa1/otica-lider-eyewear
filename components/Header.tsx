@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartContext";
 import { QUICK_FILTERS } from "@/lib/filters";
-import GlassesIcon, { GlassesShape } from "./icons/GlassesIcon";
+import FaceIcon, { FaceShape } from "./icons/FaceIcon";
 
 // Os mesmos atalhos do menu mobile ("Filtrar por"), reaproveitados no dropdown de desktop.
 const NAV_QUICK_FILTERS = QUICK_FILTERS.filter((filter) => ["mais-vendidos", "destaques", "ofertas"].includes(filter.value));
@@ -19,7 +19,7 @@ const QUICK_FILTER_ICONS: Record<string, React.ReactNode> = {
   ofertas: <Tag size={14} className="shrink-0 text-brand-gold" />,
 };
 
-const NAV_GENDER_LINKS: { href: string; label: string; shape: GlassesShape }[] = [
+const NAV_GENDER_LINKS: { href: string; label: string; shape: FaceShape }[] = [
   { href: "/produtos?genero=masculino", label: "Óculos de sol masculino", shape: "masculino" },
   { href: "/produtos?genero=feminino", label: "Óculos de sol feminino", shape: "feminino" },
   { href: "/produtos?genero=infantil", label: "Óculos infantil", shape: "infantil" },
@@ -131,7 +131,7 @@ export default function Header() {
                       onClick={() => setFilterMenuOpen(false)}
                       className="flex items-center gap-2 rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
                     >
-                      <GlassesIcon shape={item.shape} className="h-4 w-7 shrink-0 text-brand-gold" /> {item.label}
+                      <FaceIcon shape={item.shape} className="h-5 w-5 shrink-0 text-brand-gold" /> {item.label}
                     </Link>
                   ))}
                 </div>
@@ -216,7 +216,7 @@ export default function Header() {
                 ))}
                 {NAV_GENDER_LINKS.map((item) => (
                   <Link key={item.href} href={item.href} onClick={closeMenu} className="flex items-center gap-2.5">
-                    <GlassesIcon shape={item.shape} className="h-4 w-7 shrink-0 text-brand-gold" /> {item.label}
+                    <FaceIcon shape={item.shape} className="h-5 w-5 shrink-0 text-brand-gold" /> {item.label}
                   </Link>
                 ))}
               </div>
