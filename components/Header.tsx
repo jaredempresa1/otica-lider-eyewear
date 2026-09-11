@@ -68,7 +68,7 @@ export default function Header() {
             width={496}
             height={198}
             priority
-            className="h-14 w-auto max-w-[225px] object-contain object-left sm:h-[4.5rem] sm:max-w-[320px]"
+            className="h-16 w-auto max-w-[255px] object-contain object-left sm:h-[5.25rem] sm:max-w-[360px]"
           />
         </Link>
 

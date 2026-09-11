@@ -14,6 +14,15 @@ export default function Testimonials({ testimonials, totalCount = testimonials.l
       const randomIndex = Math.floor(Math.random() * (index + 1));
       [shuffled[index], shuffled[randomIndex]] = [shuffled[randomIndex], shuffled[index]];
     }
+    // O primeiro depoimento (o que aparece "na frente") deve sempre ter foto
+    // e comentário, mesmo com o embaralhamento acima incluindo depoimentos
+    // sem foto e/ou sem comentário no restante da rotação.
+    const completeIndex = shuffled.findIndex(
+      (testimonial) => Boolean(testimonial.image_url) && Boolean(testimonial.content?.trim()),
+    );
+    if (completeIndex > 0) {
+      [shuffled[0], shuffled[completeIndex]] = [shuffled[completeIndex], shuffled[0]];
+    }
     return shuffled;
   }, [testimonials]);
   if (!testimonials || testimonials.length === 0) return null;
