@@ -25,7 +25,7 @@ export default function ProductGrid({
 
   if (scroll) {
     return (
-      <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pl-7 pr-5 sm:-mx-8 sm:gap-5 sm:px-8 lg:-mx-10 lg:px-10">
+      <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pl-16 pr-5 sm:-mx-8 sm:gap-5 sm:px-8 lg:-mx-10 lg:px-10">
         {sortedProducts.map((product) => (
           <div key={product.id} className="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]">
             <ProductCard product={product} />

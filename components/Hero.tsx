@@ -1,32 +1,49 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
 const HERO_IMAGE = "/hero-eyewear.png";
 
 export default function Hero() {
   return (
-    <section className="section-shell pb-8 pt-6 sm:pb-14 sm:pt-10">
-      <div className="relative overflow-hidden rounded-[2rem] bg-brand-ink">
-        <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full border border-brand-sage/20" />
-        <div className="absolute -bottom-32 left-1/3 h-80 w-80 rounded-full border border-brand-gold/20" />
-        <div className="relative z-10 grid lg:grid-cols-[0.95fr_1.05fr]">
-          <div className="flex flex-col items-center px-5 pb-8 pt-7 text-center sm:px-12 sm:pb-10 sm:pt-10 lg:items-start lg:justify-center lg:text-left lg:py-12">
-            <div className="hero-highlight max-w-xl rounded-[1.5rem] px-4 py-4 sm:px-6 sm:py-5">
-              <p className="eyebrow text-[14px] leading-6 text-brand-gold sm:text-[16px]">Desde 1999 <span className="hidden sm:inline">·</span><span className="block sm:inline"> Paraíba e Pernambuco</span></p>
-              <h1 className="mt-2 max-w-xl font-heading text-[2.25rem] font-medium leading-[0.98] tracking-[-0.04em] text-brand-paper sm:mt-3 sm:text-6xl lg:text-[4rem]">Melhores Escolhas do Verão</h1>
+    <section className="w-full">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-ink sm:aspect-[16/10] lg:aspect-[21/9]">
+        <Image
+          src={HERO_IMAGE}
+          alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
+          fill
+          priority
+          className="object-cover object-top"
+          sizes="100vw"
+        />
+
+        {/* Escurece topo e base da foto só o suficiente pra manter o texto legível. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/55 to-transparent sm:h-40" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent sm:h-36" />
+
+        <div className="absolute inset-x-0 top-0 pt-5 text-center sm:pt-8">
+          <h1 className="font-heading text-[1.9rem] font-medium leading-[0.98] tracking-[-0.03em] text-brand-paper drop-shadow-sm sm:text-5xl lg:text-6xl">
+            Melhores escolhas do verão
+          </h1>
+          <p className="eyebrow mt-2 text-[12px] text-brand-gold sm:text-[14px]">Desde 1999</p>
+        </div>
+
+        <div className="absolute inset-x-0 bottom-0 border-t border-brand-paper/15 bg-brand-ink/55 backdrop-blur-sm">
+          <div className="grid grid-cols-3 divide-x divide-brand-paper/20">
+            <div className="flex flex-col items-center justify-center gap-0.5 px-2 py-3 text-center sm:py-5">
+              <span className="font-body text-[11px] font-semibold uppercase leading-tight text-brand-paper/80 sm:text-[13px]">Até 10x</span>
+              <span className="font-body text-[11px] font-bold uppercase leading-tight text-brand-gold sm:text-[13px]">no cartão*</span>
             </div>
-            <p className="mt-5 max-w-md font-body text-base leading-6 text-brand-paper/65 sm:text-lg">Proteção e estilo para curtir a praia e praticar esportes.</p>
-            <div className="mt-5 inline-flex w-fit flex-col gap-1 rounded-2xl border border-brand-gold/30 bg-brand-paper/[0.06] px-5 py-3.5">
-              <span className="font-heading text-xl font-semibold leading-tight text-brand-paper sm:text-2xl">Do Acessível ao Premium</span>
-              <span className="font-body text-sm font-semibold uppercase tracking-[0.1em] text-brand-gold sm:text-base">Óculos a partir de R$ 180,00</span>
+            <div className="flex flex-col items-center justify-center gap-0.5 px-2 py-3 text-center sm:py-5">
+              <span className="font-body text-[11px] font-semibold uppercase leading-tight text-brand-paper/80 sm:text-[13px]">Garantia de</span>
+              <span className="font-body text-[11px] font-bold uppercase leading-tight text-brand-gold sm:text-[13px]">6 meses</span>
             </div>
-            <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row lg:items-start">
-              <Link href="/produtos" className="rounded-full bg-brand-gold px-6 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-paper transition-all hover:bg-brand-paper hover:text-brand-ink active:scale-[0.97]">Explorar coleção</Link>
-              <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]">Frete grátis <span className="hidden sm:inline">·</span><span className="block sm:inline"> João Pessoa e Região</span></span>
-            </div>
-          </div>
-          <div className="relative mx-4 mb-4 aspect-[16/9] overflow-hidden rounded-[1.4rem] bg-brand-sage sm:mx-8 sm:mb-8 lg:mx-4 lg:my-4 lg:aspect-auto lg:min-h-[420px]">
-            <Image src={HERO_IMAGE} alt="Ciclista, casal na praia e corredora usando óculos de sol" fill priority className="object-cover object-center" sizes="(max-width: 1024px) 92vw, 52vw" />
+            <Link href="/produtos" className="flex flex-col items-center justify-center gap-0.5 px-2 py-3 text-center transition-colors hover:bg-brand-paper/5 sm:py-5">
+              <span className="inline-flex items-center gap-0.5 font-body text-[11px] font-semibold uppercase leading-tight text-brand-paper/80 sm:text-[13px]">
+                Do Acessível ao Premium <ChevronRight size={12} className="shrink-0" />
+              </span>
+              <span className="font-body text-[11px] font-bold uppercase leading-tight text-brand-gold sm:text-[13px]">Óculos a partir de R$ 180,00</span>
+            </Link>
           </div>
         </div>
       </div>

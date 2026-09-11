@@ -5,8 +5,8 @@ import { Collection, Product, Testimonial } from "@/types/product";
 import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
-import CollectionTiles from "@/components/CollectionTiles";
-import GenderTiles from "@/components/GenderTiles";
+import BrandMarquee from "@/components/BrandMarquee";
+import GenderQuickLinks from "@/components/GenderQuickLinks";
 import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
 import WhatsAppSignup from "@/components/WhatsAppSignup";
@@ -54,17 +54,12 @@ export default async function HomePage({
       <Hero />
 
       {collections.length > 0 && (
-        <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
-          <div className="mb-6">
-            <h2 className="section-title">Marcas e coleções</h2>
-            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Compre por marca</p>
-          </div>
-          <CollectionTiles collections={collections} />
-          <div className="mt-5 sm:mt-6">
-            <GenderTiles />
-          </div>
+        <section className="mx-auto w-full max-w-7xl border-t border-brand-ink/10 px-0 pb-2 pt-8 sm:px-8 sm:pt-10 lg:px-10">
+          <BrandMarquee collections={collections} />
         </section>
       )}
+
+      <GenderQuickLinks />
 
       {featuredProducts.length > 0 && (
         <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">
@@ -93,7 +88,7 @@ export default async function HomePage({
             Ver todos <span aria-hidden="true">↗</span>
           </Link>
         </div>
-        <div className="mb-7 flex flex-wrap items-center gap-3">
+        <div className="mb-7 flex min-w-0 items-center gap-3 overflow-hidden">
           <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}>
             <FilterDrawer products={products} collections={collections} anchor="catalogo" />
           </Suspense>

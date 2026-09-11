@@ -104,6 +104,13 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
     return { valid: false, freeShipping: false, regionLabel: null, source: "invalid" };
   }
 
+  const cartSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  if (cartSubtotal >= 500) {
+    const quote = await quoteOutsideFreeArea(digits, items);
+    const cheapest = quote.options?.slice().sort((a, b) => a.price - b.price)[0];
+    return { ...quote, valid: true, freeShipping: true, price: 0, serviceName: cheapest?.name || quote.serviceName || "Frete grátis", deliveryTime: cheapest?.deliveryTime || quote.deliveryTime };
+  }
+
   // Atalho manual: CEPs já confirmados como frete grátis não dependem de
   // geocodificação nenhuma (veja lib/freeShippingOverrides.ts).
   if (FREE_SHIPPING_CEP_OVERRIDES.includes(digits)) {

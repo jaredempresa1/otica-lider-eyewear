@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingBag, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
@@ -14,6 +14,7 @@ import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
 import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
 import AbandonedCartSignup from "@/components/AbandonedCartSignup";
+import FreeShippingBar from "@/components/FreeShippingBar";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -115,10 +116,10 @@ export default function SacolaPage() {
       <main className="section-shell py-16 sm:py-24">
         <div className="mx-auto max-w-lg rounded-[1.5rem] bg-brand-paper px-6 py-14 text-center shadow-card sm:px-12">
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-sage text-brand-moss">
-            <ShoppingBag size={25} strokeWidth={1.5} />
+            <ShoppingCart size={25} strokeWidth={1.5} />
           </span>
           <p className="eyebrow mt-6">Sua seleção</p>
-          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.03em] text-brand-ink">Sua sacola está vazia</h1>
+          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.03em] text-brand-ink">Seu carrinho está vazio</h1>
           <p className="mx-auto mt-3 max-w-xs font-body text-[15px] leading-6 text-brand-ink/60">
             Escolha um modelo para começar a montar seu pedido.
           </p>
@@ -139,22 +140,22 @@ export default function SacolaPage() {
           <div className="flex items-end justify-between border-b border-brand-ink/10 pb-5">
             <div>
               <p className="eyebrow">Seu pedido</p>
-              <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Minha sacola</h1>
+              <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Meu carrinho</h1>
             </div>
             <span className="font-body text-[13px] text-brand-ink/50">{totalItems} {totalItems === 1 ? "item" : "itens"}</span>
           </div>
 
-          <ul className="divide-y divide-brand-ink/10">
+          <ul className="space-y-4">
             {items.map((item) => {
               const itemTotal = item.price * item.quantity;
               return (
-                <li key={`${item.productId}-${item.colorName}`} onClick={() => router.push(`/produtos/${item.slug}`)} className="group flex cursor-pointer gap-4 rounded-2xl border border-brand-ink/10 bg-brand-paper p-3 shadow-card transition-transform hover:-translate-y-0.5 sm:gap-5 sm:p-4">
-                  <Link href={`/produtos/${item.slug}`} onClick={(event) => event.stopPropagation()} className="relative h-28 w-24 shrink-0 overflow-hidden rounded-2xl bg-brand-sage/60 sm:h-36 sm:w-32" aria-label={`Voltar para ${item.name}`}>
+                <li key={`${item.productId}-${item.colorName}`} onClick={() => router.push(`/produtos/${item.slug}`)} className="group mx-0 grid cursor-pointer grid-cols-[6rem_minmax(0,1fr)_auto] items-start gap-3 rounded-2xl border border-brand-ink/10 bg-brand-paper p-3 shadow-card transition-transform hover:-translate-y-0.5 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:gap-5 sm:p-4">
+                  <Link href={`/produtos/${item.slug}`} onClick={(event) => event.stopPropagation()} className="relative h-24 w-24 overflow-hidden rounded-2xl bg-brand-sage/60 sm:h-36 sm:w-32" aria-label={`Voltar para ${item.name}`}>
                     {item.image ? (
                       <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 96px, 128px" className="object-contain p-2 mix-blend-multiply" />
                     ) : <div className="flex h-full items-center justify-center font-body text-[10px] uppercase tracking-[0.1em] text-brand-ink/35">Sem foto</div>}
                   </Link>
-                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-3 py-1">
+                  <div className="flex min-w-0 flex-col justify-between gap-3 py-1">
                     <div>
                       <p className="font-heading text-[19px] font-semibold tracking-[-0.02em] text-brand-ink">{item.name}</p>
                       <p className="mt-1 font-body text-[13px] text-brand-ink/55">Cor: {item.colorName}</p>
@@ -168,7 +169,7 @@ export default function SacolaPage() {
                       <button onClick={(event) => { event.stopPropagation(); removeItem(item.productId, item.colorName); }} className="flex items-center gap-1.5 font-body text-[11px] uppercase tracking-[0.12em] text-brand-ink/40 transition-colors hover:text-brand-gold" aria-label={`Remover ${item.name}`}><Trash2 size={14} /> <span className="hidden sm:inline">Remover</span></button>
                     </div>
                   </div>
-                  <div className="shrink-0 self-start pt-1 text-right font-body">
+                  <div className="min-w-0 self-start pt-1 text-right font-body">
                     <span className="block text-[17px] font-semibold text-brand-ink">{formatBRL(itemTotal)}</span>
                     <span className="mt-1 block text-[12px] leading-4 text-brand-ink">ou até 10x de {formatBRL(itemTotal / 10)}</span>
                   </div>
@@ -190,6 +191,7 @@ export default function SacolaPage() {
                 <button type="button" onClick={handleApplyCoupon} className="rounded-xl border border-brand-gold px-3 font-body text-[11px] font-semibold uppercase tracking-[0.08em] text-brand-gold transition-colors hover:bg-brand-gold hover:text-brand-ink">Aplicar</button>
               </div>
               {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-paper/70"}`} role="status">{couponMessage}</p>}
+              <div className="mt-4"><FreeShippingBar subtotal={subtotal} dark /></div>
             </div>
             {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Desconto ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
             <div>
