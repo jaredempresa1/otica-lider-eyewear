@@ -61,7 +61,7 @@ export default function AbandonedCartSignup({ items }: { items: CartItem[] }) {
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white"><MessageCircle size={17} fill="currentColor" /></span>
         <div>
           <h3 className="font-body text-[15px] font-semibold leading-5 text-brand-paper">Quer que a gente separe esse pedido caso você não finalize agora?</h3>
-          <p className="mt-1 font-body text-[12px] leading-5 text-brand-paper/65">Deixe seu WhatsApp e nossa equipe guarda os óculos da sua sacola.</p>
+          <p className="mt-1 font-body text-[12px] leading-5 text-brand-paper/65">Deixe seu WhatsApp e nossa equipe guarda os óculos do seu carrinho.</p>
         </div>
       </div>
       {status === "success" ? (

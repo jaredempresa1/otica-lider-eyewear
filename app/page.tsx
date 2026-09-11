@@ -6,6 +6,7 @@ import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
 import BrandMarquee from "@/components/BrandMarquee";
+import GenderQuickLinks from "@/components/GenderQuickLinks";
 import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
 import WhatsAppSignup from "@/components/WhatsAppSignup";
@@ -57,6 +58,8 @@ export default async function HomePage({
           <BrandMarquee collections={collections} />
         </section>
       )}
+
+      <GenderQuickLinks />
 
       {featuredProducts.length > 0 && (
         <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">

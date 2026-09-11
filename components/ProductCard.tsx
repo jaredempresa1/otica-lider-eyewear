@@ -136,8 +136,8 @@ export default function ProductCard({ product }: { product: Product }) {
               ? "h-11 w-11 bg-brand-paper text-brand-ink hover:bg-brand-gold hover:text-brand-paper sm:h-12 sm:w-12"
               : "h-9 pl-3 pr-3.5 bg-brand-ink text-brand-paper hover:bg-brand-gold sm:h-10 sm:pl-3.5 sm:pr-4"
           }`}
-          aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} à sacola` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
-          title={canBuy ? "Adicionar à sacola" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
+          aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} ao carrinho` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
+          title={canBuy ? "Adicionar ao carrinho" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
         >
           {added ? (
             <Check size={19} strokeWidth={2} />
@@ -193,7 +193,7 @@ export default function ProductCard({ product }: { product: Product }) {
       )}
       {(selectedColor?.frame_color || selectedColor?.lens_color) && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 font-body text-[10px] text-brand-ink/50"><span>Armação <strong className="font-semibold text-brand-ink/70">{selectedColor.frame_color || "—"}</strong></span><span>Lentes <strong className="font-semibold text-brand-ink/70">{selectedColor.lens_color || "—"}</strong></span></div>}
 
-      <p className={`mt-2 min-h-[16px] font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 ${added ? "text-brand-moss" : "text-transparent"}`}>{added ? "Adicionado à sacola" : " "}</p>
+      <p className={`mt-2 min-h-[16px] font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 ${added ? "text-brand-moss" : "text-transparent"}`}>{added ? "Adicionado ao carrinho" : " "}</p>
 
       {showPaymentModal && (
         <PaymentMethodModal

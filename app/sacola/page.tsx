@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingBag, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
@@ -116,10 +116,10 @@ export default function SacolaPage() {
       <main className="section-shell py-16 sm:py-24">
         <div className="mx-auto max-w-lg rounded-[1.5rem] bg-brand-paper px-6 py-14 text-center shadow-card sm:px-12">
           <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-sage text-brand-moss">
-            <ShoppingBag size={25} strokeWidth={1.5} />
+            <ShoppingCart size={25} strokeWidth={1.5} />
           </span>
           <p className="eyebrow mt-6">Sua seleção</p>
-          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.03em] text-brand-ink">Sua sacola está vazia</h1>
+          <h1 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.03em] text-brand-ink">Seu carrinho está vazio</h1>
           <p className="mx-auto mt-3 max-w-xs font-body text-[15px] leading-6 text-brand-ink/60">
             Escolha um modelo para começar a montar seu pedido.
           </p>
@@ -140,7 +140,7 @@ export default function SacolaPage() {
           <div className="flex items-end justify-between border-b border-brand-ink/10 pb-5">
             <div>
               <p className="eyebrow">Seu pedido</p>
-              <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Minha sacola</h1>
+              <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Meu carrinho</h1>
             </div>
             <span className="font-body text-[13px] text-brand-ink/50">{totalItems} {totalItems === 1 ? "item" : "itens"}</span>
           </div>
