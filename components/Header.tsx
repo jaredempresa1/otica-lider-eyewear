@@ -143,7 +143,7 @@ export default function Header() {
                     onClick={() => setFilterMenuOpen(false)}
                     className="flex items-center gap-2 rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
                   >
-                    <span className="flex shrink-0 items-center gap-0.5"><RunningIcon className="h-5 w-5 text-brand-gold" /><BikeIcon className="h-5 w-5 text-brand-gold" /></span> {SPORT_LINK.label}
+                    <span className="flex shrink-0 items-center -space-x-1"><RunningIcon className="h-5 w-5 text-brand-gold" /><BikeIcon className="h-5 w-5 text-brand-gold" /></span> {SPORT_LINK.label}
                   </Link>
                 </div>
               </div>
@@ -231,7 +231,7 @@ export default function Header() {
                   </Link>
                 ))}
                 <Link href={SPORT_LINK.href} onClick={closeMenu} className="flex items-center gap-2.5">
-                  <span className="flex shrink-0 items-center gap-0.5"><RunningIcon className="h-5 w-5 text-brand-gold" /><BikeIcon className="h-5 w-5 text-brand-gold" /></span> {SPORT_LINK.label}
+                  <span className="flex shrink-0 items-center -space-x-1"><RunningIcon className="h-5 w-5 text-brand-gold" /><BikeIcon className="h-5 w-5 text-brand-gold" /></span> {SPORT_LINK.label}
                 </Link>
               </div>
             </div>
