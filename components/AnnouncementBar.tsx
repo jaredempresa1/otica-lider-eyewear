@@ -19,8 +19,8 @@ export default function AnnouncementBar() {
   }, []);
 
   return (
-    <div className="w-full bg-brand-gold py-2 text-center font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-paper sm:text-xs">
-      {MESSAGES[index]}
+    <div className="w-full overflow-hidden bg-brand-gold py-2 text-center font-body text-[8.5px] font-semibold uppercase tracking-[0.05em] text-brand-paper sm:text-xs sm:tracking-[0.16em]">
+      <span className="whitespace-nowrap px-3">{MESSAGES[index]}</span>
     </div>
   );
 }
