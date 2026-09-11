@@ -132,7 +132,7 @@ type FilterSearchParams = {
 export function parseFilterState(searchParams: FilterSearchParams): ProductFilterState {
   return {
     busca: searchParams.q?.trim() ?? "",
-    genero: parseListParam(searchParams.genero).filter((value) => value === "masculino" || value === "feminino"),
+    genero: parseListParam(searchParams.genero).filter((value) => value === "masculino" || value === "feminino" || value === "infantil"),
     marca: parseListParam(searchParams.marca),
     cor: parseListParam(searchParams.cor),
     formato: parseListParam(searchParams.formato),
@@ -176,8 +176,13 @@ export function productMatchesFilters(product: Product, state: ProductFilterStat
   }
 
   if (state.genero.length > 0) {
-    const isUnissex = !product.gender || product.gender === "unissex";
-    const matchesGender = isUnissex || state.genero.includes(product.gender as string);
+    // "Unissex" (ou sem gênero definido) continua caindo em masculino OU feminino,
+    // como antes — mas nunca em "infantil": infantil é uma categoria própria, só
+    // aparece quando o produto foi marcado como infantil de verdade no admin.
+    const genderValue = product.gender && product.gender.trim() ? product.gender : "unissex";
+    const matchesGender =
+      state.genero.includes(genderValue) ||
+      (genderValue === "unissex" && state.genero.some((value) => value === "masculino" || value === "feminino"));
     if (!matchesGender) return false;
   }
 

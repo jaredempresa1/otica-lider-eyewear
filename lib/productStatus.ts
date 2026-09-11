@@ -4,6 +4,7 @@ const GENDER_LABELS: Record<ProductGender, string> = {
   masculino: "Masculino",
   feminino: "Feminino",
   unissex: "Unissex",
+  infantil: "Infantil",
 };
 
 export function genderLabel(gender?: string): string {

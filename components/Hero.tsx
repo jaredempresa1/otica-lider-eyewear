@@ -5,7 +5,7 @@ const HERO_IMAGE = "/hero-eyewear.png";
 
 export default function Hero() {
   return (
-    <section className="section-shell pb-6 pt-4 sm:pb-14 sm:pt-10">
+    <section className="mx-auto w-full max-w-7xl px-0 pb-6 pt-4 sm:px-8 sm:pb-14 sm:pt-10 lg:px-10">
       <div className="relative overflow-hidden rounded-[2rem] bg-brand-ink">
         <div className="absolute -left-20 -top-20 h-72 w-72 rounded-full border border-brand-sage/20" />
         <div className="absolute -bottom-32 left-1/3 h-80 w-80 rounded-full border border-brand-gold/20" />
@@ -23,8 +23,8 @@ export default function Hero() {
               <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]">Frete grátis <span className="hidden sm:inline">·</span><span className="block sm:inline"> João Pessoa e Região</span></span>
             </div>
           </div>
-          <div className="relative mx-4 mb-4 aspect-[16/9] overflow-hidden rounded-[1.4rem] bg-brand-sage sm:mx-8 sm:mb-8 lg:mx-4 lg:my-4 lg:aspect-[16/9] lg:self-center">
-            <Image src={HERO_IMAGE} alt="Ciclista, casal na praia e corredora usando óculos de sol" fill priority className="object-contain object-center" sizes="(max-width: 1024px) 92vw, 52vw" />
+          <div className="relative mx-0 mb-4 aspect-[16/9] overflow-hidden rounded-none bg-brand-sage sm:mx-8 sm:mb-8 sm:rounded-[1.4rem] lg:mx-4 lg:my-4 lg:aspect-[16/9] lg:self-center">
+            <Image src={HERO_IMAGE} alt="Família com ciclista, criança, casal e corredora usando óculos de sol" fill priority className="object-contain object-center" sizes="(max-width: 1024px) 100vw, 52vw" />
           </div>
         </div>
       </div>

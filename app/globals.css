@@ -52,6 +52,25 @@ select:focus-visible {
     @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
   }
 
+  @keyframes marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    animation: marquee-scroll 26s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee {
+      animation: none;
+    }
+  }
+
   .eyebrow {
     @apply font-body text-[11px] font-semibold uppercase tracking-[0.22em] text-brand-gold;
   }

@@ -125,6 +125,13 @@ export default function Header() {
                   >
                     Óculos de sol feminino
                   </Link>
+                  <Link
+                    href="/produtos?genero=infantil"
+                    onClick={() => setFilterMenuOpen(false)}
+                    className="rounded-xl px-2 py-2 font-body text-[13px] font-medium normal-case tracking-normal text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+                  >
+                    Óculos infantil
+                  </Link>
                 </div>
               </div>
             )}
@@ -210,6 +217,9 @@ export default function Header() {
                 </Link>
                 <Link href="/produtos?genero=feminino" onClick={closeMenu}>
                   Óculos de sol feminino
+                </Link>
+                <Link href="/produtos?genero=infantil" onClick={closeMenu}>
+                  Óculos infantil
                 </Link>
               </div>
             </div>

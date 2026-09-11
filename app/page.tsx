@@ -5,7 +5,7 @@ import { Collection, Product, Testimonial } from "@/types/product";
 import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
-import CollectionTiles from "@/components/CollectionTiles";
+import BrandMarquee from "@/components/BrandMarquee";
 import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
 import WhatsAppSignup from "@/components/WhatsAppSignup";
@@ -53,12 +53,8 @@ export default async function HomePage({
       <Hero />
 
       {collections.length > 0 && (
-        <section className="section-shell border-t border-brand-ink/10 pb-2 pt-12 sm:pt-16">
-          <div className="mb-6">
-            <h2 className="section-title">Marcas e coleções</h2>
-            <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Compre por marca</p>
-          </div>
-          <CollectionTiles collections={collections} />
+        <section className="mx-auto w-full max-w-7xl border-t border-brand-ink/10 px-0 pb-2 pt-8 sm:px-8 sm:pt-10 lg:px-10">
+          <BrandMarquee collections={collections} />
         </section>
       )}
 

@@ -23,6 +23,7 @@ function formatBRL(value: number): string {
 const GENDER_OPTIONS = [
   { value: "masculino", label: "Masculino" },
   { value: "feminino", label: "Feminino" },
+  { value: "infantil", label: "Infantil" },
 ];
 
 export default function FilterDrawer({
