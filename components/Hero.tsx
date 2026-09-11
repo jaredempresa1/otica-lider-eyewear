@@ -21,11 +21,13 @@ export default function Hero() {
         <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/55 to-transparent sm:h-40" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent sm:h-36" />
 
-        <div className="absolute inset-x-0 top-0 pt-5 text-center sm:pt-8">
-          <h1 className="font-heading text-[1.9rem] font-medium leading-[0.98] tracking-[-0.03em] text-brand-paper drop-shadow-sm sm:text-5xl lg:text-6xl">
-            Melhores escolhas do verão
-          </h1>
-          <p className="eyebrow mt-2 text-[12px] text-brand-gold sm:text-[14px]">Desde 1999</p>
+        <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-4 text-center sm:pt-7">
+          <div className="hero-highlight rounded-[1.4rem] px-5 py-4 sm:px-8 sm:py-5">
+            <h1 className="font-heading text-[2.1rem] font-medium leading-[0.98] tracking-[-0.03em] text-brand-paper drop-shadow-sm sm:text-5xl lg:text-6xl">
+              Melhores escolhas do verão
+            </h1>
+            <p className="eyebrow mt-2 text-[14px] text-brand-gold sm:text-[16px]">Desde 1999</p>
+          </div>
         </div>
 
         <div className="absolute inset-x-0 bottom-0 border-t border-brand-paper/15 bg-brand-ink/55 backdrop-blur-sm">

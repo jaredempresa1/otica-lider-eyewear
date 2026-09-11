@@ -1,27 +1,24 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Glasses } from "lucide-react";
 
 const ITEMS = [
-  { label: "Óculos Masculino", image: "/gender-masculino.jpg", href: "/produtos?genero=masculino" },
-  { label: "Óculos Feminino", image: "/gender-feminino.jpg", href: "/produtos?genero=feminino" },
+  { label: "Óculos masculino", href: "/produtos?genero=masculino", tone: "bg-brand-ink" },
+  { label: "Óculos feminino", href: "/produtos?genero=feminino", tone: "bg-brand-moss" },
 ];
 
-/** Faixa curta com dois "photo-links" circulares (foto + texto por cima, tipo
- * destaque de rede social), um levando pra coleção masculina e outro pra
- * feminina. Sem margem lateral no mobile (empilhado), lado a lado no desktop. */
 export default function GenderQuickLinks() {
   return (
     <section className="mx-auto w-full max-w-7xl px-0 py-3 sm:px-8 sm:py-5 lg:px-10">
-      <div className="flex flex-col divide-y divide-brand-ink/10 border-y border-brand-ink/10 sm:flex-row sm:justify-center sm:gap-10 sm:divide-y-0 sm:divide-x-0 sm:border-none">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
         {ITEMS.map((item) => (
-          <Link key={item.href} href={item.href} className="group flex flex-1 items-center justify-center gap-0 py-3 sm:flex-none sm:py-2">
-            <span className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brand-gold shadow-card transition-transform duration-200 group-hover:scale-105 sm:h-20 sm:w-20">
-              <Image src={item.image} alt={item.label} fill className="object-cover object-top" sizes="80px" />
-              <span className="absolute inset-0 bg-black/30" />
-              <span className="relative z-10 px-1.5 text-center font-body text-[9.5px] font-bold uppercase leading-[1.1] tracking-[0.02em] text-white drop-shadow sm:text-[11px]">
-                {item.label}
-              </span>
-            </span>
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`group relative flex min-h-[126px] items-center justify-between overflow-hidden px-6 py-5 text-brand-paper shadow-card transition-transform duration-200 active:scale-[0.99] sm:min-h-[150px] sm:px-8 lg:min-h-[190px] lg:px-10 ${item.tone}`}
+          >
+            <span className="relative z-10 max-w-[13rem] font-heading text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">{item.label}</span>
+            <Glasses className="relative z-10 h-12 w-12 shrink-0 text-brand-gold transition-transform duration-200 group-hover:scale-110 sm:h-16 sm:w-16" strokeWidth={1.25} aria-hidden="true" />
+            <span className="absolute -right-8 -top-10 h-44 w-44 rounded-full border border-brand-paper/10" aria-hidden="true" />
           </Link>
         ))}
       </div>
