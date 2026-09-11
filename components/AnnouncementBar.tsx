@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 const MESSAGES = [
   "Entregamos para todo o Brasil",
-  "Frete grátis para João Pessoa e Região, e também para compras acima de R$ 500,00",
+  "Frete grátis para João Pessoa e compras acima de R$ 500,00",
   "Ótica Desde 1999",
 ];
 
