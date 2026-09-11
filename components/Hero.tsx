@@ -13,7 +13,6 @@ export default function Hero() {
           <div className="flex flex-col items-center px-5 pb-6 pt-9 text-center sm:px-12 sm:pb-10 sm:pt-16 lg:items-start lg:justify-center lg:text-left lg:py-16">
             <p className="eyebrow text-[13px] leading-6 text-brand-gold sm:text-[14px]">Desde 1999 <span className="hidden sm:inline">·</span><span className="block sm:inline"> Paraíba e Pernambuco</span></p>
             <h1 className="mt-3 max-w-xl font-heading text-[2.25rem] font-medium leading-[0.98] tracking-[-0.04em] text-brand-paper sm:text-6xl lg:text-[4rem]">Melhores Escolhas do Verão</h1>
-            <p className="mt-3 max-w-md font-body text-base leading-6 text-brand-paper/65 sm:text-lg">Proteção e estilo para curtir a praia e praticar esportes.</p>
             <div className="mt-4 inline-flex w-fit flex-col gap-1 rounded-2xl border border-brand-gold/30 bg-brand-paper/[0.06] px-5 py-3.5">
               <span className="font-heading text-xl font-semibold leading-tight text-brand-paper sm:text-2xl">Do Acessível ao Premium</span>
               <span className="font-body text-sm font-semibold uppercase tracking-[0.1em] text-brand-gold sm:text-base">Óculos a partir de R$ 180,00</span>
@@ -23,8 +22,8 @@ export default function Hero() {
               <span className="font-body text-[12px] uppercase tracking-[0.16em] text-brand-paper/45 sm:text-[13px]">Frete grátis <span className="hidden sm:inline">·</span><span className="block sm:inline"> João Pessoa e Região</span></span>
             </div>
           </div>
-          <div className="relative mx-0 mb-4 aspect-[16/9] overflow-hidden rounded-none bg-brand-sage sm:mx-8 sm:mb-8 sm:rounded-[1.4rem] lg:mx-4 lg:my-4 lg:aspect-[16/9] lg:self-center">
-            <Image src={HERO_IMAGE} alt="Família com ciclista, criança, casal e corredora usando óculos de sol" fill priority className="object-contain object-center" sizes="(max-width: 1024px) 100vw, 52vw" />
+          <div className="relative mx-0 mb-0 aspect-[16/9] overflow-hidden rounded-none bg-brand-sage sm:mx-8 sm:mb-8 sm:rounded-[1.4rem] lg:mx-4 lg:my-4 lg:aspect-[16/9] lg:self-center">
+            <Image src={HERO_IMAGE} alt="Família com ciclista, criança, casal e corredora usando óculos de sol" fill priority className="object-cover object-center" sizes="(max-width: 1024px) 100vw, 52vw" />
           </div>
         </div>
       </div>

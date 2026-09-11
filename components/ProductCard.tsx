@@ -103,7 +103,7 @@ export default function ProductCard({ product }: { product: Product }) {
             src={mainImage}
             alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
             fill
-            className={`object-contain p-2 mix-blend-multiply transition-opacity duration-300 sm:p-4`}
+            className={`object-contain p-3 mix-blend-multiply transition-opacity duration-300 sm:p-4`}
             sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
           />
         ) : (
@@ -115,14 +115,15 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         )}
         <div className="absolute inset-x-3 top-3 z-20 flex items-start gap-1.5">
-          <div className="flex flex-col items-start gap-1.5">
-            {product.more_sold && <span className="rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
+          <div className="flex max-w-[75%] flex-col items-start gap-1.5">
+            {!madeToOrder && !productSoldOut && product.stock === 1 && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
+            {product.more_sold && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
             {madeToOrder ? (
-              <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Sob encomenda</span>
+              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Sob encomenda</span>
             ) : colorSoldOut && !productSoldOut ? (
-              <span className="rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card">Cor esgotada</span>
+              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Cor esgotada</span>
             ) : null}
-            {hasDiscount && <span className="rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
+            {hasDiscount && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
           </div>
         </div>
         <button
@@ -149,7 +150,6 @@ export default function ProductCard({ product }: { product: Product }) {
             </>
           )}
         </button>
-        {!madeToOrder && !productSoldOut && product.stock === 1 && <span className="absolute bottom-3 left-3 z-20 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
       </div>
 
       <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">
