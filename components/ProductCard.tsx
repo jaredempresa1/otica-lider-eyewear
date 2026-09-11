@@ -114,6 +114,18 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="-rotate-12 rounded-lg border-2 border-brand-ink/70 bg-brand-paper/90 px-4 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink/80 shadow-card backdrop-blur-sm">Esgotado</span>
           </div>
         )}
+        <div className="absolute inset-x-3 top-3 z-20 flex items-start gap-1.5">
+          <div className="flex max-w-[75%] flex-col items-start gap-1.5">
+            {!madeToOrder && !productSoldOut && product.stock === 1 && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
+            {product.more_sold && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
+            {madeToOrder ? (
+              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Sob encomenda</span>
+            ) : colorSoldOut && !productSoldOut ? (
+              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Cor esgotada</span>
+            ) : null}
+            {hasDiscount && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>}
+          </div>
+        </div>
         <button
           type="button"
           onClick={canBuy ? handleQuickAdd : handleQuickInquiry}
@@ -138,17 +150,6 @@ export default function ProductCard({ product }: { product: Product }) {
             </>
           )}
         </button>
-      </div>
-
-      <div className="mt-3 flex min-h-7 flex-wrap items-center gap-1.5">
-        {!madeToOrder && !productSoldOut && product.stock === 1 && <span className="shrink-0 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Última peça</span>}
-        {product.more_sold && <span className="shrink-0 rounded-full bg-brand-paper px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink shadow-card">Mais vendido</span>}
-        {madeToOrder ? (
-          <span className="shrink-0 rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Sob encomenda</span>
-        ) : colorSoldOut && !productSoldOut ? (
-          <span className="shrink-0 rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Cor esgotada</span>
-        ) : null}
-        {hasDiscount && <span className="shrink-0 rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Oferta</span>}
       </div>
 
       <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">

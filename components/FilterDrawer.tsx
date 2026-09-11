@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Glasses, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { Collection, Product } from "@/types/product";
 import {
   EMPTY_FILTER_STATE,
@@ -21,10 +21,20 @@ function formatBRL(value: number): string {
 }
 
 const GENDER_OPTIONS = [
-  { value: "masculino", label: "Masculino" },
-  { value: "feminino", label: "Feminino" },
-  { value: "infantil", label: "Infantil" },
+  { value: "masculino", label: "Masculino", icon: "👨" },
+  { value: "feminino", label: "Feminino", icon: "👩" },
+  { value: "infantil", label: "Infantil", icon: "🧒" },
 ];
+
+const FORMAT_ICONS: Record<string, string> = {
+  Redondo: "⚪",
+  Quadrado: "◼️",
+  Retangular: "▬",
+  Oval: "🥚",
+  Gatinho: "🐱",
+  Aviador: "✈️",
+  Geométrico: "🔷",
+};
 
 export default function FilterDrawer({
   products,
@@ -193,7 +203,7 @@ export default function FilterDrawer({
                           isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"
                         }`}
                       >
-                        <Glasses size={17} strokeWidth={1.5} aria-hidden="true" /> {option.label}
+                        {option.icon} {option.label}
                       </button>
                     );
                   })}
@@ -253,7 +263,7 @@ export default function FilterDrawer({
                 <div className="mt-3 flex flex-wrap gap-2">
                   {FORMAT_OPTIONS.map((format) => {
                     const isSelected = draft.formato.includes(format);
-                    return <button key={format} type="button" onClick={() => toggleValue("formato", format)} className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}><Glasses size={17} strokeWidth={1.5} aria-hidden="true" /> {format}</button>;
+                    return <button key={format} type="button" onClick={() => toggleValue("formato", format)} className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>{FORMAT_ICONS[format] ?? "👓"} {format}</button>;
                   })}
                 </div>
               </section>
