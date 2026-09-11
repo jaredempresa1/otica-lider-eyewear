@@ -17,15 +17,19 @@ export default function Hero() {
           sizes="100vw"
         />
 
-        {/* Escurece topo e base da foto só o suficiente pra manter o texto legível. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/55 to-transparent sm:h-40" />
+        {/* Escurece a base da foto só o suficiente pra manter a barra de benefícios legível. */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent sm:h-36" />
 
-        <div className="absolute inset-x-0 top-0 pt-5 text-center sm:pt-8">
-          <h1 className="font-heading text-[1.9rem] font-medium leading-[0.98] tracking-[-0.03em] text-brand-paper drop-shadow-sm sm:text-5xl lg:text-6xl">
-            Melhores escolhas do verão
-          </h1>
-          <p className="eyebrow mt-2 text-[12px] text-brand-gold sm:text-[14px]">Desde 1999</p>
+        {/* Título e "Desde 1999" ficam presos bem no topo, dentro de um bloco com fundo
+            desfocado (mesma linguagem visual da barra "Até 10x no cartão*"), pra nunca
+            cair em cima do rosto de quem aparece na foto, em nenhum recorte de tela. */}
+        <div className="absolute inset-x-0 top-0 flex justify-center px-4 pt-3 sm:pt-5">
+          <div className="w-full max-w-xl rounded-2xl border border-brand-paper/15 bg-brand-ink/55 px-5 py-3 text-center shadow-card backdrop-blur-md sm:max-w-2xl sm:px-8 sm:py-4">
+            <h1 className="font-heading text-[1.6rem] font-medium leading-[0.98] tracking-[-0.03em] text-brand-paper drop-shadow-sm sm:text-5xl lg:text-6xl">
+              Melhores escolhas do verão
+            </h1>
+            <p className="eyebrow mt-1.5 text-[12px] font-semibold text-brand-gold sm:mt-2 sm:text-[14px]">Desde 1999</p>
+          </div>
         </div>
 
         <div className="absolute inset-x-0 bottom-0 border-t border-brand-paper/15 bg-brand-ink/55 backdrop-blur-sm">

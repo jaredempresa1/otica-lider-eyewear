@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import { Collection, Product } from "@/types/product";
+import GlassesIcon, { GlassesShape } from "./icons/GlassesIcon";
 import {
   EMPTY_FILTER_STATE,
   FORMAT_OPTIONS,
@@ -20,20 +21,20 @@ function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const GENDER_OPTIONS = [
-  { value: "masculino", label: "Masculino", icon: "👨" },
-  { value: "feminino", label: "Feminino", icon: "👩" },
-  { value: "infantil", label: "Infantil", icon: "🧒" },
+const GENDER_OPTIONS: { value: string; label: string; shape: GlassesShape }[] = [
+  { value: "masculino", label: "Masculino", shape: "masculino" },
+  { value: "feminino", label: "Feminino", shape: "feminino" },
+  { value: "infantil", label: "Infantil", shape: "infantil" },
 ];
 
-const FORMAT_ICONS: Record<string, string> = {
-  Redondo: "⚪",
-  Quadrado: "◼️",
-  Retangular: "▬",
-  Oval: "🥚",
-  Gatinho: "🐱",
-  Aviador: "✈️",
-  Geométrico: "🔷",
+const FORMAT_ICONS: Record<string, GlassesShape> = {
+  Redondo: "redondo",
+  Quadrado: "quadrado",
+  Retangular: "retangular",
+  Oval: "oval",
+  Gatinho: "gatinho",
+  Aviador: "aviador",
+  Geométrico: "geometrico",
 };
 
 export default function FilterDrawer({
@@ -199,11 +200,12 @@ export default function FilterDrawer({
                         key={option.value}
                         type="button"
                         onClick={() => toggleValue("genero", option.value)}
-                        className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${
+                        className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${
                           isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"
                         }`}
                       >
-                        {option.icon} {option.label}
+                        <GlassesIcon shape={option.shape} className={`h-4 w-7 shrink-0 ${isSelected ? "text-brand-gold" : "text-brand-ink/55"}`} />
+                        {option.label}
                       </button>
                     );
                   })}
@@ -263,7 +265,17 @@ export default function FilterDrawer({
                 <div className="mt-3 flex flex-wrap gap-2">
                   {FORMAT_OPTIONS.map((format) => {
                     const isSelected = draft.formato.includes(format);
-                    return <button key={format} type="button" onClick={() => toggleValue("formato", format)} className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>{FORMAT_ICONS[format] ?? "👓"} {format}</button>;
+                    return (
+                      <button
+                        key={format}
+                        type="button"
+                        onClick={() => toggleValue("formato", format)}
+                        className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}
+                      >
+                        <GlassesIcon shape={FORMAT_ICONS[format] ?? "todos"} className={`h-4 w-7 shrink-0 ${isSelected ? "text-brand-gold" : "text-brand-ink/55"}`} />
+                        {format}
+                      </button>
+                    );
                   })}
                 </div>
               </section>
