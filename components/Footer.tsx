@@ -51,7 +51,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="font-body text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-paper/45">A experiência Líder</h4>
-          <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Troca garantida</li><li>Frete grátis para João Pessoa e Região</li></ul>
+          <ul className="mt-4 space-y-3 font-body text-sm leading-5 text-brand-paper/70"><li>Nota fiscal em todas as compras</li><li>Produtos originais</li><li>Troca garantida</li><li>Frete grátis para João Pessoa e Região, e para compras acima de R$ 500,00</li></ul>
         </div>
         <div className="border-t border-brand-paper/10 pt-6 font-body text-sm leading-6 text-brand-paper/60 sm:col-span-3">
           <div className="mb-2">
