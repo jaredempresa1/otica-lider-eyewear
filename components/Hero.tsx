@@ -25,7 +25,7 @@ export default function Hero() {
           alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
           fill
           priority
-          className="hidden object-cover object-center lg:block"
+          className="hidden object-cover object-top lg:block"
           sizes="100vw"
         />
 
