@@ -20,12 +20,15 @@ export default function CadastroPage() {
     setLoading(true);
     setError(null);
     setSuccess(null);
+<<<<<<< HEAD
 
     if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
       setError("Os e-mails digitados são diferentes. Confira e tente de novo.");
       setLoading(false);
       return;
     }
+=======
+>>>>>>> d46a6b5ffd36ed53188a6ee7e0e519c25e40ad24
 
     if (password.length < 6) {
       setError("A senha precisa ter pelo menos 6 caracteres.");
