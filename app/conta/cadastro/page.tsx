@@ -9,14 +9,23 @@ export default function CadastroPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(null);
+
+    if (email.trim().toLowerCase() !== confirmEmail.trim().toLowerCase()) {
+      setError("Os e-mails digitados são diferentes. Confira e tente de novo.");
+      setLoading(false);
+      return;
+    }
 
     if (password.length < 6) {
       setError("A senha precisa ter pelo menos 6 caracteres.");
@@ -24,7 +33,7 @@ export default function CadastroPage() {
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { full_name: name } },
@@ -37,7 +46,15 @@ export default function CadastroPage() {
       return;
     }
 
-    router.push("/conta");
+    // Se já veio uma sessão ativa, a confirmação de e-mail está desligada
+    // e o usuário já pode entrar direto.
+    if (data.session) {
+      router.push("/conta");
+      return;
+    }
+
+    // Caso contrário, o Supabase exige confirmar o e-mail antes de logar.
+    setSuccess("Conta criada! Verifique seu e-mail (" + email + ") e clique no link de confirmação para poder entrar.");
   }
 
   return (
@@ -46,6 +63,11 @@ export default function CadastroPage() {
         <p className="eyebrow text-center">Ótica Líder Eyewear</p>
         <h1 className="mt-2 text-center font-heading text-2xl font-semibold text-brand-ink">Criar minha conta</h1>
 
+        {success ? (
+          <div className="mt-6 rounded-xl border border-green-600/20 bg-green-50 p-4 text-center font-body text-sm text-green-700">
+            {success}
+          </div>
+        ) : (
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <div>
             <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Nome</label>
@@ -68,6 +90,18 @@ export default function CadastroPage() {
             />
           </div>
           <div>
+            <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Confirme seu e-mail</label>
+            <input
+              type="email"
+              required
+              value={confirmEmail}
+              onChange={(e) => setConfirmEmail(e.target.value)}
+              onPaste={(e) => e.preventDefault()}
+              className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold"
+            />
+            <p className="mt-1 font-body text-xs text-brand-ink/50">Digite de novo, sem colar — assim a gente evita erro de digitação.</p>
+          </div>
+          <div>
             <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Senha</label>
             <input
               type="password"
@@ -85,6 +119,7 @@ export default function CadastroPage() {
             {loading ? "Criando conta..." : "Criar conta"}
           </button>
         </form>
+        )}
 
         <p className="mt-6 text-center font-body text-sm text-brand-ink/60">
           Já tem conta?{" "}

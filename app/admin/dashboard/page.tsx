@@ -7,6 +7,7 @@ import { Collection, Product, ProductColor, ProductDownload, Testimonial } from 
 import { isProductSoldOut } from "@/lib/productStatus";
 import { FORMAT_OPTIONS } from "@/lib/filters";
 import { calculateDiscountPercent } from "@/lib/pricing";
+import { compressImageFile, compressImageFiles } from "@/lib/imageCompression";
 import {
   ArrowDown,
   ArrowUp,
@@ -277,9 +278,10 @@ export default function AdminDashboardPage() {
     if (!file.type.startsWith("image/")) { setTestimonialMessage("Envie uma imagem JPG, PNG ou WebP."); return; }
     setTestimonialUploading(true);
     setTestimonialMessage("");
-    const extension = file.name.split(".").pop() || "jpg";
+    const compressed = await compressImageFile(file);
+    const extension = compressed.name.split(".").pop() || "jpg";
     const path = `testimonials/${crypto.randomUUID()}.${extension}`;
-    const { error } = await supabase.storage.from("product-media").upload(path, file, { upsert: true, contentType: file.type });
+    const { error } = await supabase.storage.from("product-media").upload(path, compressed, { upsert: true, contentType: compressed.type });
     if (error) setTestimonialMessage(error.message);
     else {
       const { data } = supabase.storage.from("product-media").getPublicUrl(path);
@@ -341,9 +343,10 @@ export default function AdminDashboardPage() {
     if (!file.type.startsWith("image/")) { setPromoMessage("Envie uma imagem JPG, PNG ou WebP."); return; }
     setPromoSaving(true);
     setPromoMessage("");
-    const extension = file.name.split(".").pop() || "jpg";
+    const compressed = await compressImageFile(file);
+    const extension = compressed.name.split(".").pop() || "jpg";
     const path = `promo-banner/${crypto.randomUUID()}.${extension}`;
-    const { error } = await supabase.storage.from("product-media").upload(path, file, { upsert: true, contentType: file.type });
+    const { error } = await supabase.storage.from("product-media").upload(path, compressed, { upsert: true, contentType: compressed.type });
     if (error) setPromoMessage(error.message);
     else {
       const { data } = supabase.storage.from("product-media").getPublicUrl(path);
@@ -382,7 +385,7 @@ export default function AdminDashboardPage() {
     setCollectionUploading(true);
     setCollectionError("");
     try {
-      const file = files[0];
+      const file = await compressImageFile(files[0]);
       const extension = file.name.split(".").pop() || "jpg";
       const path = `collections/${crypto.randomUUID()}.${extension}`;
       const { error } = await supabase.storage.from("product-media").upload(path, file, { upsert: true, contentType: file.type || undefined });
@@ -542,7 +545,8 @@ export default function AdminDashboardPage() {
     setUploadError("");
     try {
       const uploadedUrls: string[] = [];
-      for (const file of files) {
+      const compressedFiles = await compressImageFiles(files);
+      for (const file of compressedFiles) {
         const extension = file.name.split(".").pop() || "jpg";
         const folder = form.id || `draft-${Date.now()}`;
         const path = `products/${folder}/colors/${index}-${crypto.randomUUID()}.${extension}`;
@@ -610,7 +614,8 @@ export default function AdminDashboardPage() {
     try {
       const uploadedUrls: string[] = [];
       const uploadedDownloads: ProductDownload[] = [];
-      for (const file of acceptedFiles) {
+      const filesToUpload = target === "images" ? await compressImageFiles(acceptedFiles) : acceptedFiles;
+      for (const file of filesToUpload) {
         const extension = file.name.split(".").pop() || "file";
         const folder = form.id || `draft-${Date.now()}`;
         const path = `products/${folder}/${crypto.randomUUID()}.${extension}`;
