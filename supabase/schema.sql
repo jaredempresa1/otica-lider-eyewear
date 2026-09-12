@@ -1,5 +1,37 @@
 create extension if not exists "uuid-ossp";
 
+-- =========================================================
+-- CONTROLE DE ADMIN (separado de "qualquer usuário logado")
+-- =========================================================
+-- Até aqui, todas as políticas "somente logados" liberavam qualquer usuário
+-- autenticado do Supabase — o que era seguro enquanto só existia 1 login (o
+-- seu). Agora que o site também permite CLIENTES criarem conta própria, isso
+-- precisa ser mais restrito: só quem estiver na tabela "admins" é admin de
+-- verdade. Um cliente comum logado NUNCA passa em is_admin().
+create table if not exists admins (
+  user_id uuid primary key references auth.users(id) on delete cascade
+);
+
+alter table admins enable row level security;
+
+drop policy if exists "Ninguém lê a tabela admins direto" on admins;
+create policy "Ninguém lê a tabela admins direto"
+  on admins for all
+  to authenticated
+  using (false);
+
+create or replace function is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from admins where user_id = auth.uid());
+$$;
+
+-- IMPORTANTE: depois de rodar este arquivo, cadastre o(s) admin(s) de verdade:
+-- insert into admins (user_id) select id from auth.users where email = 'seu-email-de-admin@exemplo.com';
+
 create table if not exists products (
   id uuid primary key default uuid_generate_v4(),
   slug text unique not null,
@@ -54,19 +86,19 @@ drop policy if exists "Somente logados podem inserir produtos" on products;
 create policy "Somente logados podem inserir produtos"
   on products for insert
   to authenticated
-  with check (true);
+  with check (is_admin());
 
 drop policy if exists "Somente logados podem editar produtos" on products;
 create policy "Somente logados podem editar produtos"
   on products for update
   to authenticated
-  using (true);
+  using (is_admin());
 
 drop policy if exists "Somente logados podem apagar produtos" on products;
 create policy "Somente logados podem apagar produtos"
   on products for delete
   to authenticated
-  using (true);
+  using (is_admin());
 
 -- Coleções/vitrines administráveis (marcas como Ray-Ban, Voogue, ou recortes
 -- como "Ciclista", "HB"). Aparecem em retângulos na home e filtram /produtos.
@@ -90,8 +122,8 @@ drop policy if exists "Somente logados podem gerenciar coleções" on collection
 create policy "Somente logados podem gerenciar coleções"
   on collections for all
   to authenticated
-  using (true)
-  with check (true);
+  using (is_admin())
+  with check (is_admin());
 
 -- Depoimentos (opcional, usado na home)
 create table if not exists testimonials (
@@ -112,8 +144,8 @@ drop policy if exists "Somente logados podem gerenciar depoimentos" on testimoni
 create policy "Somente logados podem gerenciar depoimentos"
   on testimonials for all
   to authenticated
-  using (true)
-  with check (true);
+  using (is_admin())
+  with check (is_admin());
 
 -- Depois de rodar isso, crie o usuário admin em:
 -- Supabase > Authentication > Users > Add user (email + senha)
@@ -131,19 +163,19 @@ drop policy if exists "Logados podem enviar arquivos de produtos" on storage.obj
 create policy "Logados podem enviar arquivos de produtos"
   on storage.objects for insert
   to authenticated
-  with check (bucket_id = 'product-media');
+  with check (bucket_id = 'product-media' and is_admin());
 
 drop policy if exists "Logados podem atualizar arquivos de produtos" on storage.objects;
 create policy "Logados podem atualizar arquivos de produtos"
   on storage.objects for update
   to authenticated
-  using (bucket_id = 'product-media');
+  using (bucket_id = 'product-media' and is_admin());
 
 drop policy if exists "Logados podem apagar arquivos de produtos" on storage.objects;
 create policy "Logados podem apagar arquivos de produtos"
   on storage.objects for delete
   to authenticated
-  using (bucket_id = 'product-media');
+  using (bucket_id = 'product-media' and is_admin());
 
 -- Cadastro de WhatsApp (formulário "Cadastre-se e receba novidades" no fim da home).
 create table if not exists leads (
@@ -171,7 +203,7 @@ drop policy if exists "Somente logados podem ver os cadastros" on leads;
 create policy "Somente logados podem ver os cadastros"
   on leads for select
   to authenticated
-  using (true);
+  using (is_admin());
 
 -- Especificações técnicas exibidas no acordeão da página do produto.
 alter table products add column if not exists specifications jsonb not null default '{}'::jsonb;
@@ -201,7 +233,7 @@ create policy "Configuração de frete é pública para cotação"
   on shipping_settings for select using (true);
 drop policy if exists "Somente logados podem alterar configuração de frete" on shipping_settings;
 create policy "Somente logados podem alterar configuração de frete"
-  on shipping_settings for all to authenticated using (true) with check (true);
+  on shipping_settings for all to authenticated using (is_admin()) with check (is_admin());
 
 -- Guarda o token de acesso e o refresh token do Melhor Envio para a
 -- renovação automática (ver lib/melhorEnvio.ts). Não recebe NENHUMA
@@ -237,7 +269,7 @@ alter table promo_banner enable row level security;
 drop policy if exists "Banner ativo é público" on promo_banner;
 create policy "Banner ativo é público" on promo_banner for select using (active = true);
 drop policy if exists "Somente logados podem gerenciar banner" on promo_banner;
-create policy "Somente logados podem gerenciar banner" on promo_banner for all to authenticated using (true) with check (true);
+create policy "Somente logados podem gerenciar banner" on promo_banner for all to authenticated using (is_admin()) with check (is_admin());
 
 
 -- Carrinhos abandonados: contato, itens e momento em que a seleção foi salva.
@@ -252,7 +284,7 @@ alter table abandoned_carts enable row level security;
 drop policy if exists "Qualquer visitante pode salvar carrinho" on abandoned_carts;
 create policy "Qualquer visitante pode salvar carrinho" on abandoned_carts for insert with check (true);
 drop policy if exists "Somente logados podem ver carrinhos" on abandoned_carts;
-create policy "Somente logados podem ver carrinhos" on abandoned_carts for select to authenticated using (true);
+create policy "Somente logados podem ver carrinhos" on abandoned_carts for select to authenticated using (is_admin());
 
 -- Rastreamento simples de abertura de produto para a vitrine de métricas.
 create table if not exists product_clicks (
@@ -266,4 +298,4 @@ alter table product_clicks enable row level security;
 drop policy if exists "Qualquer visitante pode registrar clique" on product_clicks;
 create policy "Qualquer visitante pode registrar clique" on product_clicks for insert with check (true);
 drop policy if exists "Somente logados podem ver cliques" on product_clicks;
-create policy "Somente logados podem ver cliques" on product_clicks for select to authenticated using (true);
+create policy "Somente logados podem ver cliques" on product_clicks for select to authenticated using (is_admin());

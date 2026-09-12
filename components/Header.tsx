@@ -3,7 +3,7 @@
 /** Direção visual: controles maiores e a logo oficial destacada, preservando o cabeçalho creme, verde e dourado da marca. */
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, Search, ShoppingCart, SlidersHorizontal, X, Tag, Flame, Star } from "lucide-react";
+import { Menu, Search, ShoppingCart, SlidersHorizontal, X, Tag, Flame, Star, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartContext";
@@ -152,6 +152,14 @@ export default function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          <Link
+            href="/conta"
+            className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:flex"
+            aria-label="Minha conta"
+          >
+            <User size={18} strokeWidth={1.8} />
+          </Link>
+
           <button
             type="button"
             onClick={() => setSearchOpen((value) => !value)}
@@ -213,6 +221,9 @@ export default function Header() {
             </Link>
             <Link href="/sacola" onClick={closeMenu}>
               Meu carrinho {totalItems > 0 ? `(${totalItems})` : ""}
+            </Link>
+            <Link href="/conta" onClick={closeMenu} className="flex items-center gap-2.5">
+              <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Minha conta
             </Link>
 
             <div className="mt-1 border-t border-brand-ink/10 pt-5">

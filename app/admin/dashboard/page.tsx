@@ -196,10 +196,20 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     try { setSentCartIds(JSON.parse(localStorage.getItem("otica-sent-cart-ids") || "[]")); } catch { setSentCartIds([]); }
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         router.push("/admin");
-      } else {
+        return;
+      }
+      // Estar logado não basta — precisa estar na tabela admins. Um cliente
+      // comum que criou conta pelo site NUNCA deve cair aqui.
+      const { data: adminCheck } = await supabase.rpc("is_admin");
+      if (!adminCheck) {
+        await supabase.auth.signOut();
+        router.push("/admin");
+        return;
+      }
+      {
         setChecking(false);
         void loadProducts();
         void loadCollections();
