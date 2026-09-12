@@ -15,6 +15,9 @@ import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "
 import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
 import AbandonedCartSignup from "@/components/AbandonedCartSignup";
 import FreeShippingBar from "@/components/FreeShippingBar";
+import { supabase } from "@/lib/supabaseClient";
+import { EMPTY_ADDRESS, getMyAddress, saveMyAddress, SavedAddress } from "@/lib/address";
+import { fetchAddressByCep } from "@/lib/viacep";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -32,10 +35,56 @@ export default function SacolaPage() {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
+  const [address, setAddress] = useState<Omit<SavedAddress, "cep">>(EMPTY_ADDRESS);
+  const [loggedIn, setLoggedIn] = useState(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
   const discountedSubtotal = Math.max(0, subtotal - couponDiscount);
   const installmentValue = discountedSubtotal / payment.installments;
+
+  // Preço "de" x "por": some óculos estão em oferta (compareAtPrice > price).
+  // O subtotal do resumo mostra o valor cheio, e a diferença some como
+  // desconto — bem parecido com o que aparece no resumo de qualquer loja.
+  const grossSubtotal = items.reduce((sum, item) => {
+    const unitGross = item.compareAtPrice && item.compareAtPrice > item.price ? item.compareAtPrice : item.price;
+    return sum + unitGross * item.quantity;
+  }, 0);
+  const offerDiscount = Math.max(0, grossSubtotal - subtotal);
+
+  // Se o cliente já tem conta, carrega o CEP + endereço salvos da última
+  // compra automaticamente — igual à Renner, à Amazon etc.
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return;
+      setLoggedIn(true);
+      const saved = await getMyAddress();
+      if (saved) {
+        setCep(saved.cep);
+        setAddress({ logradouro: saved.logradouro, numero: saved.numero, complemento: saved.complemento, bairro: saved.bairro, cidade: saved.cidade, estado: saved.estado });
+      }
+    });
+  }, []);
+
+  // Assim que o CEP fica válido, busca rua/bairro/cidade automaticamente
+  // (ViaCEP) para poupar digitação — só preenche o que ainda estiver vazio,
+  // pra não sobrescrever o que o cliente já tiver ajustado na mão.
+  useEffect(() => {
+    if (!isValidCep(cep)) return;
+    let cancelled = false;
+    fetchAddressByCep(cep).then((found) => {
+      if (cancelled || !found) return;
+      setAddress((current) => ({
+        ...current,
+        logradouro: current.logradouro || found.logradouro,
+        bairro: current.bairro || found.bairro,
+        cidade: current.cidade || found.cidade,
+        estado: current.estado || found.estado,
+      }));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [cep]);
 
   // Assim que o cliente termina de digitar o CEP (8 dígitos), esperamos
   // meio segundo (pra não disparar uma chamada a cada tecla) e então
@@ -91,8 +140,15 @@ export default function SacolaPage() {
 				shipping ?? { valid: false, freeShipping: false, regionLabel: null, source: "invalid" },
 				payment,
 				appliedCoupon ? { code: appliedCoupon, discount: couponDiscount } : undefined,
+				address,
 			);
 	    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
+
+	    // Se o cliente estiver logado, guarda o endereço usado nesta compra —
+	    // assim ele já vem pronto da próxima vez, sem precisar redigitar.
+	    if (loggedIn && isValidCep(cep)) {
+	      saveMyAddress({ cep, ...address });
+	    }
   }
 
   function handleApplyCoupon() {
@@ -183,7 +239,8 @@ export default function SacolaPage() {
           <h2 className="font-heading text-3xl font-semibold tracking-[-0.02em] text-brand-paper sm:text-4xl">Resumo do pedido</h2>
 
           <div className="mt-7 space-y-4 border-b border-brand-paper/15 pb-6 font-body text-[16px]">
-            <div className="flex items-center justify-between text-brand-paper"><span>Produtos ({totalItems})</span><span>{formatBRL(subtotal)}</span></div>
+            <div className="flex items-center justify-between text-brand-paper"><span>Subtotal ({totalItems})</span><span>{formatBRL(grossSubtotal)}</span></div>
+            {offerDiscount > 0 && <div className="flex items-center justify-between text-red-400"><span>Desconto em ofertas</span><span>- {formatBRL(offerDiscount)}</span></div>}
             <div className="mt-5">
               <label htmlFor="coupon" className="block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper">Cupom de primeira compra</label>
               <div className="mt-2 flex gap-2">
@@ -193,29 +250,44 @@ export default function SacolaPage() {
               {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-paper/70"}`} role="status">{couponMessage}</p>}
               <div className="mt-4"><FreeShippingBar subtotal={subtotal} dark /></div>
             </div>
-            {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Desconto ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
+            {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Cupom ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
             <div>
-		            <div className="flex items-center justify-between text-brand-paper"><span>Frete</span><span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span></div>
+		            <div className="flex items-center justify-between text-brand-paper">
+		              <span>Frete</span>
+		              <span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span>
+		            </div>
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
+              {loggedIn && <p className="mt-1.5 font-body text-[11px] leading-4 text-brand-paper/55">Preenchido automaticamente com o endereço da sua conta.</p>}
               {checkingShipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
 	              {!checkingShipping && shipping && (
 	                <div className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
 		                  {isFreeShipping ? (
-		                    <p>Prazo estimado: até {shipping.deliveryTime || 3} dias úteis.</p>
+		                    <p className="font-semibold text-brand-gold">Frete grátis para {shipping.regionLabel || "sua região"} · até {shipping.deliveryTime || 3} dias úteis.</p>
 		                  ) : shipping?.price != null ? (
 		                    <>
+		                      <p className="font-semibold">{formatBRL(shipping.price)} para {shipping.regionLabel || "seu CEP"}</p>
 		                      {shipping.options && shipping.options.length > 1 && (
-		                        <label className="block">
+		                        <label className="mt-1.5 block">
 		                          <span className="sr-only">Escolha o tipo de frete</span>
 		                          <select value={shipping.options.find((option) => option.name === shipping.serviceName)?.id ?? shipping.serviceName ?? ""} onChange={(event) => handleShippingOption(event.target.value)} className="w-full rounded-xl border border-brand-paper/20 bg-brand-ink px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none focus:border-brand-gold">
 	                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · entrega estimada em até {option.deliveryTime} dias úteis após a postagem</option>)}
 	                          </select>
 	                        </label>
 	                      )}
-	                      {shipping.options?.length === 1 && <p>{shipping.serviceName || "Frete"} · {formatBRL(shipping.price)} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem.</p>}
+	                      {shipping.options?.length === 1 && <p className="mt-1.5">{shipping.serviceName || "Frete"} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem.</p>}
 	                    </>
 	                  ) : <p>{shipping?.error || "Prazo de entrega a confirmar pelo WhatsApp."}</p>}
+                </div>
+              )}
+
+              {isValidCep(cep) && (
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <input value={address.logradouro} onChange={(event) => setAddress((current) => ({ ...current, logradouro: event.target.value }))} placeholder="Rua" className="col-span-2 rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
+                  <input value={address.numero} onChange={(event) => setAddress((current) => ({ ...current, numero: event.target.value }))} placeholder="Número" className="rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
+                  <input value={address.complemento} onChange={(event) => setAddress((current) => ({ ...current, complemento: event.target.value }))} placeholder="Complemento (opcional)" className="rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
+                  <input value={address.bairro} onChange={(event) => setAddress((current) => ({ ...current, bairro: event.target.value }))} placeholder="Bairro" className="rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
+                  <input value={address.cidade ? `${address.cidade}${address.estado ? ` - ${address.estado}` : ""}` : ""} readOnly placeholder="Cidade" className="rounded-xl border border-brand-paper/10 bg-brand-paper/5 px-3 py-2.5 font-body text-[13px] text-brand-paper/70 outline-none" />
                 </div>
               )}
             </div>

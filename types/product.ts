@@ -87,6 +87,8 @@ export type CartItem = {
   slug: string;
   name: string;
   price: number;
+  /** Preço "de" (compare_at_price) quando o óculos está em oferta. null/undefined quando não há desconto. */
+  compareAtPrice?: number | null;
   image: string;
   colorName: string;
   quantity: number;

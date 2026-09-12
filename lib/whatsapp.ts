@@ -34,6 +34,7 @@ export function buildWhatsAppOrderMessage(
   shipping: ShippingResult,
   payment: PaymentSelection,
   coupon?: { code: string; discount: number },
+  address?: { logradouro: string; numero: string; complemento: string; bairro: string; cidade: string; estado: string },
 ): string {
   const lines: string[] = [];
 
@@ -41,23 +42,31 @@ export function buildWhatsAppOrderMessage(
   lines.push("");
 
   let subtotal = 0;
+  let grossSubtotal = 0;
   for (const item of items) {
     const lineTotal = item.price * item.quantity;
+    const grossLineTotal = (item.compareAtPrice && item.compareAtPrice > item.price ? item.compareAtPrice : item.price) * item.quantity;
     subtotal += lineTotal;
+    grossSubtotal += grossLineTotal;
     lines.push(
       `• ${item.quantity}x ${item.name} (${item.colorName}) — ${formatBRL(lineTotal)}`,
     );
   }
 
   lines.push("");
+  const productDiscount = Math.max(0, grossSubtotal - subtotal);
   const discountedSubtotal = Math.max(0, subtotal - (coupon?.discount ?? 0));
-  lines.push(`Subtotal: ${formatBRL(subtotal)}`);
+  lines.push(`Subtotal: ${formatBRL(grossSubtotal)}`);
+  if (productDiscount > 0) lines.push(`Desconto em ofertas: -${formatBRL(productDiscount)}`);
   if (coupon?.discount) lines.push(`Cupom ${coupon.code}: -${formatBRL(coupon.discount)}`);
   lines.push(`Total dos produtos: ${formatBRL(discountedSubtotal)}`);
   lines.push(`Forma de pagamento: ${paymentDescription(payment, discountedSubtotal)}`);
 
 	  if (cep) {
-	    lines.push(`CEP de entrega: ${cep}`);
+	    const addressLine = address && (address.logradouro || address.numero)
+	      ? ` — ${[address.logradouro, address.numero].filter(Boolean).join(", ")}${address.complemento ? ` (${address.complemento})` : ""}, ${[address.bairro, address.cidade, address.estado].filter(Boolean).join(" - ")}`
+	      : "";
+	    lines.push(`CEP de entrega: ${cep}${addressLine}`);
 	    if (shipping.freeShipping) {
 	      lines.push("Frete: Grátis");
 	    } else if (shipping.price != null) {

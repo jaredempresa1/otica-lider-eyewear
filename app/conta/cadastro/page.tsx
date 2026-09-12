@@ -46,11 +46,14 @@ export default function CadastroPage() {
       return;
     }
 
+    // Se já veio uma sessão ativa, a confirmação de e-mail está desligada
+    // e o usuário já pode entrar direto.
     if (data.session) {
       router.push("/conta");
       return;
     }
 
+    // Caso contrário, o Supabase exige confirmar o e-mail antes de logar.
     setSuccess("Conta criada! Verifique seu e-mail (" + email + ") e clique no link de confirmação para poder entrar.");
   }
 

@@ -299,3 +299,42 @@ drop policy if exists "Qualquer visitante pode registrar clique" on product_clic
 create policy "Qualquer visitante pode registrar clique" on product_clicks for insert with check (true);
 drop policy if exists "Somente logados podem ver cliques" on product_clicks;
 create policy "Somente logados podem ver cliques" on product_clicks for select to authenticated using (is_admin());
+
+-- Endereço de entrega salvo na conta do cliente (auto-preenche CEP e
+-- endereço completo da próxima vez que ele entrar logado, como faz a
+-- Renner, a Amazon etc.). Um endereço por cliente por enquanto — dá pra
+-- evoluir para vários endereços depois se precisar.
+create table if not exists enderecos (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references auth.users(id) on delete cascade unique,
+  cep text not null,
+  logradouro text default '',
+  numero text default '',
+  complemento text default '',
+  bairro text default '',
+  cidade text default '',
+  estado text default '',
+  updated_at timestamp with time zone default now()
+);
+
+alter table enderecos enable row level security;
+
+-- Cada cliente só enxerga e mexe no PRÓPRIO endereço — nunca no de outra pessoa.
+drop policy if exists "Cliente vê o próprio endereço" on enderecos;
+create policy "Cliente vê o próprio endereço"
+  on enderecos for select
+  to authenticated
+  using (auth.uid() = user_id);
+
+drop policy if exists "Cliente cria o próprio endereço" on enderecos;
+create policy "Cliente cria o próprio endereço"
+  on enderecos for insert
+  to authenticated
+  with check (auth.uid() = user_id);
+
+drop policy if exists "Cliente atualiza o próprio endereço" on enderecos;
+create policy "Cliente atualiza o próprio endereço"
+  on enderecos for update
+  to authenticated
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

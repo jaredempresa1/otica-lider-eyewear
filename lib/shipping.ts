@@ -62,7 +62,7 @@ export type ShippingResult = {
 // dá pra confirmar a localização exata do CEP, o site cai para a cotação
 // paga (Melhor Envio) em vez de presumir frete grátis.
 
-async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<ShippingResult> {
+async function quoteOutsideFreeArea(cep: string, items: CartItem[], regionLabel: string | null): Promise<ShippingResult> {
   try {
     const response = await fetch("/api/shipping", {
       method: "POST",
@@ -79,13 +79,13 @@ async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<Shi
     };
 
     if (!response.ok || !data.quote) {
-      return { valid: true, freeShipping: false, regionLabel: null, source: "api", error: data.error };
+      return { valid: true, freeShipping: false, regionLabel, source: "api", error: data.error };
     }
 
     return {
       valid: true,
       freeShipping: false,
-      regionLabel: null,
+      regionLabel,
       source: "api",
       price: data.quote.price,
       deliveryTime: data.quote.deliveryTime,
@@ -93,7 +93,7 @@ async function quoteOutsideFreeArea(cep: string, items: CartItem[]): Promise<Shi
       options: data.options || [data.quote],
     };
   } catch {
-    return { valid: true, freeShipping: false, regionLabel: null, source: "api", error: "Frete a combinar pelo WhatsApp." };
+    return { valid: true, freeShipping: false, regionLabel, source: "api", error: "Frete a combinar pelo WhatsApp." };
   }
 }
 
@@ -104,9 +104,15 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
     return { valid: false, freeShipping: false, regionLabel: null, source: "invalid" };
   }
 
+  // Busca a cidade do CEP uma única vez — ela é usada tanto para decidir a
+  // área de frete grátis quanto para exibir "Frete grátis para João Pessoa"
+  // ou "R$ 38,00 para João Pessoa" na sacola.
+  const { coords, city } = await getCepInfo(digits);
+  const regionLabel = city || "sua região";
+
   const cartSubtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   if (cartSubtotal >= 500) {
-    const quote = await quoteOutsideFreeArea(digits, items);
+    const quote = await quoteOutsideFreeArea(digits, items, regionLabel);
     const cheapest = quote.options?.slice().sort((a, b) => a.price - b.price)[0];
     return { ...quote, valid: true, freeShipping: true, price: 0, serviceName: cheapest?.name || quote.serviceName || "Frete grátis", deliveryTime: cheapest?.deliveryTime || quote.deliveryTime };
   }
@@ -114,21 +120,19 @@ export async function checkShipping(cep: string, items: CartItem[] = []): Promis
   // Atalho manual: CEPs já confirmados como frete grátis não dependem de
   // geocodificação nenhuma (veja lib/freeShippingOverrides.ts).
   if (FREE_SHIPPING_CEP_OVERRIDES.includes(digits)) {
-    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo", deliveryTime: 3 };
+    return { valid: true, freeShipping: true, regionLabel, source: "geo", deliveryTime: 3 };
   }
-
-  const { coords, city } = await getCepInfo(digits);
 
   if (!coords) {
     // Não temos como confirmar se este CEP está dentro da área de frete
     // grátis — em vez de presumir que sim (como acontecia antes), calculamos
     // o frete pago normalmente. Mais seguro que dar frete grátis "no escuro".
-    return quoteOutsideFreeArea(digits, items);
+    return quoteOutsideFreeArea(digits, items, regionLabel);
   }
 
   if (!isExcludedCity(city) && isInsideZone(coords, FREE_SHIPPING_ZONE)) {
-    return { valid: true, freeShipping: true, regionLabel: "sua região", source: "geo", deliveryTime: 3 };
+    return { valid: true, freeShipping: true, regionLabel, source: "geo", deliveryTime: 3 };
   }
 
-  return quoteOutsideFreeArea(digits, items);
+  return quoteOutsideFreeArea(digits, items, regionLabel);
 }

@@ -268,7 +268,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: { produ
 
   function handleAddToCart() {
     if (!canBuy) return;
-    addItem({ productId: product.id, slug: product.slug, name: productLabel, price: product.price, image: activeImage || selectedGallery[0] || "", colorName: selectedColor?.name || "Único", quantity: 1 });
+    addItem({ productId: product.id, slug: product.slug, name: productLabel, price: product.price, compareAtPrice: product.compare_at_price, image: activeImage || selectedGallery[0] || "", colorName: selectedColor?.name || "Único", quantity: 1 });
     setAddedToCart(true);
     window.setTimeout(() => setAddedToCart(false), 2400);
   }

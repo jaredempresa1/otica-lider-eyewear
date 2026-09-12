@@ -61,6 +61,7 @@ export default function ProductCard({ product }: { product: Product }) {
       slug: product.slug,
       name: productLabel,
       price: product.price,
+      compareAtPrice: product.compare_at_price,
       image: mainImage || "",
       colorName: selectedColor?.name || "Único",
       quantity: 1,
