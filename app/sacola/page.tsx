@@ -66,8 +66,10 @@ export default function SacolaPage() {
   }, []);
 
   // Assim que o CEP fica válido, busca rua/bairro/cidade automaticamente
-  // (ViaCEP) para poupar digitação — só preenche o que ainda estiver vazio,
-  // pra não sobrescrever o que o cliente já tiver ajustado na mão.
+  // (ViaCEP) para poupar digitação. Sempre que o CEP muda para um valor
+  // diferente, os campos de endereço são atualizados para o CEP novo —
+  // só número e complemento (que não têm nada a ver com o CEP) ficam como
+  // o cliente digitou.
   useEffect(() => {
     if (!isValidCep(cep)) return;
     let cancelled = false;
@@ -75,10 +77,10 @@ export default function SacolaPage() {
       if (cancelled || !found) return;
       setAddress((current) => ({
         ...current,
-        logradouro: current.logradouro || found.logradouro,
-        bairro: current.bairro || found.bairro,
-        cidade: current.cidade || found.cidade,
-        estado: current.estado || found.estado,
+        logradouro: found.logradouro || current.logradouro,
+        bairro: found.bairro || current.bairro,
+        cidade: found.cidade || current.cidade,
+        estado: found.estado || current.estado,
       }));
     });
     return () => {

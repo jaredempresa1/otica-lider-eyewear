@@ -28,6 +28,8 @@ export default function EnderecosPage() {
   }, [router]);
 
   // Preenche rua/bairro/cidade automaticamente quando o CEP fica completo.
+  // Sempre que o CEP muda, esses campos são atualizados para o CEP novo —
+  // só número e complemento continuam como o cliente digitou.
   useEffect(() => {
     const digits = address.cep.replace(/\D/g, "");
     if (digits.length !== 8) return;

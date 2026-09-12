@@ -2,23 +2,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
-const HERO_IMAGE = "/hero-eyewear.png";
+const HERO_IMAGE_MOBILE = "/hero-eyewear.png";
+const HERO_IMAGE_DESKTOP = "/hero-eyewear-desktop.png";
 
 export default function Hero() {
   return (
     <section className="w-full">
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-ink sm:aspect-[16/10] lg:aspect-auto lg:h-[440px] xl:h-[500px]">
-        {/* No desktop a foto é retrato e o container é bem mais largo que alto, então uma
-            cópia borrada e ampliada preenche as laterais em vez de deixar barra lisa. */}
-        <div className="absolute inset-0 hidden lg:block" aria-hidden="true">
-          <Image src={HERO_IMAGE} alt="" fill className="scale-110 object-cover object-top opacity-50 blur-2xl" />
-        </div>
+        {/* Celular: foto em retrato, sem mexer. */}
         <Image
-          src={HERO_IMAGE}
+          src={HERO_IMAGE_MOBILE}
           alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
           fill
           priority
-          className="object-cover object-top lg:object-contain"
+          className="object-cover object-top lg:hidden"
+          sizes="100vw"
+        />
+
+        {/* Desktop: foto já em 16:9, preenche o banner inteiro sem precisar de fundo borrado. */}
+        <Image
+          src={HERO_IMAGE_DESKTOP}
+          alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
+          fill
+          priority
+          className="hidden object-cover object-center lg:block"
           sizes="100vw"
         />
 
