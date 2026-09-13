@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { EMPTY_ADDRESS, getMyAddress, saveMyAddress, SavedAddress } from "@/lib/address";
-import { fetchAddressByCep } from "@/lib/viacep";
+import { lookupCep } from "@/lib/viacep";
 
 export default function EnderecosPage() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function EnderecosPage() {
   const [address, setAddress] = useState<SavedAddress>(EMPTY_ADDRESS);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [cepInvalid, setCepInvalid] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -27,22 +28,25 @@ export default function EnderecosPage() {
     });
   }, [router]);
 
-  // Preenche rua/bairro/cidade automaticamente quando o CEP fica completo.
-  // Sempre que o CEP muda, esses campos são atualizados para o CEP novo —
-  // só número e complemento continuam como o cliente digitou.
+  // Assim que o CEP muda, limpa rua/bairro/cidade na hora (não fica com
+  // informação do CEP anterior) e então confere se o CEP existe de verdade.
   useEffect(() => {
+    setCepInvalid(false);
+    setAddress((current) => ({ ...current, logradouro: "", bairro: "", cidade: "", estado: "" }));
+
     const digits = address.cep.replace(/\D/g, "");
     if (digits.length !== 8) return;
+
     let cancelled = false;
-    fetchAddressByCep(digits).then((found) => {
-      if (cancelled || !found) return;
-      setAddress((current) => ({
-        ...current,
-        logradouro: found.logradouro || current.logradouro,
-        bairro: found.bairro || current.bairro,
-        cidade: found.cidade || current.cidade,
-        estado: found.estado || current.estado,
-      }));
+    lookupCep(digits).then((result) => {
+      if (cancelled) return;
+      if (result.exists === false) {
+        setCepInvalid(true);
+        return;
+      }
+      if (result.address) {
+        setAddress((current) => ({ ...current, logradouro: result.address!.logradouro, bairro: result.address!.bairro, cidade: result.address!.cidade, estado: result.address!.estado }));
+      }
     });
     return () => {
       cancelled = true;
@@ -52,6 +56,7 @@ export default function EnderecosPage() {
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (cepInvalid) return;
     setSaving(true);
     setSaved(false);
     const ok = await saveMyAddress(address);
@@ -85,6 +90,7 @@ export default function EnderecosPage() {
             onChange={(e) => setAddress((current) => ({ ...current, cep: e.target.value }))}
             className="mt-1.5 w-full max-w-[180px] rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold"
           />
+          {cepInvalid && <p className="mt-1.5 font-body text-sm font-semibold text-red-600">CEP inválido. Confira o número e tente de novo.</p>}
         </div>
         <div className="grid grid-cols-[1fr_120px] gap-3">
           <div>
@@ -117,7 +123,7 @@ export default function EnderecosPage() {
 
         {saved && <p className="font-body text-sm text-green-700">Endereço salvo! Ele já vai aparecer pronto na sua próxima compra.</p>}
 
-        <button type="submit" disabled={saving} className="mt-2 w-fit rounded-xl bg-brand-ink px-5 py-3 font-body text-sm font-semibold uppercase tracking-[0.1em] text-brand-paper transition-colors hover:bg-brand-gold disabled:opacity-60">
+        <button type="submit" disabled={saving || cepInvalid} className="mt-2 w-fit rounded-xl bg-brand-ink px-5 py-3 font-body text-sm font-semibold uppercase tracking-[0.1em] text-brand-paper transition-colors hover:bg-brand-gold disabled:opacity-60">
           {saving ? "Salvando..." : "Salvar endereço"}
         </button>
       </form>

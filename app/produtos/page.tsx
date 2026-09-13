@@ -59,7 +59,7 @@ export default async function ProdutosPage({
           ) : (
             <>
               <p className="eyebrow">A coleção inteira</p>
-              <h1 className="section-title mt-2">Óculos de sol para ver e ser visto</h1>
+              <h1 className="section-title mt-2">Encontre seu próximo óculos de sol</h1>
             </>
           )}
         </div>

@@ -7,6 +7,8 @@ import { Menu, Search, ShoppingCart, SlidersHorizontal, X, Tag, Flame, Star, Use
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartContext";
+import { useAuthModal } from "./AuthModal";
+import { supabase } from "@/lib/supabaseClient";
 import { QUICK_FILTERS } from "@/lib/filters";
 import FaceIcon, { FaceShape } from "./icons/FaceIcon";
 import RunningIcon from "./icons/RunningIcon";
@@ -32,6 +34,14 @@ const SPORT_LINK = { href: "/produtos?esportivo=1", label: "Óculos esportivo" }
 export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
+  const { openLogin } = useAuthModal();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setLoggedIn(!!data.user));
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => setLoggedIn(!!session?.user));
+    return () => subscription.subscription.unsubscribe();
+  }, []);
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
@@ -152,13 +162,24 @@ export default function Header() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-          <Link
-            href="/conta"
-            className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:flex"
-            aria-label="Minha conta"
-          >
-            <User size={18} strokeWidth={1.8} />
-          </Link>
+          {loggedIn ? (
+            <Link
+              href="/conta"
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:flex"
+              aria-label="Minha conta"
+            >
+              <User size={18} strokeWidth={1.8} />
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={openLogin}
+              className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:flex"
+              aria-label="Entrar ou criar conta"
+            >
+              <User size={18} strokeWidth={1.8} />
+            </button>
+          )}
 
           <button
             type="button"
@@ -222,9 +243,22 @@ export default function Header() {
             <Link href="/sacola" onClick={closeMenu}>
               Meu carrinho {totalItems > 0 ? `(${totalItems})` : ""}
             </Link>
-            <Link href="/conta" onClick={closeMenu} className="flex items-center gap-2.5">
-              <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Minha conta
-            </Link>
+            {loggedIn ? (
+              <Link href="/conta" onClick={closeMenu} className="flex items-center gap-2.5">
+                <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Minha conta
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  openLogin();
+                }}
+                className="flex items-center gap-2.5 text-left"
+              >
+                <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Entrar ou cadastrar
+              </button>
+            )}
 
             <div className="mt-1 border-t border-brand-ink/10 pt-5">
               <p className="mb-3 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">

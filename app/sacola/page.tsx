@@ -17,7 +17,7 @@ import AbandonedCartSignup from "@/components/AbandonedCartSignup";
 import FreeShippingBar from "@/components/FreeShippingBar";
 import { supabase } from "@/lib/supabaseClient";
 import { EMPTY_ADDRESS, getMyAddress, saveMyAddress, SavedAddress } from "@/lib/address";
-import { fetchAddressByCep } from "@/lib/viacep";
+import { lookupCep } from "@/lib/viacep";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -37,6 +37,8 @@ export default function SacolaPage() {
   const [couponMessage, setCouponMessage] = useState("");
   const [address, setAddress] = useState<Omit<SavedAddress, "cep">>(EMPTY_ADDRESS);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [cepInvalid, setCepInvalid] = useState(false);
+  const [checkingAddress, setCheckingAddress] = useState(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
   const discountedSubtotal = Math.max(0, subtotal - couponDiscount);
@@ -65,23 +67,30 @@ export default function SacolaPage() {
     });
   }, []);
 
-  // Assim que o CEP fica válido, busca rua/bairro/cidade automaticamente
-  // (ViaCEP) para poupar digitação. Sempre que o CEP muda para um valor
-  // diferente, os campos de endereço são atualizados para o CEP novo —
-  // só número e complemento (que não têm nada a ver com o CEP) ficam como
-  // o cliente digitou.
+  // Assim que o CEP muda, limpamos rua/bairro/cidade NA HORA (não espera a
+  // busca terminar) — assim nunca fica sobrando informação do CEP anterior
+  // na tela. Só depois disso buscamos o endereço novo (ViaCEP) e conferimos
+  // se o CEP realmente existe. Se não existir, avisamos e bloqueamos o
+  // pedido: number/complemento continuam como o cliente digitou, já que não
+  // têm nada a ver com o CEP em si.
   useEffect(() => {
+    setCepInvalid(false);
+    setAddress((current) => ({ ...current, logradouro: "", bairro: "", cidade: "", estado: "" }));
+
     if (!isValidCep(cep)) return;
+
     let cancelled = false;
-    fetchAddressByCep(cep).then((found) => {
-      if (cancelled || !found) return;
-      setAddress((current) => ({
-        ...current,
-        logradouro: found.logradouro || current.logradouro,
-        bairro: found.bairro || current.bairro,
-        cidade: found.cidade || current.cidade,
-        estado: found.estado || current.estado,
-      }));
+    setCheckingAddress(true);
+    lookupCep(cep).then((result) => {
+      if (cancelled) return;
+      setCheckingAddress(false);
+      if (result.exists === false) {
+        setCepInvalid(true);
+        return;
+      }
+      if (result.address) {
+        setAddress((current) => ({ ...current, logradouro: result.address!.logradouro, bairro: result.address!.bairro, cidade: result.address!.cidade, estado: result.address!.estado }));
+      }
     });
     return () => {
       cancelled = true;
@@ -92,7 +101,7 @@ export default function SacolaPage() {
   // meio segundo (pra não disparar uma chamada a cada tecla) e então
   // consultamos a API de geocodificação + a área de frete grátis.
   useEffect(() => {
-    if (!isValidCep(cep)) {
+    if (!isValidCep(cep) || cepInvalid) {
       setShipping(null);
       setCheckingShipping(false);
       return;
@@ -114,7 +123,7 @@ export default function SacolaPage() {
       cancelled = true;
       clearTimeout(timer);
     };
-	  }, [cep, items]);
+	  }, [cep, items, cepInvalid]);
 
   function selectPaymentMethod(method: PaymentSelection["method"]) {
     setPayment((current) => ({ ...current, method }));
@@ -261,8 +270,9 @@ export default function SacolaPage() {
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
               {loggedIn && <p className="mt-1.5 font-body text-[11px] leading-4 text-brand-paper/55">Preenchido automaticamente com o endereço da sua conta.</p>}
-              {checkingShipping && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
-	              {!checkingShipping && shipping && (
+              {cepInvalid && <p className="mt-2 font-body text-[13px] font-semibold leading-5 text-red-400">CEP inválido. Confira o número e tente de novo.</p>}
+              {!cepInvalid && (checkingShipping || checkingAddress) && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
+	              {!cepInvalid && !checkingShipping && !checkingAddress && shipping && (
 	                <div className="mt-2 font-body text-[13px] leading-5 text-brand-paper sm:text-[14px]">
 		                  {isFreeShipping ? (
 		                    <p className="font-semibold text-brand-gold">Frete grátis para {shipping.regionLabel || "sua região"} · até {shipping.deliveryTime || 3} dias úteis.</p>
@@ -283,7 +293,7 @@ export default function SacolaPage() {
                 </div>
               )}
 
-              {isValidCep(cep) && (
+              {isValidCep(cep) && !cepInvalid && (
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <input value={address.logradouro} onChange={(event) => setAddress((current) => ({ ...current, logradouro: event.target.value }))} placeholder="Rua" className="col-span-2 rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
                   <input value={address.numero} onChange={(event) => setAddress((current) => ({ ...current, numero: event.target.value }))} placeholder="Número" className="rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-3 py-2.5 font-body text-[13px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />

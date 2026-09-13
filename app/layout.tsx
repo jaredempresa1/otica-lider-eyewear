@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Piazzolla } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
+import { AuthModalProvider } from "@/components/AuthModal";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -55,16 +56,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={piazzolla.variable}>
       <body className="font-body">
-        <CartProvider>
-          <div className="sticky top-0 z-50">
-            <AnnouncementBar />
-            <Header />
-            <CouponBanner />
-          </div>
-          {children}
-          <Footer />
-          <FloatingWhatsApp />
-        </CartProvider>
+        <AuthModalProvider>
+          <CartProvider>
+            <div className="sticky top-0 z-50">
+              <AnnouncementBar />
+              <Header />
+              <CouponBanner />
+            </div>
+            {children}
+            <Footer />
+            <FloatingWhatsApp />
+          </CartProvider>
+        </AuthModalProvider>
       </body>
     </html>
   );
