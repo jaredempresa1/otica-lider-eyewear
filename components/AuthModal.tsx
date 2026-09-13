@@ -105,7 +105,9 @@ function LoginForm({ onClose, onSwitchView }: { onClose: () => void; onSwitchVie
       return;
     }
     setError(null);
-    await supabase.auth.resetPasswordForEmail(email.trim());
+    await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/conta/redefinir-senha`,
+    });
     setNotice("Se esse e-mail tiver uma conta, enviamos um link para redefinir a senha.");
   }
 

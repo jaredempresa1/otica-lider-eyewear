@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -15,6 +15,7 @@ export default function EnderecosPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [cepInvalid, setCepInvalid] = useState(false);
+  const skipNextClearRef = useRef(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -23,16 +24,26 @@ export default function EnderecosPage() {
         return;
       }
       const existing = await getMyAddress();
-      if (existing) setAddress(existing);
+      if (existing) {
+        skipNextClearRef.current = true;
+        setAddress(existing);
+      }
       setChecking(false);
     });
   }, [router]);
 
-  // Assim que o CEP muda, limpa rua/bairro/cidade na hora (não fica com
+  // Assim que o CEP muda, limpa o resto do endereço na hora (não fica com
   // informação do CEP anterior) e então confere se o CEP existe de verdade.
+  // Exceção: no carregamento da página, quando o endereço já salvo é
+  // preenchido de uma vez só, não faz sentido limpar o que acabou de carregar.
   useEffect(() => {
+    if (skipNextClearRef.current) {
+      skipNextClearRef.current = false;
+      return;
+    }
+
     setCepInvalid(false);
-    setAddress((current) => ({ ...current, logradouro: "", bairro: "", cidade: "", estado: "" }));
+    setAddress((current) => ({ ...current, logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "" }));
 
     const digits = address.cep.replace(/\D/g, "");
     if (digits.length !== 8) return;

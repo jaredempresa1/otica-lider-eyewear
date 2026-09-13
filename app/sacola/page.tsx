@@ -7,7 +7,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
 import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
@@ -39,6 +39,7 @@ export default function SacolaPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [cepInvalid, setCepInvalid] = useState(false);
   const [checkingAddress, setCheckingAddress] = useState(false);
+  const skipNextClearRef = useRef(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
   const discountedSubtotal = Math.max(0, subtotal - couponDiscount);
@@ -61,21 +62,29 @@ export default function SacolaPage() {
       setLoggedIn(true);
       const saved = await getMyAddress();
       if (saved) {
+        skipNextClearRef.current = true;
         setCep(saved.cep);
         setAddress({ logradouro: saved.logradouro, numero: saved.numero, complemento: saved.complemento, bairro: saved.bairro, cidade: saved.cidade, estado: saved.estado });
       }
     });
   }, []);
 
-  // Assim que o CEP muda, limpamos rua/bairro/cidade NA HORA (não espera a
-  // busca terminar) — assim nunca fica sobrando informação do CEP anterior
-  // na tela. Só depois disso buscamos o endereço novo (ViaCEP) e conferimos
-  // se o CEP realmente existe. Se não existir, avisamos e bloqueamos o
-  // pedido: number/complemento continuam como o cliente digitou, já que não
-  // têm nada a ver com o CEP em si.
+  // Assim que o CEP muda, limpamos TODO o endereço na hora (rua, número,
+  // complemento, bairro, cidade) — não espera a busca terminar, assim nunca
+  // fica sobrando informação do CEP anterior na tela. Só depois disso
+  // buscamos o endereço novo (ViaCEP) e conferimos se o CEP realmente
+  // existe. Se não existir, avisamos.
   useEffect(() => {
+    // Exceção: quando o CEP acabou de ser preenchido automaticamente com o
+    // endereço já salvo na conta (no carregamento da página), não faz
+    // sentido limpar o que acabamos de carregar.
+    if (skipNextClearRef.current) {
+      skipNextClearRef.current = false;
+      return;
+    }
+
     setCepInvalid(false);
-    setAddress((current) => ({ ...current, logradouro: "", bairro: "", cidade: "", estado: "" }));
+    setAddress((current) => ({ ...current, logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "" }));
 
     if (!isValidCep(cep)) return;
 

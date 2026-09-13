@@ -86,7 +86,7 @@ export default function WhatsAppSignup() {
   return (
     <section className="border-t border-brand-ink/10 bg-brand-paper">
       <div className="section-shell py-14 sm:py-20">
-        <h2 className="max-w-2xl font-heading text-2xl font-bold uppercase leading-tight tracking-[-0.01em] text-brand-ink sm:text-3xl">
+        <h2 className="max-w-2xl font-heading text-lg font-bold uppercase leading-tight tracking-[-0.01em] text-brand-ink sm:text-xl">
           Cadastre-se e receba novidades e promoções em primeira mão
         </h2>
 
@@ -143,7 +143,7 @@ export default function WhatsAppSignup() {
           ))}
         </div>
 
-        <p className="mt-8 max-w-2xl font-body text-sm leading-6 text-brand-ink/55">
+        <p className="mt-8 max-w-2xl font-body text-xs leading-5 text-brand-ink/55">
           Ao cadastrar o seu WhatsApp, você concorda em receber novidades e promoções exclusivas,
           novas coleções e campanhas da Ótica Líder. Se mudar de ideia, você pode pedir para sair a
           qualquer momento.
