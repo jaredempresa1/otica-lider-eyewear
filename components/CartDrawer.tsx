@@ -48,7 +48,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-[100] flex justify-end bg-black/50" onClick={onClose}>
       <div className="flex h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between bg-brand-ink px-5 py-4">
-          <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Minha sacola</span>
+          <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Meu carrinho</span>
           <button type="button" onClick={onClose} aria-label="Fechar" className="text-brand-paper/80 transition-colors hover:text-brand-gold">
             <X size={20} />
           </button>
@@ -58,7 +58,7 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
           {items.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
               <ShoppingBag size={32} strokeWidth={1.5} className="text-brand-ink/30" />
-              <p className="font-body text-sm text-brand-ink/60">Sua sacola está vazia.</p>
+              <p className="font-body text-sm text-brand-ink/60">Seu carrinho está vazio.</p>
               <button type="button" onClick={onClose} className="mt-2 rounded-full border border-brand-ink px-5 py-2.5 font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper">
                 Continuar comprando
               </button>

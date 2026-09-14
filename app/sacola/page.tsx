@@ -7,7 +7,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, CreditCard, Lock, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
+import { Check, CreditCard, Lock, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
@@ -217,16 +217,12 @@ export default function SacolaPage() {
         </span>
       </div>
       <main className="section-shell bg-white py-5 sm:py-10">
-      <Link href="/produtos" className="mb-4 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55 transition-colors hover:text-brand-gold sm:mb-6">
-        <ArrowLeft size={15} /> Continuar comprando
-      </Link>
-
       <div className="mx-auto mt-2 grid max-w-6xl gap-5 lg:grid-cols-[1fr_390px] lg:gap-8">
         <section>
           <div className="flex items-end justify-between border-b border-brand-ink/10 pb-3">
             <div>
               <p className="eyebrow text-[10px]">Seu pedido</p>
-              <h1 className="mt-1 font-heading text-3xl font-semibold uppercase tracking-[-0.04em] text-brand-ink sm:text-4xl">Sacola</h1>
+              <h1 className="mt-1 font-heading text-3xl font-semibold uppercase tracking-[-0.04em] text-brand-ink sm:text-4xl">Carrinho</h1>
             </div>
             <span className="font-body text-[13px] text-brand-ink/50">{totalItems} {totalItems === 1 ? "item" : "itens"}</span>
           </div>
@@ -361,6 +357,9 @@ export default function SacolaPage() {
           <button onClick={handleCheckout} className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#079447] px-5 py-3.5 font-body text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-all duration-200 hover:bg-[#057c3b] active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>
           <p className="mt-3 text-center font-body text-[10px] leading-4 text-brand-ink/60">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
           <AbandonedCartSignup items={items} />
+          <Link href="/produtos" className="mt-4 block text-center font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink underline underline-offset-4 transition-colors hover:text-brand-gold">
+            Comprar mais produtos
+          </Link>
         </aside>
       </div>
       {showCepLookup && <CepLookupModal onClose={() => setShowCepLookup(false)} onSelectCep={setCep} />}
