@@ -57,7 +57,7 @@ export async function GET(request: Request) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        "User-Agent": process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)",
+        "User-Agent": process.env.MELHOR_ENVIO_USER_AGENT || "otica lider brasil (contato@oticalider.com.br)",
       },
       body: JSON.stringify({
         grant_type: "authorization_code",

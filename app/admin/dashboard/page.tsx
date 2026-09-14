@@ -190,7 +190,7 @@ export default function AdminDashboardPage() {
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>({ width: "15", height: "10", length: "20", weight: "0.5" });
   const [shippingSaving, setShippingSaving] = useState(false);
   const [shippingMessage, setShippingMessage] = useState("");
-  const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder", href: "", active: false, destination_type: "none", destination_id: "" });
+  const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder Brasil", href: "", active: false, destination_type: "none", destination_id: "" });
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
   const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes">("produtos");
@@ -336,7 +336,7 @@ export default function AdminDashboardPage() {
 
   async function loadPromoBanner() {
     const { data } = await supabase.from("promo_banner").select("image_url, alt_text, href, active, destination_type, destination_id").eq("id", 1).maybeSingle();
-    if (data) setPromoBanner({ image_url: data.image_url || "", alt_text: data.alt_text || "Novidade da Ótica Líder", href: data.href || "", active: Boolean(data.active), destination_type: data.destination_type || "none", destination_id: data.destination_id || "" });
+    if (data) setPromoBanner({ image_url: data.image_url || "", alt_text: data.alt_text || "Novidade da Ótica Líder Brasil", href: data.href || "", active: Boolean(data.active), destination_type: data.destination_type || "none", destination_id: data.destination_id || "" });
   }
 
   async function uploadPromoBanner(file: File) {
@@ -900,7 +900,7 @@ export default function AdminDashboardPage() {
 
       {activeTab === "carrinhos" && (
         <section className="space-y-4">
-          {abandonedCarts.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhum carrinho salvo ainda.</div> : abandonedCarts.map((cart) => { const message = `Olá! Aqui é da Ótica Líder. 😊\n\nNotamos que você deixou estes itens na sua sacola:\n${cart.items.map((item) => `• ${item.name} — ${item.quantity} unidade(s)`).join("\n")}\n\nPodemos separar tudo para você e ajudar a finalizar seu pedido com segurança. Quer que eu reserve esses óculos?`; return <article key={cart.id} className="flex flex-col gap-4 rounded-2xl bg-brand-paper p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><input type="checkbox" checked={sentCartIds.includes(cart.id)} onChange={() => toggleSentCart(cart.id)} className="mt-1 h-5 w-5 shrink-0 accent-brand-gold" aria-label="Marcar mensagem enviada" /><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{cart.items.map((item) => item.name).join(" + ")}</h3><p className="mt-1 font-body text-xs text-brand-ink/55">{new Date(cart.created_at).toLocaleString("pt-BR")} · Total {formatBRL(Number(cart.total))}</p></div></div><a href={`https://wa.me/55${cart.whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start rounded-full bg-[#25D366] px-4 py-2.5 font-body text-xs font-semibold text-white"><MessageCircle size={15} /> {formatWhatsAppDigits(cart.whatsapp)}</a></article>; })}
+          {abandonedCarts.length === 0 ? <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-10 text-center font-body text-sm text-brand-ink/50">Nenhum carrinho salvo ainda.</div> : abandonedCarts.map((cart) => { const message = `Olá! Aqui é da Ótica Líder Brasil. 😊\n\nNotamos que você deixou estes itens na sua sacola:\n${cart.items.map((item) => `• ${item.name} — ${item.quantity} unidade(s)`).join("\n")}\n\nPodemos separar tudo para você e ajudar a finalizar seu pedido com segurança. Quer que eu reserve esses óculos?`; return <article key={cart.id} className="flex flex-col gap-4 rounded-2xl bg-brand-paper p-5 shadow-card sm:flex-row sm:items-center sm:justify-between"><div className="flex items-start gap-3"><input type="checkbox" checked={sentCartIds.includes(cart.id)} onChange={() => toggleSentCart(cart.id)} className="mt-1 h-5 w-5 shrink-0 accent-brand-gold" aria-label="Marcar mensagem enviada" /><div><h3 className="font-heading text-lg font-semibold text-brand-ink">{cart.items.map((item) => item.name).join(" + ")}</h3><p className="mt-1 font-body text-xs text-brand-ink/55">{new Date(cart.created_at).toLocaleString("pt-BR")} · Total {formatBRL(Number(cart.total))}</p></div></div><a href={`https://wa.me/55${cart.whatsapp}?text=${encodeURIComponent(message)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 self-start rounded-full bg-[#25D366] px-4 py-2.5 font-body text-xs font-semibold text-white"><MessageCircle size={15} /> {formatWhatsAppDigits(cart.whatsapp)}</a></article>; })}
         </section>
       )}
 

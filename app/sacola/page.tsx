@@ -211,7 +211,7 @@ export default function SacolaPage() {
   return (
     <>
       <div className="flex items-center justify-between bg-black px-4 py-3 sm:px-8">
-        <span className="font-body text-sm font-black uppercase tracking-[-0.03em] text-white sm:text-base">Ótica Líder</span>
+        <span className="font-heading text-lg font-bold tracking-[-0.04em] text-white sm:text-2xl">Ótica Líder Brasil</span>
         <span className="flex items-center gap-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-white sm:text-xs">
           Site seguro <Lock size={13} strokeWidth={2} />
         </span>
@@ -355,11 +355,11 @@ export default function SacolaPage() {
             {payment.method === "pix" ? "Pix à vista" : `Cartão de crédito · ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`}
           </div>
           <button onClick={handleCheckout} className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#079447] px-5 py-3.5 font-body text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-all duration-200 hover:bg-[#057c3b] active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>
-          <p className="mt-3 text-center font-body text-[10px] leading-4 text-brand-ink/60">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
-          <AbandonedCartSignup items={items} />
-          <Link href="/produtos" className="mt-4 block text-center font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink underline underline-offset-4 transition-colors hover:text-brand-gold">
+          <Link href="/produtos" className="mt-3 block text-center font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink/70 transition-colors hover:text-brand-gold">
             Comprar mais produtos
           </Link>
+          <p className="mt-3 text-center font-body text-[10px] leading-4 text-brand-ink/60">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
+          <AbandonedCartSignup items={items} />
         </aside>
       </div>
       {showCepLookup && <CepLookupModal onClose={() => setShowCepLookup(false)} onSelectCep={setCep} />}

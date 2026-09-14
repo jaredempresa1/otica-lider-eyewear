@@ -20,7 +20,7 @@ const piazzolla = Piazzolla({
 // É essa URL que faz a imagem de preview funcionar corretamente quando o link é
 // compartilhado no WhatsApp, Instagram etc.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://otica-lider-eyewear.vercel.app";
-const SITE_TITLE = "Ótica Líder Eyewear — Seu olhar merece uma boa moldura";
+const SITE_TITLE = "Ótica Líder Brasil — Seu olhar merece uma boa moldura";
 const SITE_DESCRIPTION =
   "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Região.";
 const OG_IMAGE = `${SITE_URL}/og-image.jpg`;
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
-    siteName: "Ótica Líder Eyewear",
+    siteName: "Ótica Líder Brasil",
     locale: "pt_BR",
     type: "website",
     images: [
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
         url: OG_IMAGE,
         width: 1200,
         height: 630,
-        alt: "Ótica Líder — Há 25 anos cuidando da visão",
+        alt: "Ótica Líder Brasil — Há 25 anos cuidando da visão",
       },
     ],
   },

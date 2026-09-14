@@ -38,7 +38,7 @@ export function buildWhatsAppOrderMessage(
 ): string {
   const lines: string[] = [];
 
-  lines.push("Olá! Gostaria de finalizar este pedido na Ótica Líder Eyewear:");
+  lines.push("Olá! Gostaria de finalizar este pedido na Ótica Líder Brasil:");
   lines.push("");
 
   let subtotal = 0;
@@ -77,7 +77,7 @@ export function buildWhatsAppOrderMessage(
   }
 
   lines.push("");
-  lines.push("A equipe da Ótica Líder costuma responder em até 1 minuto.");
+  lines.push("A equipe da Ótica Líder Brasil costuma responder em até 1 minuto.");
   lines.push("Aguardo o retorno para confirmar pagamento e entrega. Obrigado(a)!");
 
   return lines.join("\n");
@@ -105,7 +105,7 @@ export function buildWhatsAppMadeToOrderMessage(product: {
   const label = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
   const lines: string[] = [];
 
-  lines.push("Olá! Quero fazer um pedido deste óculos sob encomenda na Ótica Líder Eyewear:");
+  lines.push("Olá! Quero fazer um pedido deste óculos sob encomenda na Ótica Líder Brasil:");
   lines.push("");
   lines.push(`• ${label}${options.colorName ? ` — cor ${options.colorName}` : ""} — ${formatBRL(product.price)}`);
   if (options.payment) {
@@ -116,7 +116,7 @@ export function buildWhatsAppMadeToOrderMessage(product: {
     lines.push(`Vi que o prazo médio de entrega é ${options.leadTime.trim()}. Pode confirmar o pedido?`);
   } else {
   lines.push("");
-  lines.push("A equipe da Ótica Líder costuma responder em até 1 minuto.");
+  lines.push("A equipe da Ótica Líder Brasil costuma responder em até 1 minuto.");
   lines.push("Pode me confirmar o prazo médio de entrega e fechar o pedido?");
   }
 
@@ -132,11 +132,11 @@ export function buildWhatsAppInquiryMessage(product: {
   const label = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
   const lines: string[] = [];
 
-  lines.push("Olá! Vi este óculos na Ótica Líder Eyewear e queria fazer um pedido:");
+  lines.push("Olá! Vi este óculos na Ótica Líder Brasil e queria fazer um pedido:");
   lines.push("");
   lines.push(`• ${label}${options.colorName ? ` — cor ${options.colorName}` : ""} — ${formatBRL(product.price)}`);
   lines.push("");
-  lines.push("A equipe da Ótica Líder costuma responder em até 1 minuto.");
+  lines.push("A equipe da Ótica Líder Brasil costuma responder em até 1 minuto.");
   lines.push(
     options.wholeProductSoldOut
       ? "Vi que está esgotado no momento. Vocês têm previsão de reposição ou conseguem separar uma unidade para mim?"

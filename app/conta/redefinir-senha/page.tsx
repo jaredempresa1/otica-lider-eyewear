@@ -59,7 +59,7 @@ export default function RedefinirSenhaPage() {
   return (
     <main className="section-shell flex min-h-[70vh] items-center justify-center py-16">
       <div className="w-full max-w-sm rounded-2xl border border-brand-ink/10 bg-brand-paper p-8 shadow-card">
-        <p className="eyebrow text-center">Ótica Líder Eyewear</p>
+        <p className="eyebrow text-center">Ótica Líder Brasil</p>
         <h1 className="mt-2 text-center font-heading text-2xl font-semibold text-brand-ink">Criar nova senha</h1>
 
         {invalidLink ? (

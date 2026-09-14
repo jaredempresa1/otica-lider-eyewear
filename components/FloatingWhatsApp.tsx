@@ -20,7 +20,7 @@ export default function FloatingWhatsApp() {
   if (!number) return null;
   const digits = number.replace(/\D/g, "");
   return (
-    <a href={`https://wa.me/${digits}?text=${encodeURIComponent("Olá! Gostaria de falar com a Ótica Líder.")}`} target="_blank" rel="noreferrer" aria-label="Falar com a Ótica Líder pelo WhatsApp" className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-soft transition-transform hover:scale-105 sm:bottom-6 sm:right-6">
+    <a href={`https://wa.me/${digits}?text=${encodeURIComponent("Olá! Gostaria de falar com a Ótica Líder Brasil.")}`} target="_blank" rel="noreferrer" aria-label="Falar com a Ótica Líder Brasil pelo WhatsApp" className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-soft transition-transform hover:scale-105 sm:bottom-6 sm:right-6">
       <WhatsAppGlyph size={25} />
       <span className="sr-only">WhatsApp {formatWhatsAppNumber(number)}</span>
     </a>

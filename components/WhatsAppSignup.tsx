@@ -145,7 +145,7 @@ export default function WhatsAppSignup() {
 
         <p className="mt-8 max-w-2xl font-body text-xs leading-5 text-brand-ink/55">
           Ao cadastrar o seu WhatsApp, você concorda em receber novidades e promoções exclusivas,
-          novas coleções e campanhas da Ótica Líder. Se mudar de ideia, você pode pedir para sair a
+          novas coleções e campanhas da Ótica Líder Brasil. Se mudar de ideia, você pode pedir para sair a
           qualquer momento.
         </p>
       </div>

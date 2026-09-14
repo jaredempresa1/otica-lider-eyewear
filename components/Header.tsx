@@ -90,10 +90,10 @@ export default function Header() {
           {menuOpen ? <X size={19} strokeWidth={1.8} /> : <Menu size={21} strokeWidth={1.8} />}
         </button>
 
-        <Link href="/" className="group flex min-w-0 shrink items-center" onClick={closeMenu} aria-label="Ótica Líder Eyewear — início">
+        <Link href="/" className="group flex min-w-0 shrink items-center" onClick={closeMenu} aria-label="Ótica Líder Brasil — início">
           <Image
             src="/logo.png"
-            alt="Ótica Líder Eyewear"
+            alt="Ótica Líder Brasil"
             width={496}
             height={198}
             priority

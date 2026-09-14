@@ -37,7 +37,7 @@ type TokenResponse = {
 };
 
 function userAgent(): string {
-  return process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)";
+  return process.env.MELHOR_ENVIO_USER_AGENT || "otica lider brasil (contato@oticalider.com.br)";
 }
 
 async function getStoredToken(): Promise<StoredToken | null> {

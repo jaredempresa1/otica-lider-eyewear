@@ -42,7 +42,7 @@ function normalizeDeliveryTime(value: unknown): number {
 
 export async function POST(request: Request) {
   const token = await getValidMelhorEnvioToken();
-  const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)";
+  const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || "otica lider brasil (contato@oticalider.com.br)";
 
   if (!token) {
     return NextResponse.json(
