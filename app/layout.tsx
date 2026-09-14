@@ -3,6 +3,7 @@ import { Piazzolla } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import { AuthModalProvider } from "@/components/AuthModal";
+import { CartDrawerProvider } from "@/components/CartDrawer";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
@@ -58,14 +59,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-body">
         <AuthModalProvider>
           <CartProvider>
-            <div className="sticky top-0 z-50">
-              <AnnouncementBar />
-              <Header />
-              <CouponBanner />
-            </div>
-            {children}
-            <Footer />
-            <FloatingWhatsApp />
+            <CartDrawerProvider>
+              <div className="sticky top-0 z-50">
+                <AnnouncementBar />
+                <Header />
+                <CouponBanner />
+              </div>
+              {children}
+              <Footer />
+              <FloatingWhatsApp />
+            </CartDrawerProvider>
           </CartProvider>
         </AuthModalProvider>
       </body>

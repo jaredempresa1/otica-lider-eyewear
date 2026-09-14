@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Check, CreditCard, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Lock, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
@@ -18,6 +18,7 @@ import FreeShippingBar from "@/components/FreeShippingBar";
 import { supabase } from "@/lib/supabaseClient";
 import { EMPTY_ADDRESS, getMyAddress, saveMyAddress, SavedAddress } from "@/lib/address";
 import { lookupCep } from "@/lib/viacep";
+import CepLookupModal from "@/components/CepLookupModal";
 
 const INSTALLMENT_OPTIONS = Array.from({ length: 10 }, (_, index) => index + 1);
 
@@ -39,6 +40,7 @@ export default function SacolaPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [cepInvalid, setCepInvalid] = useState(false);
   const [checkingAddress, setCheckingAddress] = useState(false);
+  const [showCepLookup, setShowCepLookup] = useState(false);
   const skipNextClearRef = useRef(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
@@ -206,7 +208,14 @@ export default function SacolaPage() {
   }
 
   return (
-    <main className="section-shell py-8 sm:py-14">
+    <>
+      <div className="flex items-center justify-between bg-brand-ink px-5 py-3 sm:px-8">
+        <span className="font-heading text-sm font-bold uppercase tracking-[0.08em] text-brand-paper sm:text-base">Ótica Líder</span>
+        <span className="flex items-center gap-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper/80 sm:text-xs">
+          Site seguro <Lock size={13} strokeWidth={2} />
+        </span>
+      </div>
+      <main className="section-shell py-8 sm:py-14">
       <Link href="/produtos" className="inline-flex items-center gap-2 font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold">
         <ArrowLeft size={15} /> Continuar comprando
       </Link>
@@ -216,7 +225,7 @@ export default function SacolaPage() {
           <div className="flex items-end justify-between border-b border-brand-ink/10 pb-5">
             <div>
               <p className="eyebrow">Seu pedido</p>
-              <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Meu carrinho</h1>
+              <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">Sacola</h1>
             </div>
             <span className="font-body text-[13px] text-brand-ink/50">{totalItems} {totalItems === 1 ? "item" : "itens"}</span>
           </div>
@@ -278,6 +287,7 @@ export default function SacolaPage() {
 		            </div>
               <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper" htmlFor="cep">Calcule pelo CEP</label>
               <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-paper/20 bg-brand-paper/10 px-4 py-3 font-body text-[15px] text-brand-paper outline-none placeholder:text-brand-paper/50 focus:border-brand-gold" />
+              <button type="button" onClick={() => setShowCepLookup(true)} className="mt-1.5 font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/50 underline-offset-4 hover:text-brand-paper">Não sei meu CEP</button>
               {loggedIn && <p className="mt-1.5 font-body text-[11px] leading-4 text-brand-paper/55">Preenchido automaticamente com o endereço da sua conta.</p>}
               {cepInvalid && <p className="mt-2 font-body text-[13px] font-semibold leading-5 text-red-400">CEP inválido. Confira o número e tente de novo.</p>}
               {!cepInvalid && (checkingShipping || checkingAddress) && <p className="mt-2 font-body text-[13px] leading-5 text-brand-paper/70 sm:text-[14px]">Calculando frete para esse CEP…</p>}
@@ -351,6 +361,8 @@ export default function SacolaPage() {
           <AbandonedCartSignup items={items} />
         </aside>
       </div>
-    </main>
+      {showCepLookup && <CepLookupModal onClose={() => setShowCepLookup(false)} onSelectCep={setCep} />}
+      </main>
+    </>
   );
 }

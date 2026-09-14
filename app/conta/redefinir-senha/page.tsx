@@ -42,7 +42,11 @@ export default function RedefinirSenhaPage() {
     setLoading(false);
 
     if (error) {
-      setError("Não deu pra atualizar a senha agora. Peça um novo link e tente de novo.");
+      if (error.message.toLowerCase().includes("different from the old password")) {
+        setError("A nova senha precisa ser diferente da senha atual. Escolha outra.");
+      } else {
+        setError("Não deu pra atualizar a senha agora. Peça um novo link e tente de novo.");
+      }
       return;
     }
 
