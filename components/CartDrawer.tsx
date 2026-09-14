@@ -68,8 +68,8 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
               {items.map((item) => (
                 <li key={`${item.productId}-${item.colorName}`} className="flex gap-3 border-b border-brand-ink/10 pb-4 last:border-none">
                   {item.image && (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-ink/5">
-                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="80px" />
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/40">
+                      <Image src={item.image} alt={item.name} fill className="object-contain p-2 mix-blend-multiply" sizes="80px" />
                     </div>
                   )}
                   <div className="flex flex-1 flex-col gap-1.5">
