@@ -194,6 +194,23 @@ export default function AdminDashboardPage() {
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
   const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes">("produtos");
+  const [shippingConnection, setShippingConnection] = useState<"checking" | "ok" | "down" | "unknown">("unknown");
+
+  async function checkShippingConnection() {
+    setShippingConnection("checking");
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!accessToken) { setShippingConnection("unknown"); return; }
+      const response = await fetch("/api/admin/shipping-status", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const data = await response.json().catch(() => ({}));
+      setShippingConnection(response.ok && data.connected ? "ok" : "down");
+    } catch {
+      setShippingConnection("unknown");
+    }
+  }
 
   useEffect(() => {
     try { setSentCartIds(JSON.parse(localStorage.getItem("otica-sent-cart-ids") || "[]")); } catch { setSentCartIds([]); }
@@ -761,7 +778,10 @@ export default function AdminDashboardPage() {
         ] as const).map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => {
+              setActiveTab(tab.key);
+              if (tab.key === "frete" && shippingConnection === "unknown") void checkShippingConnection();
+            }}
             className={`border-b-2 px-4 py-3 font-body text-sm font-semibold transition-colors ${
               activeTab === tab.key ? "border-brand-gold text-brand-ink" : "border-transparent text-brand-ink/45 hover:text-brand-ink"
             }`}
@@ -819,6 +839,27 @@ export default function AdminDashboardPage() {
 
       {activeTab === "frete" && (
         <section className="max-w-2xl rounded-[1.5rem] bg-brand-paper p-6 shadow-card sm:p-8">
+          <div className={`mb-6 flex items-center gap-3 rounded-xl px-4 py-3 ${
+            shippingConnection === "ok" ? "bg-green-50 text-green-800" :
+            shippingConnection === "down" ? "bg-red-50 text-red-700" :
+            "bg-brand-cream text-brand-ink/60"
+          }`}>
+            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+              shippingConnection === "ok" ? "bg-green-600" :
+              shippingConnection === "down" ? "bg-red-600" :
+              shippingConnection === "checking" ? "animate-pulse bg-brand-ink/40" :
+              "bg-brand-ink/30"
+            }`} />
+            <p className="font-body text-sm font-medium">
+              {shippingConnection === "ok" && "Cotação automática de frete funcionando normalmente."}
+              {shippingConnection === "down" && "Cotação automática indisponível — os clientes estão vendo \"confirmar pelo WhatsApp\" no lugar do preço do frete. Pode ser hora de reautorizar o Melhor Envio (veja o README)."}
+              {shippingConnection === "checking" && "Verificando conexão com o Melhor Envio..."}
+              {shippingConnection === "unknown" && "Status ainda não verificado."}
+            </p>
+            <button type="button" onClick={() => void checkShippingConnection()} className="ml-auto shrink-0 font-body text-xs font-semibold uppercase tracking-[0.08em] text-brand-ink/50 hover:text-brand-gold">
+              Verificar agora
+            </button>
+          </div>
           <p className="eyebrow">Embalagem padrão</p>
           <h2 className="mt-2 font-heading text-2xl font-semibold text-brand-ink">Peso e dimensões para o cálculo</h2>
           <p className="mt-2 font-body text-sm leading-6 text-brand-ink/55">Informe as medidas externas da caixa fechada, em centímetros, e o peso total do pacote, em quilogramas.</p>
