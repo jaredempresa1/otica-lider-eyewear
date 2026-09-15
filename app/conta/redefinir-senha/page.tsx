@@ -3,6 +3,8 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { passwordStrength } from "@/lib/passwordStrength";
+import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
 
 export default function RedefinirSenhaPage() {
   const router = useRouter();
@@ -28,8 +30,8 @@ export default function RedefinirSenhaPage() {
     event.preventDefault();
     setError(null);
 
-    if (password.length < 6) {
-      setError("A senha precisa ter pelo menos 6 caracteres.");
+    if (!passwordStrength(password).meetsMinimum) {
+      setError("Sua senha precisa ter pelo menos 6 caracteres.");
       return;
     }
     if (password !== confirmPassword) {
@@ -73,6 +75,7 @@ export default function RedefinirSenhaPage() {
             <div>
               <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Nova senha</label>
               <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold" />
+              <PasswordStrengthMeter password={password} />
             </div>
             <div>
               <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Confirme a nova senha</label>
