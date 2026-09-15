@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
   return (
     <main className="mx-auto flex max-w-sm flex-col justify-center px-5 py-24">
       <h1 className="mb-6 text-center font-heading text-2xl font-bold text-brand-black">
-        Painel Ótica Líder
+        Painel Ótica Líder Brasil
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">

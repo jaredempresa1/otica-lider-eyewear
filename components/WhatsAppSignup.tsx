@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
+import { hasSupabaseConfig } from "@/lib/supabaseClient";
 
 type Gender = "masculino" | "feminino";
 type Status = "idle" | "loading" | "success" | "error";
@@ -51,13 +51,16 @@ export default function WhatsAppSignup() {
       return;
     }
 
-    const { data: existing } = await supabase.from("leads").select("id").eq("whatsapp", digits).limit(1);
-    if (existing && existing.length > 0) { setStatus("success"); return; }
-    const { error } = await supabase.from("leads").insert({ name: name.trim(), whatsapp: digits, gender });
+    const response = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim(), whatsapp: digits, gender }),
+    });
 
-    if (error) {
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
       setStatus("error");
-      setErrorMessage("Não foi possível concluir o cadastro. Tente novamente.");
+      setErrorMessage(data.error || "Não foi possível concluir o cadastro. Tente novamente.");
       return;
     }
 
@@ -145,7 +148,7 @@ export default function WhatsAppSignup() {
 
         <p className="mt-8 max-w-2xl font-body text-xs leading-5 text-brand-ink/55">
           Ao cadastrar o seu WhatsApp, você concorda em receber novidades e promoções exclusivas,
-          novas coleções e campanhas da Ótica Líder. Se mudar de ideia, você pode pedir para sair a
+          novas coleções e campanhas da Ótica Líder Brasil. Se mudar de ideia, você pode pedir para sair a
           qualquer momento.
         </p>
       </div>
