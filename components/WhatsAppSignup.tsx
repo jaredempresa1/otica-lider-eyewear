@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
+import { hasSupabaseConfig } from "@/lib/supabaseClient";
 
 type Gender = "masculino" | "feminino";
 type Status = "idle" | "loading" | "success" | "error";
@@ -51,13 +51,16 @@ export default function WhatsAppSignup() {
       return;
     }
 
-    const { data: existing } = await supabase.from("leads").select("id").eq("whatsapp", digits).limit(1);
-    if (existing && existing.length > 0) { setStatus("success"); return; }
-    const { error } = await supabase.from("leads").insert({ name: name.trim(), whatsapp: digits, gender });
+    const response = await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim(), whatsapp: digits, gender }),
+    });
 
-    if (error) {
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
       setStatus("error");
-      setErrorMessage("Não foi possível concluir o cadastro. Tente novamente.");
+      setErrorMessage(data.error || "Não foi possível concluir o cadastro. Tente novamente.");
       return;
     }
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, MessageCircle } from "lucide-react";
-import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
+import { hasSupabaseConfig } from "@/lib/supabaseClient";
 import { CartItem } from "@/types/product";
 
 function formatWhatsApp(value: string) {
@@ -37,18 +37,22 @@ export default function AbandonedCartSignup({ items }: { items: CartItem[] }) {
       return;
     }
     setStatus("loading");
-    const { data: existing } = await supabase.from("abandoned_carts").select("id").eq("whatsapp", digits).limit(1);
-    if (existing && existing.length > 0) { setStatus("success"); setMessage("Já salvamos sua seleção. Nossa equipe pode separar os óculos para você."); return; }
-    const { error } = await supabase.from("abandoned_carts").insert({
-      whatsapp: digits,
-      items: items.map(({ productId, slug, name, colorName, quantity, price }) => ({ productId, slug, name, colorName, quantity, price })),
-      total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    const response = await fetch("/api/abandoned-carts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        whatsapp: digits,
+        items: items.map(({ productId, slug, name, colorName, quantity, price }) => ({ productId, slug, name, colorName, quantity, price })),
+      }),
     });
-    if (error) {
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
       setStatus("error");
-      setMessage("Não foi possível salvar. Tente novamente.");
+      setMessage(data.error || "Não foi possível salvar. Tente novamente.");
       return;
     }
+    const data = await response.json().catch(() => ({}));
+    if (data.alreadySaved) { setStatus("success"); setMessage("Já salvamos sua seleção. Nossa equipe pode separar os óculos para você."); return; }
     localStorage.setItem("otica-abandoned-last-submit", String(Date.now()));
     setStatus("success");
     setMessage("Perfeito! Vamos separar sua seleção para você.");
