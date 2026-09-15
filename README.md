@@ -40,6 +40,24 @@ npm install
    - **Project URL**
    - **anon public key**
 
+### 2.1 E-mails de confirmação e recuperação
+
+O site consulta a existência do e-mail em uma rota server-side usando
+`SUPABASE_SERVICE_ROLE_KEY`. Essa variável precisa estar preenchida também na
+Vercel; ela nunca deve receber o prefixo `NEXT_PUBLIC_` nem ser usada em
+componentes do navegador.
+
+Os templates prontos estão em `supabase/email-templates/confirmation.html` e
+`supabase/email-templates/recovery.html`. No painel do Supabase, abra
+**Authentication → Email Templates**, cole o conteúdo de cada arquivo em
+**Confirm signup** e **Reset password**, respectivamente, e salve.
+
+Para usar o Resend, configure no Supabase em **Project Settings →
+Authentication → SMTP Settings** o host SMTP do Resend, a porta recomendada,
+seu usuário SMTP, a API key do Resend como senha e um endereço remetente de um
+domínio verificado. A imagem da logo já está apontada nos templates para
+`https://www.oticaliderbrasil.com.br/logo-email.png`.
+
 ## 3. Configurar as variáveis de ambiente
 
 Duplique o arquivo `.env.example`, renomeie a cópia para `.env.local` e

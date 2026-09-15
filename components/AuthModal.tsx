@@ -51,6 +51,21 @@ function SecureBar() {
   );
 }
 
+async function checkEmailExists(email: string): Promise<boolean | null> {
+  try {
+    const response = await fetch("/api/auth/email-status", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (!response.ok) return null;
+    const result = (await response.json()) as { exists?: boolean };
+    return result.exists === true;
+  } catch {
+    return null;
+  }
+}
+
 function AuthModal({ view, onClose, onSwitchView }: { view: Exclude<ModalView, "closed">; onClose: () => void; onSwitchView: (view: ModalView) => void }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/60 p-0 sm:items-center sm:p-4" onClick={onClose}>
@@ -82,6 +97,7 @@ function LoginForm({ onClose, onSwitchView }: { onClose: () => void; onSwitchVie
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -107,10 +123,28 @@ function LoginForm({ onClose, onSwitchView }: { onClose: () => void; onSwitchVie
       return;
     }
     setError(null);
-    await supabase.auth.resetPasswordForEmail(email.trim(), {
+    setNotice(null);
+    setForgotLoading(true);
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const exists = await checkEmailExists(normalizedEmail);
+    if (exists === false) {
+      setForgotLoading(false);
+      setError("Não encontramos uma conta com esse e-mail.");
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
       redirectTo: `${window.location.origin}/conta/redefinir-senha`,
     });
-    setNotice("Se esse e-mail tiver uma conta, enviamos um link para redefinir a senha.");
+    setForgotLoading(false);
+
+    if (error) {
+      setError("Não foi possível enviar o link agora. Tente novamente em instantes.");
+      return;
+    }
+
+    setNotice("Enviamos um link para redefinir sua senha. Verifique seu e-mail.");
   }
 
   return (
@@ -126,7 +160,7 @@ function LoginForm({ onClose, onSwitchView }: { onClose: () => void; onSwitchVie
         </div>
 
         <button type="button" onClick={handleForgotPassword} className="-mt-1 self-end font-body text-xs text-brand-ink/60 underline decoration-brand-ink/30 underline-offset-4 hover:text-brand-gold">
-          Esqueci minha senha
+          {forgotLoading ? "Enviando link..." : "Esqueci minha senha"}
         </button>
 
         {error && <p className="font-body text-sm text-red-600">{error}</p>}
@@ -177,12 +211,26 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
     }
 
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const exists = await checkEmailExists(normalizedEmail);
+    if (exists === true) {
+      setLoading(false);
+      setError("Esse e-mail já tem conta, tente entrar.");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { full_name: fullName } } });
 
     setLoading(false);
 
     if (error) {
-      setError(error.message.includes("already registered") ? "Esse e-mail já tem uma conta. Tente entrar." : "Não deu pra criar sua conta agora. Tente de novo em instantes.");
+      setError(error.message.toLowerCase().includes("already registered") ? "Esse e-mail já tem conta, tente entrar." : "Não deu pra criar sua conta agora. Tente de novo em instantes.");
+      return;
+    }
+
+    // Com confirmação de e-mail ativa, o Supabase pode ocultar a duplicidade.
+    if (!data.session && data.user && data.user.identities?.length === 0) {
+      setError("Esse e-mail já tem conta, tente entrar.");
       return;
     }
 
@@ -192,7 +240,7 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
       return;
     }
 
-    setSuccess("Conta criada! Verifique seu e-mail (" + email + ") e clique no link de confirmação para poder entrar.");
+    setSuccess("Conta criada! Verifique seu e-mail (" + normalizedEmail + ") e clique no link de confirmação para poder entrar.");
   }
 
   return (
