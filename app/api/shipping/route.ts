@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabaseClient";
 import { getValidMelhorEnvioToken } from "@/lib/melhorEnvio";
-import { isRateLimited } from "@/lib/rateLimit";
 
 const ORIGIN_POSTAL_CODE = "58043320";
 const MELHOR_ENVIO_URL = "https://melhorenvio.com.br/api/v2/me/shipment/calculate";
@@ -42,21 +41,14 @@ function normalizeDeliveryTime(value: unknown): number {
 }
 
 export async function POST(request: Request) {
-  // Limite generoso pra não incomodar cliente real comparando frete, mas
-  // que impede um script de ficar consultando sem parar (isso consome a
-  // cota da sua conta no Melhor Envio).
-  if (isRateLimited(request, "shipping", { limit: 20, windowMs: 60_000 })) {
-    return NextResponse.json({ error: "Muitas requisições. Tente novamente em instantes." }, { status: 429 });
-  }
-
   const token = await getValidMelhorEnvioToken();
-  const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || "otica lider brasil (contato@oticalider.com.br)";
+  const userAgent = process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)";
 
   if (!token) {
     return NextResponse.json(
       {
         error:
-          "Cotação automática indisponível: autorize o Melhor Envio uma vez em /api/melhor-envio/authorize?secret=SUA_SENHA (ver README).",
+          "Cotação automática indisponível: autorize o Melhor Envio uma vez em /api/melhor-envio/authorize.",
       },
       { status: 503 },
     );
@@ -70,17 +62,7 @@ export async function POST(request: Request) {
   }
 
   const postalCode = cleanPostalCode(body.postalCode || "");
-  const itemsValid = Array.isArray(body.items) &&
-    body.items.length > 0 &&
-    body.items.length <= 50 &&
-    body.items.every(
-      (item) =>
-        item && typeof item.id === "string" && item.id.length <= 100 &&
-        Number.isFinite(Number(item.price)) && Number(item.price) >= 0 && Number(item.price) <= 100_000 &&
-        Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0 && Number(item.quantity) <= 20,
-    );
-
-  if (postalCode.length !== 8 || !itemsValid) {
+  if (postalCode.length !== 8 || !body.items?.length) {
     return NextResponse.json({ error: "Informe um CEP de destino e ao menos um item." }, { status: 400 });
   }
 
@@ -97,11 +79,11 @@ export async function POST(request: Request) {
     weight: Number(packageSettings.weight),
   } : DEFAULT_PACKAGE;
 
-  const products = body.items!.map((item) => ({
+  const products = body.items.map((item) => ({
     id: item.id,
     ...packageSize,
-    insurance_value: Number(Number(item.price).toFixed(2)),
-    quantity: Math.max(1, Math.round(Number(item.quantity))),
+    insurance_value: Number(item.price.toFixed(2)),
+    quantity: Math.max(1, item.quantity),
   }));
 
   try {

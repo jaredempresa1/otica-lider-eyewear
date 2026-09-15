@@ -12,7 +12,7 @@ export default function PromoBanner({ banner }: { banner: PromoBannerData | null
 
   const content = (
     <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-brand-ink shadow-card lg:mx-auto lg:max-w-5xl">
-      <Image src={banner.image_url} alt={banner.alt_text || "Novidade da Ótica Líder Brasil"} fill className="object-cover" sizes="100vw" />
+      <Image src={banner.image_url} alt={banner.alt_text || "Novidade da Ótica Líder"} fill className="object-cover" sizes="100vw" />
     </div>
   );
 

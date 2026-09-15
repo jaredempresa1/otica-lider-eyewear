@@ -95,18 +95,13 @@ de acesso se renova sozinho para sempre — você não precisa voltar aqui.
 3. Copie o **Client ID** e o **Client Secret** do aplicativo criado e
    preencha `MELHOR_ENVIO_CLIENT_ID` e `MELHOR_ENVIO_CLIENT_SECRET` no
    `.env.local` (e depois na Vercel).
-4. Invente uma senha longa e aleatória (só pra você) e preencha
-   `MELHOR_ENVIO_SETUP_SECRET` com ela no `.env.local` e na Vercel. Ela
-   existe só pra impedir que qualquer pessoa de fora consiga acessar a
-   página de autorização — sem ela, essa rota fica bloqueada.
-5. Publique o site na Vercel com essas variáveis já configuradas (ver
+4. Publique o site na Vercel com essas variáveis já configuradas (ver
    seção 7 abaixo).
-6. Com o site no ar, acesse **uma única vez**
-   `https://SEU-DOMINIO/api/melhor-envio/authorize?secret=SUA_SENHA_DO_PASSO_4`,
-   faça login no Melhor Envio e autorize o aplicativo. Essa é a única etapa
-   manual de todo o processo: depois dela, o token é salvo e renovado
-   sozinho, para sempre. Se precisar reautorizar no futuro (ex.: trocar de
-   conta do Melhor Envio), use sempre essa mesma URL com a senha.
+5. Com o site no ar, acesse **uma única vez**
+   `https://SEU-DOMINIO/api/melhor-envio/callback` — na verdade acesse
+   `https://SEU-DOMINIO/api/melhor-envio/authorize`, faça login no Melhor
+   Envio e autorize o aplicativo. Essa é a única etapa manual de todo o
+   processo: depois dela, o token é salvo e renovado sozinho, para sempre.
 
 Se você pular esta seção, o site continua funcionando normalmente — só
 a cotação automática de frete fica indisponível, e o cliente é orientado

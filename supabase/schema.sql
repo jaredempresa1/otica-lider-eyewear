@@ -300,11 +300,13 @@ create policy "Qualquer visitante pode registrar clique" on product_clicks for i
 drop policy if exists "Somente logados podem ver cliques" on product_clicks;
 create policy "Somente logados podem ver cliques" on product_clicks for select to authenticated using (is_admin());
 
--- Endereços de entrega salvos na conta do cliente. Cada usuário pode ter
--- várias opções e uma delas pode ser marcada como endereço principal.
+-- Endereço de entrega salvo na conta do cliente (auto-preenche CEP e
+-- endereço completo da próxima vez que ele entrar logado, como faz a
+-- Renner, a Amazon etc.). Um endereço por cliente por enquanto — dá pra
+-- evoluir para vários endereços depois se precisar.
 create table if not exists enderecos (
   id uuid primary key default uuid_generate_v4(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade unique,
   cep text not null,
   logradouro text default '',
   numero text default '',
@@ -312,13 +314,8 @@ create table if not exists enderecos (
   bairro text default '',
   cidade text default '',
   estado text default '',
-  is_default boolean not null default false,
   updated_at timestamp with time zone default now()
 );
-
-alter table enderecos drop constraint if exists enderecos_user_id_key;
-alter table enderecos add column if not exists is_default boolean not null default false;
-create index if not exists enderecos_user_id_idx on enderecos(user_id);
 
 alter table enderecos enable row level security;
 
@@ -341,9 +338,3 @@ create policy "Cliente atualiza o próprio endereço"
   to authenticated
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
-
-drop policy if exists "Cliente exclui o próprio endereço" on enderecos;
-create policy "Cliente exclui o próprio endereço"
-  on enderecos for delete
-  to authenticated
-  using (auth.uid() = user_id);

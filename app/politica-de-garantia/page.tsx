@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Garantia — Ótica Líder Brasil",
+  title: "Política de Garantia — Ótica Líder Eyewear",
   description: "Conheça as condições de garantia dos óculos de sol da Ótica Líder Brasil.",
 };
 

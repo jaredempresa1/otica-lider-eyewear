@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "./CartContext";
 import { useAuthModal } from "./AuthModal";
-import { useCartDrawer } from "./CartDrawer";
 import { supabase } from "@/lib/supabaseClient";
 import { QUICK_FILTERS } from "@/lib/filters";
 import FaceIcon, { FaceShape } from "./icons/FaceIcon";
@@ -36,7 +35,6 @@ export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
   const { openLogin } = useAuthModal();
-  const { open: openCart } = useCartDrawer();
   const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -90,10 +88,10 @@ export default function Header() {
           {menuOpen ? <X size={19} strokeWidth={1.8} /> : <Menu size={21} strokeWidth={1.8} />}
         </button>
 
-        <Link href="/" className="group flex min-w-0 shrink items-center" onClick={closeMenu} aria-label="Ótica Líder Brasil — início">
+        <Link href="/" className="group flex min-w-0 shrink items-center" onClick={closeMenu} aria-label="Ótica Líder Eyewear — início">
           <Image
             src="/logo.png"
-            alt="Ótica Líder Brasil"
+            alt="Ótica Líder Eyewear"
             width={496}
             height={198}
             priority
@@ -193,12 +191,8 @@ export default function Header() {
             {searchOpen ? <X size={18} strokeWidth={1.8} /> : <Search size={18} strokeWidth={1.8} />}
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              closeMenu();
-              openCart();
-            }}
+          <Link
+            href="/sacola"
             className="relative flex h-10 shrink-0 items-center gap-1 rounded-full border border-brand-ink/10 px-2.5 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:gap-2.5 sm:px-5"
             aria-label="Abrir carrinho"
           >
@@ -212,7 +206,7 @@ export default function Header() {
                 {totalItems}
               </span>
             )}
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -246,16 +240,9 @@ export default function Header() {
             <Link href="/produtos" onClick={closeMenu}>
               Coleção completa
             </Link>
-            <button
-              type="button"
-              onClick={() => {
-                closeMenu();
-                openCart();
-              }}
-              className="text-left"
-            >
+            <Link href="/sacola" onClick={closeMenu}>
               Meu carrinho {totalItems > 0 ? `(${totalItems})` : ""}
-            </button>
+            </Link>
             {loggedIn ? (
               <Link href="/conta" onClick={closeMenu} className="flex items-center gap-2.5">
                 <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Minha conta

@@ -3,8 +3,6 @@
 import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { passwordStrength } from "@/lib/passwordStrength";
-import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
 
 export default function RedefinirSenhaPage() {
   const router = useRouter();
@@ -30,8 +28,8 @@ export default function RedefinirSenhaPage() {
     event.preventDefault();
     setError(null);
 
-    if (!passwordStrength(password).meetsMinimum) {
-      setError("Sua senha precisa ter pelo menos 6 caracteres.");
+    if (password.length < 6) {
+      setError("A senha precisa ter pelo menos 6 caracteres.");
       return;
     }
     if (password !== confirmPassword) {
@@ -44,11 +42,7 @@ export default function RedefinirSenhaPage() {
     setLoading(false);
 
     if (error) {
-      if (error.message.toLowerCase().includes("different from the old password")) {
-        setError("A nova senha precisa ser diferente da senha atual. Escolha outra.");
-      } else {
-        setError("Não deu pra atualizar a senha agora. Peça um novo link e tente de novo.");
-      }
+      setError("Não deu pra atualizar a senha agora. Peça um novo link e tente de novo.");
       return;
     }
 
@@ -61,7 +55,7 @@ export default function RedefinirSenhaPage() {
   return (
     <main className="section-shell flex min-h-[70vh] items-center justify-center py-16">
       <div className="w-full max-w-sm rounded-2xl border border-brand-ink/10 bg-brand-paper p-8 shadow-card">
-        <p className="eyebrow text-center">Ótica Líder Brasil</p>
+        <p className="eyebrow text-center">Ótica Líder Eyewear</p>
         <h1 className="mt-2 text-center font-heading text-2xl font-semibold text-brand-ink">Criar nova senha</h1>
 
         {invalidLink ? (
@@ -75,7 +69,6 @@ export default function RedefinirSenhaPage() {
             <div>
               <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Nova senha</label>
               <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold" />
-              <PasswordStrengthMeter password={password} />
             </div>
             <div>
               <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Confirme a nova senha</label>

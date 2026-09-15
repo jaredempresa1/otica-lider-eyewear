@@ -5,8 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Lock, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { passwordStrength } from "@/lib/passwordStrength";
-import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
 import WhatsAppSignup from "@/components/WhatsAppSignup";
 
 type ModalView = "closed" | "login" | "cadastro";
@@ -170,8 +168,8 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
       return;
     }
 
-    if (!passwordStrength(password).meetsMinimum) {
-      setError("Sua senha precisa ter pelo menos 6 caracteres.");
+    if (password.length < 6) {
+      setError("A senha precisa ter pelo menos 6 caracteres.");
       setLoading(false);
       return;
     }
@@ -218,11 +216,10 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
           <div>
             <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Senha</label>
             <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold" />
-            <PasswordStrengthMeter password={password} />
           </div>
 
           <label className="flex items-start gap-2.5 font-body text-xs leading-5 text-brand-ink/70">
-            <input type="checkbox" required checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-ink" />
+            <input type="checkbox" checked={acceptedPrivacy} onChange={(e) => setAcceptedPrivacy(e.target.checked)} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-ink" />
             <span>
               Estou ciente da{" "}
               <Link href="/politica-de-privacidade" onClick={onClose} className="font-semibold text-brand-ink underline decoration-brand-gold underline-offset-4">

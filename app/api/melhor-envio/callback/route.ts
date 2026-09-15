@@ -3,7 +3,6 @@ import { hasSupabaseAdminConfig } from "@/lib/supabaseAdmin";
 import { saveMelhorEnvioToken } from "@/lib/melhorEnvio";
 
 const CALLBACK_URL = "https://otica-lider-eyewear.vercel.app/api/melhor-envio/callback";
-const STATE_COOKIE = "me_oauth_state";
 
 function htmlPage(title: string, body: string, status: number) {
   return new NextResponse(
@@ -16,8 +15,6 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const error = url.searchParams.get("error");
-  const returnedState = url.searchParams.get("state");
-  const expectedState = request.headers.get("cookie")?.match(new RegExp(`${STATE_COOKIE}=([^;]+)`))?.[1];
 
   if (error) {
     return htmlPage(
@@ -32,18 +29,6 @@ export async function GET(request: Request) {
       "Callback do Melhor Envio",
       "<p>Esta URL está ativa e aguardando uma autorização válida.</p>",
       200,
-    );
-  }
-
-  // Segurança: só aceita esse código se ele pertencer à autorização que
-  // ESTA sessão iniciou em /authorize (mesmo "state" salvo no cookie).
-  // Isso impede que alguém induza o site a aceitar uma autorização iniciada
-  // por outra pessoa.
-  if (!expectedState || !returnedState || expectedState !== returnedState) {
-    return htmlPage(
-      "Autorização não confirmada",
-      "<p>Não foi possível confirmar que esta autorização foi iniciada por você. Comece de novo pelo link de autorização.</p>",
-      400,
     );
   }
 
@@ -72,7 +57,7 @@ export async function GET(request: Request) {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
-        "User-Agent": process.env.MELHOR_ENVIO_USER_AGENT || "otica lider brasil (contato@oticalider.com.br)",
+        "User-Agent": process.env.MELHOR_ENVIO_USER_AGENT || "Otica Lider Eyewear (contato@oticalider.com.br)",
       },
       body: JSON.stringify({
         grant_type: "authorization_code",

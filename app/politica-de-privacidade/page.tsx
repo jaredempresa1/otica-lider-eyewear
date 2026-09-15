@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidade — Ótica Líder Brasil",
+  title: "Política de Privacidade — Ótica Líder Eyewear",
   description: "Como a Ótica Líder Brasil coleta, usa e protege os seus dados pessoais, em conformidade com a LGPD.",
 };
 
