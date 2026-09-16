@@ -100,11 +100,11 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
         }`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between bg-brand-ink px-5 py-4">
-          <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Meu carrinho</span>
+        <div className="flex items-center gap-3 bg-brand-ink px-5 py-4">
           <button type="button" onClick={onClose} aria-label="Fechar" className="text-brand-paper/80 transition-colors hover:text-brand-gold">
             <X size={20} />
           </button>
+          <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Carrinho de compras</span>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
@@ -189,6 +189,7 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
               <span>Total</span>
               <span>{formatBRL(subtotal)}</span>
             </div>
+            <p className="mt-1 text-right font-body text-[12px] text-brand-gold">Ou até 10x de {formatBRL(subtotal / 10)} sem juros</p>
             <button type="button" onClick={onClose} className="mt-4 w-full rounded-full border border-brand-ink px-5 py-3.5 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper">
               Continuar comprando
             </button>

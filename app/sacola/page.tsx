@@ -7,7 +7,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { Check, CreditCard, Lock, Minus, Plus, QrCode, ShoppingCart, Trash2 } from "lucide-react";
+import { Check, ChevronDown, CreditCard, Lock, MapPin, Minus, Plus, QrCode, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
@@ -42,7 +42,6 @@ export default function SacolaPage() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [cepInvalid, setCepInvalid] = useState(false);
   const [checkingAddress, setCheckingAddress] = useState(false);
-  const [showCepLookup, setShowCepLookup] = useState(false);
   const [contactEmail, setContactEmail] = useState("");
   const [deliveryName, setDeliveryName] = useState("");
   const [deliverySurname, setDeliverySurname] = useState("");
@@ -52,7 +51,14 @@ export default function SacolaPage() {
   const [payerName, setPayerName] = useState("");
   const [payerSurname, setPayerSurname] = useState("");
   const [payerPhone, setPayerPhone] = useState("");
+  const [payerCep, setPayerCep] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [step, setStep] = useState<"entrega" | "pagamento">("entrega");
+  const [orderDetailsOpen, setOrderDetailsOpen] = useState(false);
+  const [newsletterOptIn, setNewsletterOptIn] = useState(false);
+  const [addressEditing, setAddressEditing] = useState(true);
+  const [showCepLookupFor, setShowCepLookupFor] = useState<"entrega" | "payer" | null>(null);
+  const [moreShippingOpen, setMoreShippingOpen] = useState(false);
   const skipNextClearRef = useRef(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
@@ -98,6 +104,7 @@ export default function SacolaPage() {
     }
 
     setCepInvalid(false);
+    setAddressEditing(true);
     setAddress((current) => ({ ...current, logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", estado: "" }));
 
     if (!isValidCep(cep)) return;
@@ -113,6 +120,7 @@ export default function SacolaPage() {
       }
       if (result.address) {
         setAddress((current) => ({ ...current, logradouro: result.address!.logradouro, bairro: result.address!.bairro, cidade: result.address!.cidade, estado: result.address!.estado }));
+        setAddressEditing(false);
       }
     });
     return () => {
@@ -179,6 +187,8 @@ export default function SacolaPage() {
     if (!deliveryName.trim()) errors.deliveryName = REQUIRED_MESSAGE;
     if (!deliverySurname.trim()) errors.deliverySurname = REQUIRED_MESSAGE;
     if (!deliveryPhone.trim()) errors.deliveryPhone = REQUIRED_MESSAGE;
+    if (!isValidCep(cep) || cepInvalid) errors.cep = "Digite um CEP válido.";
+    if (!address.numero.trim() && isValidCep(cep) && !cepInvalid) errors.numero = REQUIRED_MESSAGE;
     if (!documentNumber.trim()) errors.documentNumber = REQUIRED_MESSAGE;
 
     if (!sameAsDelivery) {
@@ -189,6 +199,13 @@ export default function SacolaPage() {
 
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
+  }
+
+  function handleContinueToPayment() {
+    if (!validateContactAndDelivery()) return;
+    setOrderDetailsOpen(false);
+    setStep("pagamento");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleCheckout() {
@@ -261,59 +278,74 @@ export default function SacolaPage() {
           Site seguro <Lock size={13} strokeWidth={2} />
         </span>
       </div>
-      <main className="section-shell bg-white py-5 sm:py-10">
-      <div className="mx-auto mt-2 grid max-w-6xl gap-5 lg:grid-cols-[1fr_390px] lg:gap-8">
-        <section>
-          <div className="flex items-end justify-between border-b border-brand-ink/10 pb-3">
-            <div>
-              <p className="eyebrow text-[10px]">Seu pedido</p>
-              <h1 className="mt-1 font-heading text-3xl font-semibold uppercase tracking-[-0.04em] text-brand-ink sm:text-4xl">Carrinho</h1>
+
+      <main className="section-shell bg-brand-cream/30 py-6 sm:py-10">
+        <div className="mx-auto w-full max-w-md">
+          {/* Resumo/valor do pedido + detalhes recolhíveis */}
+          <div className="rounded-xl border border-brand-ink/10 bg-white shadow-[0_3px_18px_rgba(0,0,0,0.05)]">
+            <button
+              type="button"
+              onClick={() => setOrderDetailsOpen((value) => !value)}
+              aria-expanded={orderDetailsOpen}
+              className="flex w-full items-center justify-between px-4 py-3.5"
+            >
+              <span className="flex items-center gap-1.5 font-body text-[13px] font-semibold text-brand-ink/70">
+                <ChevronDown size={16} className={`transition-transform duration-300 ease-premium-out ${orderDetailsOpen ? "rotate-180" : ""}`} />
+                {orderDetailsOpen ? "Ocultar detalhes" : "Ver detalhes do pedido"}
+              </span>
+              <span className="font-heading text-[17px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span>
+            </button>
+
+            <div className={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-premium-out ${orderDetailsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+              <div className="min-h-0 overflow-hidden border-t border-brand-ink/8 px-4 py-4">
+                <ul className="flex flex-col gap-3">
+                  {items.map((item) => (
+                    <li key={`${item.productId}-${item.colorName}`} className="flex items-center gap-3">
+                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#f7f7f7]">
+                        {item.image && <Image src={item.image} alt={item.name} fill sizes="48px" className="object-contain p-1 mix-blend-multiply" />}
+                      </div>
+                      <div className="min-w-0 flex-1 font-body text-[13px] leading-snug text-brand-ink">
+                        <p className="truncate font-semibold">{item.name}</p>
+                        <p className="text-brand-ink/50">{item.colorName} × {item.quantity}</p>
+                      </div>
+                      <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">{formatBRL(item.price * item.quantity)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-4 space-y-1.5 border-t border-brand-ink/8 pt-3 font-body text-[13px] text-brand-ink">
+                  <div className="flex items-center justify-between"><span className="text-brand-ink/60">Subtotal</span><span>{formatBRL(grossSubtotal)}</span></div>
+                  {offerDiscount > 0 && <div className="flex items-center justify-between text-red-600"><span>Desconto em ofertas</span><span>- {formatBRL(offerDiscount)}</span></div>}
+                  {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Cupom ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
+                  <div className="flex items-center justify-between"><span className="text-brand-ink/60">Custo de frete</span><span>{isFreeShipping ? "Grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A calcular"}</span></div>
+                  <div className="flex items-center justify-between pt-1.5 font-bold"><span>Total</span><span>{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
+                </div>
+              </div>
             </div>
-            <span className="font-body text-[13px] text-brand-ink/50">{totalItems} {totalItems === 1 ? "item" : "itens"}</span>
           </div>
 
-          <ul className="divide-y divide-brand-ink/8">
-            {items.map((item) => {
-              const itemTotal = item.price * item.quantity;
-              return (
-                <li key={`${item.productId}-${item.colorName}`} onClick={() => router.push(`/produtos/${item.slug}`)} className="group grid cursor-pointer grid-cols-[4.5rem_minmax(0,1fr)_auto] items-start gap-3 py-4 transition-opacity hover:opacity-80 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:gap-5 sm:py-5">
-                  <Link href={`/produtos/${item.slug}`} onClick={(event) => event.stopPropagation()} className="relative h-[4.5rem] w-[4.5rem] shrink-0 overflow-hidden rounded-lg bg-[#f7f7f7] sm:h-28 sm:w-28" aria-label={`Voltar para ${item.name}`}>
-                    {item.image ? (
-                      <Image src={item.image} alt={item.name} fill sizes="(max-width: 640px) 80px, 112px" className="object-contain p-2 mix-blend-multiply" />
-                    ) : <div className="flex h-full items-center justify-center font-body text-[10px] uppercase tracking-[0.1em] text-brand-ink/35">Sem foto</div>}
-                  </Link>
-                  <div className="flex min-w-0 flex-col justify-between gap-3 py-0.5">
-                    <div>
-                      <p className="font-body text-[12px] font-bold uppercase leading-snug text-brand-ink sm:text-[15px]">{item.name}</p>
-                      <p className="mt-1 font-body text-[11px] uppercase tracking-[0.04em] text-brand-ink/55 sm:text-[13px]">Cor: {item.colorName}</p>
-                      <p className="mt-1 font-body text-[12px] font-semibold text-brand-ink sm:hidden">{formatBRL(itemTotal)}</p>
-                    </div>
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center rounded-full border border-brand-ink/15 p-0.5">
-                        <button onClick={(event) => { event.stopPropagation(); updateQuantity(item.productId, item.colorName, item.quantity - 1); }} className="flex h-7 w-7 items-center justify-center rounded-full text-brand-ink/70 transition-colors hover:bg-brand-sage" aria-label="Diminuir quantidade"><Minus size={13} /></button>
-                        <span className="w-6 text-center font-body text-[13px] font-semibold text-brand-ink">{item.quantity}</span>
-                        <button onClick={(event) => { event.stopPropagation(); updateQuantity(item.productId, item.colorName, item.quantity + 1); }} className="flex h-7 w-7 items-center justify-center rounded-full text-brand-ink/70 transition-colors hover:bg-brand-sage" aria-label="Aumentar quantidade"><Plus size={13} /></button>
-                      </div>
-                      <button onClick={(event) => { event.stopPropagation(); removeItem(item.productId, item.colorName); }} className="flex h-7 w-7 items-center justify-center rounded-full text-brand-ink/35 transition-colors hover:bg-brand-ink/5 hover:text-brand-gold" aria-label={`Remover ${item.name}`}><Trash2 size={15} /></button>
-                    </div>
-                  </div>
-                  <div className="hidden min-w-0 self-start text-right font-body sm:block">
-                    <span className="block text-[15px] font-semibold text-brand-ink">{formatBRL(itemTotal)}</span>
-                    <span className="mt-1 block text-[12px] leading-4 text-brand-ink/45">ou até 10x de {formatBRL(itemTotal / 10)}</span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+          {/* Stepper: Carrinho -> Entrega -> Pagamento */}
+          <div className="mt-5 flex items-center gap-1.5 px-1">
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-ink text-brand-paper"><Check size={15} /></span>
+              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink/60">Carrinho</span>
+            </div>
+            <span className="mb-4 h-px flex-1 bg-brand-ink/15" />
+            <div className="flex flex-col items-center gap-1.5">
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${step === "entrega" ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/10 text-brand-ink/50"}`}>
+                {step === "pagamento" ? <Check size={15} /> : <Truck size={15} />}
+              </span>
+              <span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${step === "entrega" ? "text-brand-ink" : "text-brand-ink/50"}`}>Entrega</span>
+            </div>
+            <span className="mb-4 h-px flex-1 bg-brand-ink/15" />
+            <div className="flex flex-col items-center gap-1.5">
+              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${step === "pagamento" ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/10 text-brand-ink/50"}`}><Wallet size={15} /></span>
+              <span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${step === "pagamento" ? "text-brand-ink" : "text-brand-ink/50"}`}>Pagamento</span>
+            </div>
+          </div>
 
-        <aside className="h-fit rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.06)] sm:p-6 lg:sticky lg:top-28">
-          <h2 className="font-heading text-xl font-semibold tracking-[-0.02em] text-brand-ink">Resumo do pedido</h2>
-
-          <div className="mt-4 space-y-3 border-b border-brand-ink/8 pb-5 font-body text-[13px] text-brand-ink">
-            <div className="flex items-center justify-between"><span className="text-brand-ink/60">Subtotal ({totalItems})</span><span>{formatBRL(grossSubtotal)}</span></div>
-            {offerDiscount > 0 && <div className="flex items-center justify-between text-red-600"><span>Desconto em ofertas</span><span>- {formatBRL(offerDiscount)}</span></div>}
-            <div className="pt-2">
+          {step === "entrega" && (
+            <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
+              {/* Cupom */}
               <button
                 type="button"
                 onClick={() => setCouponBoxOpen((value) => !value)}
@@ -332,78 +364,132 @@ export default function SacolaPage() {
                   {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
                 </div>
               </div>
+
               <div className="mt-4"><FreeShippingBar subtotal={subtotal} /></div>
-            </div>
-            {couponDiscount > 0 && <div className="flex items-center justify-between font-semibold text-brand-gold"><span>Cupom ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
-            <div className="pt-1">
-              <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de contato</p>
-              <input
-                id="contact-email"
-                type="email"
-                placeholder="E-mail"
-                value={contactEmail}
-                onChange={(event) => setContactEmail(event.target.value)}
-                className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.contactEmail ? "border-red-500" : "border-brand-ink/15"}`}
-              />
-              {fieldErrors.contactEmail && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.contactEmail}</p>}
 
-              <p className="mt-4 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para entrega</p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div>
-                  <input placeholder="Nome" value={deliveryName} onChange={(event) => setDeliveryName(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryName ? "border-red-500" : "border-brand-ink/15"}`} />
-                  {fieldErrors.deliveryName && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryName}</p>}
-                </div>
-                <div>
-                  <input placeholder="Sobrenome" value={deliverySurname} onChange={(event) => setDeliverySurname(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliverySurname ? "border-red-500" : "border-brand-ink/15"}`} />
-                  {fieldErrors.deliverySurname && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliverySurname}</p>}
-                </div>
+              {/* Dados de contato */}
+              <div className="mt-5 border-t border-brand-ink/8 pt-4">
+                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de contato</p>
+                <input
+                  id="contact-email"
+                  type="email"
+                  placeholder="E-mail"
+                  value={contactEmail}
+                  onChange={(event) => setContactEmail(event.target.value)}
+                  className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.contactEmail ? "border-red-500" : "border-brand-ink/15"}`}
+                />
+                {fieldErrors.contactEmail && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.contactEmail}</p>}
+                <label className="mt-2.5 flex cursor-pointer items-center gap-2.5">
+                  <input type="checkbox" checked={newsletterOptIn} onChange={(event) => setNewsletterOptIn(event.target.checked)} className="h-4 w-4 rounded border-brand-ink/25 text-brand-gold focus:ring-brand-gold" />
+                  <span className="font-body text-[12px] text-brand-ink/60">Receber ofertas e novidades por e-mail</span>
+                </label>
               </div>
-              <input placeholder="Telefone com DDD" value={deliveryPhone} onChange={(event) => setDeliveryPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryPhone ? "border-red-500" : "border-brand-ink/15"}`} />
-              {fieldErrors.deliveryPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryPhone}</p>}
 
-		            <div className="mt-4 flex items-center justify-between">
-		              <span className="text-brand-ink/60">Frete</span>
-		              <span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span>
-		            </div>
-              <label className="mt-4 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60" htmlFor="cep">Calcule pelo CEP</label>
-              <input id="cep" type="text" inputMode="numeric" placeholder="00000-000" value={cep} onChange={(event) => setCep(event.target.value)} className="mt-2 w-full rounded-md border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-              <button type="button" onClick={() => setShowCepLookup(true)} className="mt-1.5 font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">Não sei meu CEP</button>
-              {loggedIn && <p className="mt-1.5 font-body text-[11px] leading-4 text-brand-ink/45">Preenchido automaticamente com o endereço da sua conta.</p>}
-              {cepInvalid && <p className="mt-2 font-body text-[13px] font-semibold leading-5 text-red-600">CEP inválido. Confira o número e tente de novo.</p>}
-              {!cepInvalid && (checkingShipping || checkingAddress) && <p className="mt-2 font-body text-[13px] leading-5 text-brand-ink/50 sm:text-[14px]">Calculando frete para esse CEP…</p>}
-	              {!cepInvalid && !checkingShipping && !checkingAddress && shipping && (
-	                <div className="mt-2 font-body text-[13px] leading-5 text-brand-ink sm:text-[14px]">
-		                  {isFreeShipping ? (
-		                    <p className="font-semibold text-brand-gold">Frete grátis para {shipping.regionLabel || "sua região"} · até {shipping.deliveryTime || 3} dias úteis.</p>
-		                  ) : shipping?.price != null ? (
-		                    <>
-		                      <p className="font-semibold">{formatBRL(shipping.price)} para {shipping.regionLabel || "seu CEP"}</p>
-		                      {shipping.options && shipping.options.length > 1 && (
-		                        <label className="mt-1.5 block">
-		                          <span className="sr-only">Escolha o tipo de frete</span>
-		                          <select value={shipping.options.find((option) => option.name === shipping.serviceName)?.id ?? shipping.serviceName ?? ""} onChange={(event) => handleShippingOption(event.target.value)} className="w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none focus:border-brand-gold">
-	                            {shipping.options.map((option) => <option key={`${option.id}-${option.name}`} value={option.id ?? option.name}>{option.name} — {formatBRL(option.price)} · entrega estimada em até {option.deliveryTime} dias úteis após a postagem</option>)}
-	                          </select>
-	                        </label>
-	                      )}
-	                      {shipping.options?.length === 1 && <p className="mt-1.5 text-brand-ink/70">{shipping.serviceName || "Frete"} · entrega estimada em até {shipping.deliveryTime} dias úteis após a postagem.</p>}
-	                    </>
-	                  ) : <p className="text-brand-ink/70">{shipping?.error || "Prazo de entrega a confirmar pelo WhatsApp."}</p>}
+              {/* Dados para entrega */}
+              <div className="mt-5 border-t border-brand-ink/8 pt-4">
+                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para entrega</p>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <input placeholder="Nome" value={deliveryName} onChange={(event) => setDeliveryName(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryName ? "border-red-500" : "border-brand-ink/15"}`} />
+                    {fieldErrors.deliveryName && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryName}</p>}
+                  </div>
+                  <div>
+                    <input placeholder="Sobrenome" value={deliverySurname} onChange={(event) => setDeliverySurname(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliverySurname ? "border-red-500" : "border-brand-ink/15"}`} />
+                    {fieldErrors.deliverySurname && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliverySurname}</p>}
+                  </div>
+                </div>
+                <input placeholder="Telefone com DDD" value={deliveryPhone} onChange={(event) => setDeliveryPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryPhone ? "border-red-500" : "border-brand-ink/15"}`} />
+                {fieldErrors.deliveryPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryPhone}</p>}
+
+                {(!isValidCep(cep) || addressEditing) && (
+                  <>
+                    <label className="mt-3 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60" htmlFor="cep">Endereço de entrega</label>
+                    <input id="cep" type="text" inputMode="numeric" placeholder="CEP" value={cep} onChange={(event) => setCep(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.cep ? "border-red-500" : "border-brand-ink/15"}`} />
+                    <button type="button" onClick={() => setShowCepLookupFor("entrega")} className="mt-1.5 font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">Não sei meu CEP</button>
+                    {fieldErrors.cep && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.cep}</p>}
+                    {loggedIn && <p className="mt-1.5 font-body text-[11px] leading-4 text-brand-ink/45">Preenchido automaticamente com o endereço da sua conta.</p>}
+                    {cepInvalid && <p className="mt-2 font-body text-[13px] font-semibold leading-5 text-red-600">CEP inválido. Confira o número e tente de novo.</p>}
+                    {!cepInvalid && (checkingShipping || checkingAddress) && <p className="mt-2 font-body text-[13px] leading-5 text-brand-ink/50">Calculando frete para esse CEP…</p>}
+                  </>
+                )}
+
+                {isValidCep(cep) && !cepInvalid && !addressEditing && address.logradouro && (
+                  <div className="mt-3 flex items-start justify-between gap-2 rounded-xl border border-brand-ink/12 bg-brand-cream/40 px-3 py-3">
+                    <div className="flex items-start gap-2">
+                      <MapPin size={17} className="mt-0.5 shrink-0 text-brand-ink/50" />
+                      <div className="font-body text-[13px] leading-5 text-brand-ink">
+                        <p>{address.logradouro}</p>
+                        <p className="font-semibold">CEP {cep} - {address.bairro}</p>
+                        <p>{address.cidade} - {address.estado}</p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => setAddressEditing(true)} className="shrink-0 font-body text-[12px] font-semibold text-brand-gold hover:text-brand-ink">Alterar</button>
+                  </div>
+                )}
+
+                {isValidCep(cep) && !cepInvalid && (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div>
+                      <input value={address.numero} onChange={(event) => setAddress((current) => ({ ...current, numero: event.target.value }))} placeholder="Número" className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.numero ? "border-red-500" : "border-brand-ink/15"}`} />
+                      {fieldErrors.numero && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.numero}</p>}
+                    </div>
+                    <input value={address.complemento} onChange={(event) => setAddress((current) => ({ ...current, complemento: event.target.value }))} placeholder="Apto, Bloco, Referência (opcional)" className="w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
+                  </div>
+                )}
+              </div>
+
+              {/* Entrega: opções de frete (PAC/SEDEX via Melhor Envio) */}
+              {isValidCep(cep) && !cepInvalid && !checkingShipping && shipping && (
+                <div className="mt-5 border-t border-brand-ink/8 pt-4">
+                  <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Entrega</p>
+                  <div className="mt-2 flex flex-col gap-2">
+                    {isFreeShipping ? (
+                      <div className="flex items-center gap-3 rounded-xl border border-brand-ink bg-brand-ink/[0.04] p-3">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-ink text-brand-paper"><Check size={15} /></span>
+                        <div className="min-w-0 flex-1 font-body">
+                          <span className="block text-[14px] font-semibold text-brand-ink">Frete grátis · {shipping.serviceName || "Entrega padrão"}</span>
+                          <span className="mt-0.5 block text-[12px] text-brand-ink/55">Chega em até {shipping.deliveryTime || 3} dias úteis para {shipping.regionLabel || "sua região"}</span>
+                        </div>
+                        <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">Grátis</span>
+                      </div>
+                    ) : shipping.options && shipping.options.length > 0 ? (
+                      <>
+                        {(moreShippingOpen ? shipping.options : shipping.options.slice(0, 1)).map((option) => {
+                          const optionId = String(option.id ?? option.name);
+                          const selected = option.name === shipping.serviceName;
+                          return (
+                            <label key={optionId} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${selected ? "border-brand-ink bg-brand-ink/[0.04]" : "border-brand-ink/12 bg-brand-cream/30 hover:border-brand-ink/25"}`}>
+                              <input type="radio" name="shipping-option" className="sr-only" checked={selected} onChange={() => handleShippingOption(optionId)} />
+                              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${selected ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/8 text-brand-ink/60"}`}><Truck size={15} /></span>
+                              <div className="min-w-0 flex-1 font-body">
+                                <span className="block text-[14px] font-semibold text-brand-ink">{option.name}</span>
+                                <span className="mt-0.5 block text-[12px] text-brand-ink/55">Chega em até {option.deliveryTime} dias úteis</span>
+                              </div>
+                              <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">{formatBRL(option.price)}</span>
+                              {selected && <Check size={16} className="shrink-0 text-brand-ink" aria-hidden="true" />}
+                            </label>
+                          );
+                        })}
+                        {shipping.options.length > 1 && (
+                          <button type="button" onClick={() => setMoreShippingOpen((value) => !value)} className="mt-0.5 self-start font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">
+                            {moreShippingOpen ? "Menos opções" : "Mais opções"}
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <p className="font-body text-[13px] text-brand-ink/60">{shipping.error || "Prazo de entrega a confirmar pelo WhatsApp."}</p>
+                    )}
+                  </div>
                 </div>
               )}
 
-              {isValidCep(cep) && !cepInvalid && (
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <input value={address.logradouro} onChange={(event) => setAddress((current) => ({ ...current, logradouro: event.target.value }))} placeholder="Rua" className="col-span-2 rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-                  <input value={address.numero} onChange={(event) => setAddress((current) => ({ ...current, numero: event.target.value }))} placeholder="Número" className="rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-                  <input value={address.complemento} onChange={(event) => setAddress((current) => ({ ...current, complemento: event.target.value }))} placeholder="Complemento (opcional)" className="rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-                  <input value={address.bairro} onChange={(event) => setAddress((current) => ({ ...current, bairro: event.target.value }))} placeholder="Bairro" className="rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-                  <input value={address.cidade ? `${address.cidade}${address.estado ? ` - ${address.estado}` : ""}` : ""} readOnly placeholder="Cidade" className="rounded-xl border border-brand-ink/10 bg-brand-ink/5 px-3 py-2.5 font-body text-[13px] text-brand-ink/60 outline-none" />
-                </div>
-              )}
-
+              {/* Dados para nota fiscal */}
               <div className="mt-5 border-t border-brand-ink/8 pt-4">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para nota fiscal</p>
+                <label className="mt-2 block font-body text-[11px] text-brand-ink/50" htmlFor="pais">País</label>
+                <select id="pais" defaultValue="BR" disabled className="mt-1 w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none focus:border-brand-gold">
+                  <option value="BR">Brasil</option>
+                </select>
                 <input
                   placeholder="CPF ou CNPJ"
                   value={documentNumber}
@@ -437,54 +523,75 @@ export default function SacolaPage() {
                     </div>
                     <input placeholder="Telefone com DDD" value={payerPhone} onChange={(event) => setPayerPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerPhone ? "border-red-500" : "border-brand-ink/15"}`} />
                     {fieldErrors.payerPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerPhone}</p>}
+                    <input placeholder="CEP" value={payerCep} onChange={(event) => setPayerCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
+                    <button type="button" onClick={() => setShowCepLookupFor("payer")} className="mt-1.5 font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">Não sei meu CEP</button>
                   </div>
                 )}
               </div>
-            </div>
-          </div>
 
-          <fieldset className="mt-5 border-b border-brand-ink/8 pb-5">
-            <legend className="font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Forma de pagamento</legend>
-            <div className="mt-3 grid gap-2">
-              <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${payment.method === "pix" ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/12 bg-brand-cream/30 hover:border-brand-ink/25"}`}>
-                <input className="sr-only" type="radio" name="payment-method" value="pix" checked={payment.method === "pix"} onChange={() => selectPaymentMethod("pix")} />
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${payment.method === "pix" ? "bg-brand-gold text-white" : "bg-brand-ink/8 text-brand-ink/60"}`}><QrCode size={16} /></span>
-                <span className="min-w-0 flex-1"><span className="block font-body text-[15px] font-semibold text-brand-ink">Pix</span><span className="mt-0.5 block font-body text-[13px] text-brand-ink/55">Pagamento à vista</span></span>
-                {payment.method === "pix" && <Check size={17} className="text-brand-gold" aria-hidden="true" />}
-              </label>
-              <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${payment.method === "card" ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/12 bg-brand-cream/30 hover:border-brand-ink/25"}`}>
-                <input className="sr-only" type="radio" name="payment-method" value="card" checked={payment.method === "card"} onChange={() => selectPaymentMethod("card")} />
-                <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${payment.method === "card" ? "bg-brand-gold text-white" : "bg-brand-ink/8 text-brand-ink/60"}`}><CreditCard size={16} /></span>
-                <span className="min-w-0 flex-1"><span className="block font-body text-[15px] font-semibold text-brand-ink">Cartão de crédito</span><span className="mt-0.5 block font-body text-[13px] text-brand-ink/55">Parcele em até 10x sem juros</span></span>
-                {payment.method === "card" && <Check size={17} className="text-brand-gold" aria-hidden="true" />}
-              </label>
+              <button type="button" onClick={handleContinueToPayment} className="mt-5 w-full rounded-full bg-brand-ink px-5 py-3.5 text-center font-body text-[12px] font-semibold uppercase tracking-[0.15em] text-brand-paper transition-colors hover:bg-brand-gold">
+                Continuar para pagamento
+              </button>
             </div>
+          )}
 
-            {payment.method === "card" && (
-              <div className="mt-3 rounded-xl bg-brand-cream/50 p-3">
-                <label htmlFor="installments" className="block font-body text-[12px] font-semibold uppercase tracking-[0.13em] text-brand-ink/60">Escolha as parcelas</label>
-                <select id="installments" value={payment.installments} onChange={(event) => handleInstallments(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[15px] text-brand-ink outline-none focus:border-brand-gold">
-                  {INSTALLMENT_OPTIONS.map((installments) => <option key={installments} value={installments}>{installments}x de {formatBRL(discountedSubtotal / installments)} sem juros</option>)}
-                </select>
+          {step === "pagamento" && (
+            <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
+              <button type="button" onClick={() => setStep("entrega")} className="font-body text-[12px] font-semibold text-brand-ink/60 hover:text-brand-gold">← Voltar para entrega</button>
+
+              <fieldset className="mt-4">
+                <legend className="font-body text-[12px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Forma de pagamento</legend>
+                <div className="mt-3 grid gap-2">
+                  <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${payment.method === "pix" ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/12 bg-brand-cream/30 hover:border-brand-ink/25"}`}>
+                    <input className="sr-only" type="radio" name="payment-method" value="pix" checked={payment.method === "pix"} onChange={() => selectPaymentMethod("pix")} />
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${payment.method === "pix" ? "bg-brand-gold text-white" : "bg-brand-ink/8 text-brand-ink/60"}`}><QrCode size={16} /></span>
+                    <span className="min-w-0 flex-1"><span className="block font-body text-[15px] font-semibold text-brand-ink">Pix</span><span className="mt-0.5 block font-body text-[13px] text-brand-ink/55">Pagamento à vista</span></span>
+                    {payment.method === "pix" && <Check size={17} className="text-brand-gold" aria-hidden="true" />}
+                  </label>
+                  <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${payment.method === "card" ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/12 bg-brand-cream/30 hover:border-brand-ink/25"}`}>
+                    <input className="sr-only" type="radio" name="payment-method" value="card" checked={payment.method === "card"} onChange={() => selectPaymentMethod("card")} />
+                    <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${payment.method === "card" ? "bg-brand-gold text-white" : "bg-brand-ink/8 text-brand-ink/60"}`}><CreditCard size={16} /></span>
+                    <span className="min-w-0 flex-1"><span className="block font-body text-[15px] font-semibold text-brand-ink">Cartão de crédito</span><span className="mt-0.5 block font-body text-[13px] text-brand-ink/55">Parcele em até 10x sem juros</span></span>
+                    {payment.method === "card" && <Check size={17} className="text-brand-gold" aria-hidden="true" />}
+                  </label>
+                </div>
+
+                {payment.method === "card" && (
+                  <div className="mt-3 rounded-xl bg-brand-cream/50 p-3">
+                    <label htmlFor="installments" className="block font-body text-[12px] font-semibold uppercase tracking-[0.13em] text-brand-ink/60">Escolha as parcelas</label>
+                    <select id="installments" value={payment.installments} onChange={(event) => handleInstallments(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[15px] text-brand-ink outline-none focus:border-brand-gold">
+                      {INSTALLMENT_OPTIONS.map((installments) => <option key={installments} value={installments}>{installments}x de {formatBRL(discountedSubtotal / installments)} sem juros</option>)}
+                    </select>
+                  </div>
+                )}
+              </fieldset>
+
+              <div className="mt-5 flex items-end justify-between gap-4 border-t border-brand-ink/8 pt-4"><span className="font-body text-[13px] text-brand-ink/70">Total do pedido</span><span className="text-right font-heading text-[25px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
+              <div className="mt-2 rounded-xl bg-brand-cream/60 px-3 py-2.5 font-body text-[12px] leading-5 text-brand-ink/75" aria-live="polite">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/50">Pagamento escolhido</span>
+                {payment.method === "pix" ? "Pix à vista" : `Cartão de crédito · ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`}
               </div>
-            )}
-          </fieldset>
-
-          <div className="mt-5 flex items-end justify-between gap-4"><span className="font-body text-[13px] text-brand-ink/70">Total do pedido</span><span className="text-right font-heading text-[25px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
-          <div className="mt-2 rounded-xl bg-brand-cream/60 px-3 py-2.5 font-body text-[12px] leading-5 text-brand-ink/75" aria-live="polite">
-            <span className="block text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/50">Pagamento escolhido</span>
-            {payment.method === "pix" ? "Pix à vista" : `Cartão de crédito · ${payment.installments}x de ${formatBRL(installmentValue)} sem juros`}
-          </div>
-          <button onClick={handleCheckout} className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#079447] px-5 py-3.5 font-body text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-all duration-200 hover:bg-[#057c3b] active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>
-          <Link href="/produtos" className="mt-3 block text-center font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink/70 transition-colors hover:text-brand-gold">
-            Comprar mais produtos
-          </Link>
-          <p className="mt-3 text-center font-body text-[10px] leading-4 text-brand-ink/60">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
-          <AbandonedCartSignup items={items} />
-        </aside>
-      </div>
-      {showCepLookup && <CepLookupModal onClose={() => setShowCepLookup(false)} onSelectCep={setCep} />}
+              <button onClick={handleCheckout} className="mt-5 flex w-full items-center justify-center gap-2 rounded-md bg-[#079447] px-5 py-3.5 font-body text-[11px] font-bold uppercase tracking-[0.12em] text-white transition-all duration-200 hover:bg-[#057c3b] active:scale-[0.97]">Enviar pedido pelo WhatsApp <span aria-hidden="true">↗</span></button>
+              <Link href="/produtos" className="mt-3 block text-center font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink/70 transition-colors hover:text-brand-gold">
+                Comprar mais produtos
+              </Link>
+              <p className="mt-3 text-center font-body text-[10px] leading-4 text-brand-ink/60">Seu pedido será enviado já organizado, com a forma de pagamento escolhida. A equipe costuma responder em até 1 minuto.</p>
+              <AbandonedCartSignup items={items} />
+            </div>
+          )}
+        </div>
       </main>
+
+      {showCepLookupFor && (
+        <CepLookupModal
+          onClose={() => setShowCepLookupFor(null)}
+          onSelectCep={(value) => {
+            if (showCepLookupFor === "payer") setPayerCep(value);
+            else setCep(value);
+            setShowCepLookupFor(null);
+          }}
+        />
+      )}
     </>
   );
 }
