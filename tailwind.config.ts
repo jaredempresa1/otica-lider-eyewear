@@ -16,8 +16,8 @@ const config: Config = {
           "orange-dark": "#946A2F",
           // Laranja vivo dos óculos na logo da Ótica Líder Brasil (extraído de public/logo.png),
           // usado só no fundo do bloco de cadastro para WhatsApp — não mexe no "brand-orange" acima.
-          "logo-orange": "#FC4701",
-          "logo-orange-dark": "#D63C01",
+          "logo-orange": "#D9480F",
+          "logo-orange-dark": "#B33A0C",
           sage: "#DCE2D2",
           moss: "#465348",
           cream: "#F4F1EA",

@@ -92,7 +92,7 @@ export default function WhatsAppSignup() {
     <section className="border-t border-brand-logo-orange-dark bg-brand-logo-orange">
       <div className="section-shell py-14 text-center sm:py-20">
         <h2 className="mx-auto max-w-2xl font-heading text-lg font-bold uppercase leading-tight tracking-[-0.01em] text-white sm:text-xl">
-          Cadastre-se e receba lançamentos e ofertas com muito amor e beleza!
+          Cadastre-se e receba lançamentos e ofertas!
         </h2>
 
         <form onSubmit={handleSubmit} className="mx-auto mt-8 flex max-w-xl flex-col gap-3 text-left">
