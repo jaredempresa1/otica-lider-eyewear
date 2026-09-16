@@ -58,7 +58,6 @@ export default function SacolaPage() {
   const [newsletterOptIn, setNewsletterOptIn] = useState(false);
   const [addressEditing, setAddressEditing] = useState(true);
   const [showCepLookupFor, setShowCepLookupFor] = useState<"entrega" | "payer" | null>(null);
-  const [moreShippingOpen, setMoreShippingOpen] = useState(false);
   const skipNextClearRef = useRef(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
@@ -339,12 +338,12 @@ export default function SacolaPage() {
           <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-10">
             <div>
               {/* Resumo/valor do pedido + detalhes recolhíveis (apenas mobile — no desktop vira a barra lateral) */}
-              <div className="rounded-xl border border-brand-ink/10 bg-white shadow-[0_3px_18px_rgba(0,0,0,0.05)] lg:hidden">
+              <div className="border-b border-brand-ink/10 lg:hidden">
                 <button
                   type="button"
                   onClick={() => setOrderDetailsOpen((value) => !value)}
                   aria-expanded={orderDetailsOpen}
-                  className="flex w-full items-center justify-between px-4 py-3.5"
+                  className="flex w-full items-center justify-between py-3.5"
                 >
                   <span className="flex items-center gap-1.5 font-body text-[13px] font-semibold text-brand-ink/70">
                     <ChevronDown size={16} className={`transition-transform duration-300 ease-premium-out ${orderDetailsOpen ? "rotate-180" : ""}`} />
@@ -353,7 +352,7 @@ export default function SacolaPage() {
                   <span className="font-heading text-[17px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span>
                 </button>
 
-                {orderDetailsOpen && <div className="border-t border-brand-ink/8 px-4 py-4">{orderSummaryDetails}</div>}
+                {orderDetailsOpen && <div className="border-t border-brand-ink/8 py-4">{orderSummaryDetails}</div>}
               </div>
 
               {/* Stepper: Carrinho -> Entrega -> Pagamento */}
@@ -377,7 +376,7 @@ export default function SacolaPage() {
               </div>
 
               {step === "entrega" && (
-                <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
+                <div className="mt-5">
                   {/* Cupom (apenas mobile — no desktop aparece na barra lateral) */}
                   <div className="lg:hidden">{couponWidget}</div>
 
@@ -392,7 +391,7 @@ export default function SacolaPage() {
                   placeholder="E-mail"
                   value={contactEmail}
                   onChange={(event) => setContactEmail(event.target.value)}
-                  className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.contactEmail ? "border-red-500" : "border-brand-ink/15"}`}
+                  className={`mt-2 w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.contactEmail ? "border-red-500" : "border-brand-ink/15"}`}
                 />
                 {fieldErrors.contactEmail && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.contactEmail}</p>}
                 <label className="mt-2.5 flex cursor-pointer items-center gap-2.5">
@@ -406,21 +405,21 @@ export default function SacolaPage() {
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para entrega</p>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <div>
-                    <input placeholder="Nome" value={deliveryName} onChange={(event) => setDeliveryName(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryName ? "border-red-500" : "border-brand-ink/15"}`} />
+                    <input placeholder="Nome" value={deliveryName} onChange={(event) => setDeliveryName(event.target.value)} className={`w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryName ? "border-red-500" : "border-brand-ink/15"}`} />
                     {fieldErrors.deliveryName && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryName}</p>}
                   </div>
                   <div>
-                    <input placeholder="Sobrenome" value={deliverySurname} onChange={(event) => setDeliverySurname(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliverySurname ? "border-red-500" : "border-brand-ink/15"}`} />
+                    <input placeholder="Sobrenome" value={deliverySurname} onChange={(event) => setDeliverySurname(event.target.value)} className={`w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliverySurname ? "border-red-500" : "border-brand-ink/15"}`} />
                     {fieldErrors.deliverySurname && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliverySurname}</p>}
                   </div>
                 </div>
-                <input placeholder="Telefone com DDD" value={deliveryPhone} onChange={(event) => setDeliveryPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryPhone ? "border-red-500" : "border-brand-ink/15"}`} />
+                <input placeholder="Telefone com DDD" value={deliveryPhone} onChange={(event) => setDeliveryPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryPhone ? "border-red-500" : "border-brand-ink/15"}`} />
                 {fieldErrors.deliveryPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryPhone}</p>}
 
                 {(!isValidCep(cep) || addressEditing) && (
                   <>
                     <label className="mt-3 block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60" htmlFor="cep">Endereço de entrega</label>
-                    <input id="cep" type="text" inputMode="numeric" placeholder="CEP" value={cep} onChange={(event) => setCep(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.cep ? "border-red-500" : "border-brand-ink/15"}`} />
+                    <input id="cep" type="text" inputMode="numeric" placeholder="CEP" value={cep} onChange={(event) => setCep(event.target.value)} className={`mt-2 w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.cep ? "border-red-500" : "border-brand-ink/15"}`} />
                     <button type="button" onClick={() => setShowCepLookupFor("entrega")} className="mt-1.5 font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">Não sei meu CEP</button>
                     {fieldErrors.cep && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.cep}</p>}
                     {loggedIn && <p className="mt-1.5 font-body text-[11px] leading-4 text-brand-ink/45">Preenchido automaticamente com o endereço da sua conta.</p>}
@@ -446,10 +445,10 @@ export default function SacolaPage() {
                 {isValidCep(cep) && !cepInvalid && (
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <div>
-                      <input value={address.numero} onChange={(event) => setAddress((current) => ({ ...current, numero: event.target.value }))} placeholder="Número" className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.numero ? "border-red-500" : "border-brand-ink/15"}`} />
+                      <input value={address.numero} onChange={(event) => setAddress((current) => ({ ...current, numero: event.target.value }))} placeholder="Número" className={`w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.numero ? "border-red-500" : "border-brand-ink/15"}`} />
                       {fieldErrors.numero && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.numero}</p>}
                     </div>
-                    <input value={address.complemento} onChange={(event) => setAddress((current) => ({ ...current, complemento: event.target.value }))} placeholder="Apto, Bloco, Referência (opcional)" className="w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
+                    <input value={address.complemento} onChange={(event) => setAddress((current) => ({ ...current, complemento: event.target.value }))} placeholder="Apto, Bloco, Referência (opcional)" className="w-full rounded-xl border border-brand-ink/15 bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
                   </div>
                 )}
               </div>
@@ -457,45 +456,54 @@ export default function SacolaPage() {
               {/* Entrega: opções de frete (PAC/SEDEX via Melhor Envio) */}
               {isValidCep(cep) && !cepInvalid && !checkingShipping && shipping && (
                 <div className="mt-5 border-t border-brand-ink/8 pt-4">
-                  <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Entrega</p>
-                  <div className="mt-2 flex flex-col gap-2">
-                    {isFreeShipping ? (
-                      <div className="flex items-center gap-3 rounded-xl border border-brand-ink bg-brand-ink/[0.04] p-3">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-ink text-brand-paper"><Check size={15} /></span>
-                        <div className="min-w-0 flex-1 font-body">
-                          <span className="block text-[14px] font-semibold text-brand-ink">Frete grátis · {shipping.serviceName || "Entrega padrão"}</span>
-                          <span className="mt-0.5 block text-[12px] text-brand-ink/55">Chega em até {shipping.deliveryTime || 3} dias úteis para {shipping.regionLabel || "sua região"}</span>
+                  <p className="font-heading text-[20px] font-bold text-brand-ink">Entrega</p>
+
+                  {isFreeShipping ? (
+                    <div className="mt-3 overflow-hidden rounded-xl border-2 border-brand-ink bg-white">
+                      <div className="flex items-stretch">
+                        <span className="flex w-12 shrink-0 items-center justify-center bg-brand-ink text-brand-paper"><Check size={17} /></span>
+                        <div className="flex flex-1 items-center gap-3 px-3 py-3">
+                          <div className="min-w-0 flex-1 font-body">
+                            <span className="block text-[14px] font-semibold text-brand-ink">{shipping.serviceName || "Entrega padrão"}</span>
+                            <span className="mt-0.5 block text-[12px] text-brand-ink/50">Chega em até {shipping.deliveryTime || 3} dias úteis</span>
+                          </div>
+                          <span className="shrink-0 font-body text-[15px] font-bold text-[#22a06b]">Grátis</span>
                         </div>
-                        <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">Grátis</span>
                       </div>
-                    ) : shipping.options && shipping.options.length > 0 ? (
-                      <>
-                        {(moreShippingOpen ? shipping.options : shipping.options.slice(0, 1)).map((option) => {
+                    </div>
+                  ) : shipping.options && shipping.options.length > 0 ? (
+                    <>
+                      <p className="mt-3 flex items-center gap-2 font-body text-[13px] text-brand-ink/60">
+                        <Truck size={16} className="shrink-0" /> Envio em domicílio
+                      </p>
+                      <div className="mt-2 overflow-hidden rounded-xl border border-brand-ink/12 bg-white">
+                        {shipping.options.map((option, index) => {
                           const optionId = String(option.id ?? option.name);
                           const selected = option.name === shipping.serviceName;
                           return (
-                            <label key={optionId} className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition-colors ${selected ? "border-brand-ink bg-brand-ink/[0.04]" : "border-brand-ink/12 bg-brand-cream/30 hover:border-brand-ink/25"}`}>
+                            <label
+                              key={optionId}
+                              className={`flex cursor-pointer items-stretch ${index > 0 ? "border-t border-brand-ink/10" : ""} ${selected ? "border-2 border-brand-ink" : ""}`}
+                            >
                               <input type="radio" name="shipping-option" className="sr-only" checked={selected} onChange={() => handleShippingOption(optionId)} />
-                              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${selected ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/8 text-brand-ink/60"}`}><Truck size={15} /></span>
-                              <div className="min-w-0 flex-1 font-body">
-                                <span className="block text-[14px] font-semibold text-brand-ink">{option.name}</span>
-                                <span className="mt-0.5 block text-[12px] text-brand-ink/55">Chega em até {option.deliveryTime} dias úteis</span>
-                              </div>
-                              <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">{formatBRL(option.price)}</span>
-                              {selected && <Check size={16} className="shrink-0 text-brand-ink" aria-hidden="true" />}
+                              <span className={`flex w-12 shrink-0 items-center justify-center ${selected ? "bg-brand-ink text-brand-paper" : "bg-white"}`}>
+                                {selected ? <Check size={17} /> : <span className="h-5 w-5 rounded-full border border-brand-ink/25 bg-brand-cream/60" />}
+                              </span>
+                              <span className="flex flex-1 items-center gap-3 px-3 py-3">
+                                <span className="min-w-0 flex-1 font-body">
+                                  <span className="block text-[14px] font-semibold text-brand-ink">{option.name}</span>
+                                  <span className="mt-0.5 block text-[12px] text-brand-ink/50">Chega em até {option.deliveryTime} dias úteis</span>
+                                </span>
+                                <span className="shrink-0 font-body text-[15px] font-bold text-brand-ink">{formatBRL(option.price)}</span>
+                              </span>
                             </label>
                           );
                         })}
-                        {shipping.options.length > 1 && (
-                          <button type="button" onClick={() => setMoreShippingOpen((value) => !value)} className="mt-0.5 self-start font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">
-                            {moreShippingOpen ? "Menos opções" : "Mais opções"}
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      <p className="font-body text-[13px] text-brand-ink/60">{shipping.error || "Prazo de entrega a confirmar pelo WhatsApp."}</p>
-                    )}
-                  </div>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="mt-3 font-body text-[13px] text-brand-ink/60">{shipping.error || "Prazo de entrega a confirmar pelo WhatsApp."}</p>
+                  )}
                 </div>
               )}
 
@@ -503,14 +511,14 @@ export default function SacolaPage() {
               <div className="mt-5 border-t border-brand-ink/8 pt-4">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para nota fiscal</p>
                 <label className="mt-2 block font-body text-[11px] text-brand-ink/50" htmlFor="pais">País</label>
-                <select id="pais" defaultValue="BR" disabled className="mt-1 w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none focus:border-brand-gold">
+                <select id="pais" defaultValue="BR" disabled className="mt-1 w-full rounded-xl border border-brand-ink/15 bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none focus:border-brand-gold">
                   <option value="BR">Brasil</option>
                 </select>
                 <input
                   placeholder="CPF ou CNPJ"
                   value={documentNumber}
                   onChange={(event) => setDocumentNumber(event.target.value)}
-                  className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.documentNumber ? "border-red-500" : "border-brand-ink/15"}`}
+                  className={`mt-2 w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.documentNumber ? "border-red-500" : "border-brand-ink/15"}`}
                 />
                 {fieldErrors.documentNumber && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.documentNumber}</p>}
 
@@ -529,17 +537,17 @@ export default function SacolaPage() {
                     <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de quem vai fazer o pagamento</p>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       <div>
-                        <input placeholder="Nome" value={payerName} onChange={(event) => setPayerName(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerName ? "border-red-500" : "border-brand-ink/15"}`} />
+                        <input placeholder="Nome" value={payerName} onChange={(event) => setPayerName(event.target.value)} className={`w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerName ? "border-red-500" : "border-brand-ink/15"}`} />
                         {fieldErrors.payerName && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerName}</p>}
                       </div>
                       <div>
-                        <input placeholder="Sobrenome" value={payerSurname} onChange={(event) => setPayerSurname(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerSurname ? "border-red-500" : "border-brand-ink/15"}`} />
+                        <input placeholder="Sobrenome" value={payerSurname} onChange={(event) => setPayerSurname(event.target.value)} className={`w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerSurname ? "border-red-500" : "border-brand-ink/15"}`} />
                         {fieldErrors.payerSurname && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerSurname}</p>}
                       </div>
                     </div>
-                    <input placeholder="Telefone com DDD" value={payerPhone} onChange={(event) => setPayerPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerPhone ? "border-red-500" : "border-brand-ink/15"}`} />
+                    <input placeholder="Telefone com DDD" value={payerPhone} onChange={(event) => setPayerPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerPhone ? "border-red-500" : "border-brand-ink/15"}`} />
                     {fieldErrors.payerPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerPhone}</p>}
-                    <input placeholder="CEP" value={payerCep} onChange={(event) => setPayerCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-ink/15 bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
+                    <input placeholder="CEP" value={payerCep} onChange={(event) => setPayerCep(event.target.value)} className="mt-2 w-full rounded-xl border border-brand-ink/15 bg-white/70 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
                     <button type="button" onClick={() => setShowCepLookupFor("payer")} className="mt-1.5 font-body text-[12px] font-semibold text-brand-gold underline decoration-brand-gold/40 underline-offset-4 hover:text-brand-ink">Não sei meu CEP</button>
                   </div>
                 )}
@@ -552,7 +560,7 @@ export default function SacolaPage() {
           )}
 
           {step === "pagamento" && (
-            <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
+            <div className="mt-5">
               <button type="button" onClick={() => setStep("entrega")} className="font-body text-[12px] font-semibold text-brand-ink/60 hover:text-brand-gold">← Voltar para entrega</button>
 
               <fieldset className="mt-4">
@@ -573,7 +581,7 @@ export default function SacolaPage() {
                 </div>
 
                 {payment.method === "card" && (
-                  <div className="mt-3 rounded-xl bg-brand-cream/50 p-3">
+                  <div className="mt-3 rounded-xl bg-white/70 p-3">
                     <label htmlFor="installments" className="block font-body text-[12px] font-semibold uppercase tracking-[0.13em] text-brand-ink/60">Escolha as parcelas</label>
                     <select id="installments" value={payment.installments} onChange={(event) => handleInstallments(Number(event.target.value))} className="mt-2 w-full rounded-lg border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[15px] text-brand-ink outline-none focus:border-brand-gold">
                       {INSTALLMENT_OPTIONS.map((installments) => <option key={installments} value={installments}>{installments}x de {formatBRL(discountedSubtotal / installments)} sem juros</option>)}
