@@ -95,7 +95,7 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
       onClick={onClose}
     >
       <div
-        className={`flex max-h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl transition-transform duration-300 ease-premium-out ${
+        className={`flex h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl transition-transform duration-300 ease-premium-out ${
           isVisible ? "translate-x-0" : "translate-x-full"
         }`}
         onClick={(event) => event.stopPropagation()}
@@ -107,7 +107,9 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
           <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Carrinho de compras</span>
         </div>
 
-        <div className="overflow-y-auto px-5 py-4">
+        {/* Uma única área de rolagem: produtos + resumo rolam juntos */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="px-5 py-4">
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <ShoppingBag size={32} strokeWidth={1.5} className="text-brand-ink/30" />
@@ -121,13 +123,23 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
               {items.map((item) => (
                 <li key={`${item.productId}-${item.colorName}`} className="flex gap-3 border-b border-brand-ink/10 pb-4 last:border-none">
                   {item.image && (
-                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/40">
+                    <Link
+                      href={`/produtos/${item.slug}`}
+                      onClick={onClose}
+                      className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/40 transition-opacity hover:opacity-80"
+                    >
                       <Image src={item.image} alt={item.name} fill className="object-contain p-2 mix-blend-multiply" sizes="80px" />
-                    </div>
+                    </Link>
                   )}
                   <div className="flex flex-1 flex-col gap-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-body text-sm font-semibold leading-snug text-brand-ink">{item.name}</p>
+                      <Link
+                        href={`/produtos/${item.slug}`}
+                        onClick={onClose}
+                        className="font-body text-sm font-semibold leading-snug text-brand-ink transition-colors hover:text-brand-gold"
+                      >
+                        {item.name}
+                      </Link>
                       <button type="button" onClick={() => removeItem(item.productId, item.colorName)} aria-label="Remover item" className="shrink-0 text-brand-ink/40 transition-colors hover:text-red-600">
                         <Trash2 size={16} />
                       </button>
@@ -147,10 +159,10 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
               ))}
             </ul>
           )}
-        </div>
+          </div>
 
         {items.length > 0 && (
-          <div className="shrink-0 border-t border-brand-ink/10 px-5 py-4">
+          <div className="border-t border-brand-ink/10 px-5 py-4">
             <FreeShippingBar subtotal={subtotal} />
 
             <label htmlFor="cart-drawer-cep" className="mt-3 block font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink/50">
@@ -198,6 +210,7 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
