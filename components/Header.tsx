@@ -93,7 +93,11 @@ export default function Header() {
   }
 
   return (
-    <header className="border-b border-brand-ink/10 bg-brand-cream/95 backdrop-blur-md">
+    <header className="relative border-b border-brand-ink/10">
+      {/* Camada de fundo separada: o blur precisa ficar aqui (e não no <header>) para não
+          virar "containing block" dos elementos fixed (menu mobile) e absolute (dropdown
+          Filtrar) — isso é o que fazia os dois abrirem cortados/atrás do restante da página. */}
+      <div className="absolute inset-0 -z-10 bg-brand-cream/95 backdrop-blur-md" aria-hidden="true" />
       <div className="section-shell flex h-[72px] items-center justify-between gap-1.5 sm:h-[80px] sm:gap-5">
         <button
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
