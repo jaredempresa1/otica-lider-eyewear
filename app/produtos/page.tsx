@@ -42,7 +42,7 @@ export default async function ProdutosPage({
 
   return (
     <main className="section-shell py-10 sm:py-14">
-      {activeCollection?.image_url && <div className="mb-8 flex flex-col items-center gap-3 rounded-2xl bg-brand-ink px-6 py-6 sm:py-8"><img src={activeCollection.image_url} alt={activeCollection.name} className="h-36 w-full max-w-xs object-contain sm:h-52 sm:max-w-sm" /><p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-paper/70 sm:text-sm">{activeCollection.name}</p></div>}
+      {activeCollection?.image_url && <div className="mb-8 flex flex-col items-center gap-3"><div className="w-full max-w-xl overflow-hidden rounded-2xl bg-brand-ink"><img src={activeCollection.image_url} alt={activeCollection.name} className="block h-auto w-full" /></div><p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/60 sm:text-sm">{activeCollection.name}</p></div>}
       <Link href="/" className="mb-6 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink transition-colors hover:text-brand-gold sm:hidden">
         <ArrowLeft size={14} /> Voltar para o início
       </Link>
