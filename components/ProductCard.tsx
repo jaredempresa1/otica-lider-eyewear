@@ -104,7 +104,7 @@ export default function ProductCard({ product }: { product: Product }) {
             src={mainImage}
             alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
             fill
-            className={`object-contain p-3 mix-blend-multiply transition-opacity duration-300 sm:p-4`}
+            className={`object-cover transition-opacity duration-300`}
             sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
           />
         ) : (
@@ -115,7 +115,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <span className="-rotate-12 rounded-lg border-2 border-brand-ink/70 bg-brand-paper/90 px-4 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink/80 shadow-card backdrop-blur-sm">Esgotado</span>
           </div>
         )}
-        <div className="absolute inset-x-3 top-3 z-20 flex flex-wrap items-start gap-1.5">
+        <div className="absolute inset-x-2 top-2 z-20 flex flex-wrap items-start gap-1.5">
           <div className="flex max-w-full flex-wrap items-start gap-1.5">
             {!madeToOrder && !productSoldOut && product.stock === 1 && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
             {product.more_sold && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
@@ -127,14 +127,14 @@ export default function ProductCard({ product }: { product: Product }) {
           </div>
         </div>
         {hasDiscount && (
-          <div className="absolute bottom-3 left-3 z-20">
+          <div className="absolute bottom-2 left-2 z-20">
             <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>
           </div>
         )}
         <button
           type="button"
           onClick={canBuy ? handleQuickAdd : handleQuickInquiry}
-          className={`absolute bottom-3 right-3 z-30 flex items-center justify-center gap-1.5 rounded-full shadow-card transition-all duration-200 active:scale-[0.94] ${
+          className={`absolute bottom-2 right-2 z-30 flex items-center justify-center gap-1.5 rounded-full shadow-card transition-all duration-200 active:scale-[0.94] ${
             added
               ? "h-11 w-11 bg-brand-moss text-brand-paper sm:h-12 sm:w-12"
               : canBuy
