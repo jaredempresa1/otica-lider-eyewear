@@ -270,118 +270,123 @@ export default function SacolaPage() {
     );
   }
 
+  const orderSummaryDetails = (
+    <>
+      <ul className="flex flex-col gap-3">
+        {items.map((item) => (
+          <li key={`${item.productId}-${item.colorName}`} className="flex items-center gap-3">
+            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#f7f7f7]">
+              {item.image && <Image src={item.image} alt={item.name} fill sizes="48px" className="object-contain p-1 mix-blend-multiply" />}
+            </div>
+            <div className="min-w-0 flex-1 font-body text-[13px] leading-snug text-brand-ink">
+              <p className="truncate font-semibold">{item.name}</p>
+              <p className="text-brand-ink/50">{item.colorName} × {item.quantity}</p>
+            </div>
+            <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">{formatBRL(item.price * item.quantity)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 space-y-1.5 border-t border-brand-ink/8 pt-3 font-body text-[13px] text-brand-ink">
+        <div className="flex items-center justify-between"><span className="text-brand-ink/60">Subtotal</span><span>{formatBRL(grossSubtotal)}</span></div>
+        {offerDiscount > 0 && <div className="flex items-center justify-between text-red-600"><span>Desconto em ofertas</span><span>- {formatBRL(offerDiscount)}</span></div>}
+        {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Cupom ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
+        <div className="flex items-center justify-between"><span className="text-brand-ink/60">Custo de frete</span><span>{isFreeShipping ? "Grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A calcular"}</span></div>
+        <div className="flex items-center justify-between pt-1.5 font-bold"><span>Total</span><span>{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
+      </div>
+    </>
+  );
+
+  const couponWidget = !couponBoxOpen ? (
+    <button
+      type="button"
+      onClick={() => setCouponBoxOpen(true)}
+      aria-expanded={couponBoxOpen}
+      className="flex w-full items-center justify-center gap-2 rounded-full border border-brand-ink/25 py-3 font-body text-[13px] font-semibold text-brand-ink transition-colors hover:border-brand-ink"
+    >
+      <Tag size={15} className="shrink-0" />
+      Tem cupom de desconto?
+    </button>
+  ) : (
+    <div>
+      <div className="flex items-center gap-1.5 rounded-full border border-brand-ink/25 bg-white p-1.5 pl-4">
+        <input
+          id="coupon"
+          value={couponInput}
+          onChange={(event) => setCouponInput(event.target.value)}
+          onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }}
+          placeholder="Código do cupom"
+          autoFocus
+          className="min-w-0 flex-1 border-none bg-transparent font-body text-[13px] uppercase text-brand-ink outline-none ring-0 placeholder:normal-case placeholder:text-brand-ink/40 focus:outline-none focus:ring-0 focus-visible:outline-none"
+        />
+        <button type="button" onClick={handleApplyCoupon} className="flex shrink-0 items-center gap-1 rounded-full bg-brand-ink px-4 py-2.5 font-body text-[12px] font-semibold text-white transition-colors hover:bg-brand-gold">
+          Aplicar <ChevronRight size={14} />
+        </button>
+      </div>
+      {couponMessage && <p className={`mt-2 px-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
+    </div>
+  );
+
   return (
     <>
       <main className="section-shell bg-brand-cream/30 py-6 sm:py-10">
-        <div className="mx-auto w-full max-w-md">
+        <div className="mx-auto w-full max-w-md lg:max-w-5xl">
           <div className="flex justify-end pb-2">
             <span className="flex items-center gap-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-ink/40">
               Site seguro <Lock size={11} strokeWidth={2} />
             </span>
           </div>
 
-          {/* Resumo/valor do pedido + detalhes recolhíveis */}
-          <div className="rounded-xl border border-brand-ink/10 bg-white shadow-[0_3px_18px_rgba(0,0,0,0.05)]">
-            <button
-              type="button"
-              onClick={() => setOrderDetailsOpen((value) => !value)}
-              aria-expanded={orderDetailsOpen}
-              className="flex w-full items-center justify-between px-4 py-3.5"
-            >
-              <span className="flex items-center gap-1.5 font-body text-[13px] font-semibold text-brand-ink/70">
-                <ChevronDown size={16} className={`transition-transform duration-300 ease-premium-out ${orderDetailsOpen ? "rotate-180" : ""}`} />
-                {orderDetailsOpen ? "Ocultar detalhes" : "Ver detalhes do pedido"}
-              </span>
-              <span className="font-heading text-[17px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span>
-            </button>
-
-            {orderDetailsOpen && (
-              <div className="border-t border-brand-ink/8 px-4 py-4">
-                <ul className="flex flex-col gap-3">
-                  {items.map((item) => (
-                    <li key={`${item.productId}-${item.colorName}`} className="flex items-center gap-3">
-                      <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#f7f7f7]">
-                        {item.image && <Image src={item.image} alt={item.name} fill sizes="48px" className="object-contain p-1 mix-blend-multiply" />}
-                      </div>
-                      <div className="min-w-0 flex-1 font-body text-[13px] leading-snug text-brand-ink">
-                        <p className="truncate font-semibold">{item.name}</p>
-                        <p className="text-brand-ink/50">{item.colorName} × {item.quantity}</p>
-                      </div>
-                      <span className="shrink-0 font-body text-[13px] font-semibold text-brand-ink">{formatBRL(item.price * item.quantity)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-4 space-y-1.5 border-t border-brand-ink/8 pt-3 font-body text-[13px] text-brand-ink">
-                  <div className="flex items-center justify-between"><span className="text-brand-ink/60">Subtotal</span><span>{formatBRL(grossSubtotal)}</span></div>
-                  {offerDiscount > 0 && <div className="flex items-center justify-between text-red-600"><span>Desconto em ofertas</span><span>- {formatBRL(offerDiscount)}</span></div>}
-                  {couponDiscount > 0 && <div className="flex items-center justify-between text-brand-gold"><span>Cupom ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
-                  <div className="flex items-center justify-between"><span className="text-brand-ink/60">Custo de frete</span><span>{isFreeShipping ? "Grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A calcular"}</span></div>
-                  <div className="flex items-center justify-between pt-1.5 font-bold"><span>Total</span><span>{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Stepper: Carrinho -> Entrega -> Pagamento */}
-          <div className="mt-5 flex items-center gap-1.5 px-1">
-            <div className="flex flex-col items-center gap-1.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-ink text-brand-paper"><Check size={15} /></span>
-              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink/60">Carrinho</span>
-            </div>
-            <span className="mb-4 h-px flex-1 bg-brand-ink/15" />
-            <div className="flex flex-col items-center gap-1.5">
-              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${step === "entrega" ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/10 text-brand-ink/50"}`}>
-                {step === "pagamento" ? <Check size={15} /> : <Truck size={15} />}
-              </span>
-              <span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${step === "entrega" ? "text-brand-ink" : "text-brand-ink/50"}`}>Entrega</span>
-            </div>
-            <span className="mb-4 h-px flex-1 bg-brand-ink/15" />
-            <div className="flex flex-col items-center gap-1.5">
-              <span className={`flex h-8 w-8 items-center justify-center rounded-full ${step === "pagamento" ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/10 text-brand-ink/50"}`}><Wallet size={15} /></span>
-              <span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${step === "pagamento" ? "text-brand-ink" : "text-brand-ink/50"}`}>Pagamento</span>
-            </div>
-          </div>
-
-          {step === "entrega" && (
-            <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
-              {/* Cupom */}
-              {!couponBoxOpen && (
+          <div className="lg:grid lg:grid-cols-[1fr_380px] lg:items-start lg:gap-10">
+            <div>
+              {/* Resumo/valor do pedido + detalhes recolhíveis (apenas mobile — no desktop vira a barra lateral) */}
+              <div className="rounded-xl border border-brand-ink/10 bg-white shadow-[0_3px_18px_rgba(0,0,0,0.05)] lg:hidden">
                 <button
                   type="button"
-                  onClick={() => setCouponBoxOpen(true)}
-                  aria-expanded={couponBoxOpen}
-                  className="flex w-full items-center justify-center gap-2 rounded-full border border-brand-ink/25 py-3 font-body text-[13px] font-semibold text-brand-ink transition-colors hover:border-brand-ink"
+                  onClick={() => setOrderDetailsOpen((value) => !value)}
+                  aria-expanded={orderDetailsOpen}
+                  className="flex w-full items-center justify-between px-4 py-3.5"
                 >
-                  <Tag size={15} className="shrink-0" />
-                  Tem cupom de desconto?
+                  <span className="flex items-center gap-1.5 font-body text-[13px] font-semibold text-brand-ink/70">
+                    <ChevronDown size={16} className={`transition-transform duration-300 ease-premium-out ${orderDetailsOpen ? "rotate-180" : ""}`} />
+                    {orderDetailsOpen ? "Ocultar detalhes" : "Ver detalhes do pedido"}
+                  </span>
+                  <span className="font-heading text-[17px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span>
                 </button>
-              )}
-              {couponBoxOpen && (
-                <div>
-                  <div className="flex items-center gap-1.5 rounded-full border border-brand-ink/25 bg-white p-1.5 pl-4">
-                    <input
-                      id="coupon"
-                      value={couponInput}
-                      onChange={(event) => setCouponInput(event.target.value)}
-                      onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }}
-                      placeholder="Código do cupom"
-                      autoFocus
-                      className="min-w-0 flex-1 bg-transparent font-body text-[13px] uppercase text-brand-ink outline-none placeholder:normal-case placeholder:text-brand-ink/40"
-                    />
-                    <button type="button" onClick={handleApplyCoupon} className="flex shrink-0 items-center gap-1 rounded-full bg-brand-ink px-4 py-2.5 font-body text-[12px] font-semibold text-white transition-colors hover:bg-brand-gold">
-                      Aplicar <ChevronRight size={14} />
-                    </button>
-                  </div>
-                  {couponMessage && <p className={`mt-2 px-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
+
+                {orderDetailsOpen && <div className="border-t border-brand-ink/8 px-4 py-4">{orderSummaryDetails}</div>}
+              </div>
+
+              {/* Stepper: Carrinho -> Entrega -> Pagamento */}
+              <div className="mt-5 flex items-center gap-1.5 px-1 lg:mt-0">
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-ink text-brand-paper"><Check size={15} /></span>
+                  <span className="font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink/60">Carrinho</span>
                 </div>
-              )}
+                <span className="mb-4 h-px flex-1 bg-brand-ink/15" />
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${step === "entrega" ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/10 text-brand-ink/50"}`}>
+                    {step === "pagamento" ? <Check size={15} /> : <Truck size={15} />}
+                  </span>
+                  <span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${step === "entrega" ? "text-brand-ink" : "text-brand-ink/50"}`}>Entrega</span>
+                </div>
+                <span className="mb-4 h-px flex-1 bg-brand-ink/15" />
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className={`flex h-8 w-8 items-center justify-center rounded-full ${step === "pagamento" ? "bg-brand-ink text-brand-paper" : "bg-brand-ink/10 text-brand-ink/50"}`}><Wallet size={15} /></span>
+                  <span className={`font-body text-[10px] font-semibold uppercase tracking-[0.08em] ${step === "pagamento" ? "text-brand-ink" : "text-brand-ink/50"}`}>Pagamento</span>
+                </div>
+              </div>
 
-              <div className="mt-4"><FreeShippingBar subtotal={subtotal} /></div>
+              {step === "entrega" && (
+                <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
+                  {/* Cupom (apenas mobile — no desktop aparece na barra lateral) */}
+                  <div className="lg:hidden">{couponWidget}</div>
 
-              {/* Dados de contato */}
-              <div className="mt-5 border-t border-brand-ink/8 pt-4">
-                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de contato</p>
-                <input
+                  <div className="mt-4 lg:mt-0"><FreeShippingBar subtotal={subtotal} /></div>
+
+                  {/* Dados de contato */}
+                  <div className="mt-5 border-t border-brand-ink/8 pt-4">
+                    <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de contato</p>
+                    <input
                   id="contact-email"
                   type="email"
                   placeholder="E-mail"
@@ -590,6 +595,15 @@ export default function SacolaPage() {
               <AbandonedCartSignup items={items} />
             </div>
           )}
+            </div>
+
+            <aside className="hidden lg:sticky lg:top-6 lg:block">
+              <div className="rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)]">
+                {orderSummaryDetails}
+              </div>
+              {step === "entrega" && <div className="mt-4">{couponWidget}</div>}
+            </aside>
+          </div>
         </div>
       </main>
 
