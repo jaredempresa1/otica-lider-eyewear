@@ -1,11 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useCart } from "@/components/CartContext";
+import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
+import FreeShippingBar from "@/components/FreeShippingBar";
 
 type CartDrawerContextValue = {
   open: () => void;
@@ -25,19 +27,60 @@ function formatBRL(value: number): string {
 }
 
 export function CartDrawerProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  function open() {
+    setIsMounted(true);
+  }
+
+  function close() {
+    setIsVisible(false);
+    window.setTimeout(() => setIsMounted(false), 320);
+  }
+
+  useEffect(() => {
+    if (!isMounted) return;
+    const frame = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, [isMounted]);
 
   return (
-    <CartDrawerContext.Provider value={{ open: () => setIsOpen(true), close: () => setIsOpen(false) }}>
+    <CartDrawerContext.Provider value={{ open, close }}>
       {children}
-      {isOpen && <CartDrawer onClose={() => setIsOpen(false)} />}
+      {isMounted && <CartDrawer isVisible={isVisible} onClose={close} />}
     </CartDrawerContext.Provider>
   );
 }
 
-function CartDrawer({ onClose }: { onClose: () => void }) {
+function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () => void }) {
   const router = useRouter();
   const { items, updateQuantity, removeItem, subtotal } = useCart();
+  const [cep, setCep] = useState("");
+  const [shipping, setShipping] = useState<ShippingResult | null>(null);
+  const [checkingShipping, setCheckingShipping] = useState(false);
+
+  useEffect(() => {
+    if (!isValidCep(cep)) {
+      setShipping(null);
+      setCheckingShipping(false);
+      return;
+    }
+    let cancelled = false;
+    setCheckingShipping(true);
+    const timer = window.setTimeout(() => {
+      checkShipping(cep, items).then((result) => {
+        if (!cancelled) {
+          setShipping(result);
+          setCheckingShipping(false);
+        }
+      });
+    }, 500);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [cep, items]);
 
   function handleCheckout() {
     onClose();
@@ -45,8 +88,18 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex justify-end bg-black/50" onClick={onClose}>
-      <div className="flex h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl" onClick={(event) => event.stopPropagation()}>
+    <div
+      className={`fixed inset-0 z-[100] flex justify-end bg-black/50 transition-opacity duration-300 ease-premium-out ${
+        isVisible ? "opacity-100" : "opacity-0"
+      }`}
+      onClick={onClose}
+    >
+      <div
+        className={`flex h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl transition-transform duration-300 ease-premium-out ${
+          isVisible ? "translate-x-0" : "translate-x-full"
+        }`}
+        onClick={(event) => event.stopPropagation()}
+      >
         <div className="flex items-center justify-between bg-brand-ink px-5 py-4">
           <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Meu carrinho</span>
           <button type="button" onClick={onClose} aria-label="Fechar" className="text-brand-paper/80 transition-colors hover:text-brand-gold">
@@ -98,7 +151,33 @@ function CartDrawer({ onClose }: { onClose: () => void }) {
 
         {items.length > 0 && (
           <div className="border-t border-brand-ink/10 px-5 py-4">
-            <div className="flex items-center justify-between font-body text-[13px] text-brand-ink/70">
+            <FreeShippingBar subtotal={subtotal} />
+
+            <label htmlFor="cart-drawer-cep" className="mt-3 block font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink/50">
+              Calcular frete
+            </label>
+            <input
+              id="cart-drawer-cep"
+              type="text"
+              inputMode="numeric"
+              placeholder="Digite seu CEP"
+              value={cep}
+              onChange={(event) => setCep(event.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-brand-ink/15 bg-white px-3 py-2 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold"
+            />
+            {isValidCep(cep) && (
+              <p className="mt-1.5 font-body text-[12px] leading-5 text-brand-ink/65">
+                {checkingShipping
+                  ? "Calculando frete…"
+                  : shipping?.freeShipping
+                  ? `Frete grátis para ${shipping.regionLabel || "sua região"} · até ${shipping.deliveryTime || 3} dias úteis.`
+                  : shipping?.price != null
+                  ? `${formatBRL(shipping.price)} · até ${shipping.deliveryTime} dias úteis.`
+                  : "Prazo de entrega a confirmar pelo WhatsApp."}
+              </p>
+            )}
+
+            <div className="mt-3 flex items-center justify-between font-body text-[13px] text-brand-ink/70">
               <span>Subtotal</span>
               <span>{formatBRL(subtotal)}</span>
             </div>

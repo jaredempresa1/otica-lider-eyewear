@@ -16,10 +16,10 @@ const piazzolla = Piazzolla({
   variable: "--font-piazzolla",
 });
 
-// URL final do site em produção. É essa URL que faz a imagem de preview
-// funcionar corretamente quando o link é compartilhado no WhatsApp, Instagram etc.
-// Também pode ser sobrescrita pela variável de ambiente NEXT_PUBLIC_SITE_URL.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.oticaliderbrasil.com.br";
+// TODO: troque pela URL final do site em produção (ex.: "https://oticalidereyewear.com.br").
+// É essa URL que faz a imagem de preview funcionar corretamente quando o link é
+// compartilhado no WhatsApp, Instagram etc.
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://otica-lider-eyewear.vercel.app";
 const SITE_TITLE = "Ótica Líder Brasil — Seu olhar merece uma boa moldura";
 const SITE_DESCRIPTION =
   "Óculos de sol escolhidos para atravessar o tempo com você. Frete grátis para João Pessoa e Região.";

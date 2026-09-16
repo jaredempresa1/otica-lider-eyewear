@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { hasSupabaseConfig } from "@/lib/supabaseClient";
 
@@ -88,12 +89,12 @@ export default function WhatsAppSignup() {
 
   return (
     <section className="border-t border-brand-ink/10 bg-brand-paper">
-      <div className="section-shell py-14 sm:py-20">
-        <h2 className="max-w-2xl font-heading text-lg font-bold uppercase leading-tight tracking-[-0.01em] text-brand-ink sm:text-xl">
+      <div className="section-shell py-14 text-center sm:py-20">
+        <h2 className="mx-auto max-w-2xl font-heading text-lg font-bold uppercase leading-tight tracking-[-0.01em] text-brand-orange sm:text-xl">
           Cadastre-se e receba novidades e promoções em primeira mão
         </h2>
 
-        <form onSubmit={handleSubmit} className="mt-8 flex max-w-xl flex-col gap-3">
+        <form onSubmit={handleSubmit} className="mx-auto mt-8 flex max-w-xl flex-col gap-3 text-left">
           <input tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} className="hidden" aria-hidden="true" />
           <input
             type="tel"
@@ -121,7 +122,7 @@ export default function WhatsAppSignup() {
 
         {errorMessage && <p className="mt-2 font-body text-sm text-red-600">{errorMessage}</p>}
 
-        <div className="mt-6 flex flex-wrap gap-x-8 gap-y-3">
+        <div className="mt-6 flex flex-wrap justify-center gap-x-8 gap-y-3">
           {(["masculino", "feminino"] as Gender[]).map((option) => (
             <label key={option} className="flex cursor-pointer items-center gap-3">
               <span
@@ -146,10 +147,12 @@ export default function WhatsAppSignup() {
           ))}
         </div>
 
-        <p className="mt-8 max-w-2xl font-body text-xs leading-5 text-brand-ink/55">
-          Ao cadastrar o seu WhatsApp, você concorda em receber novidades e promoções exclusivas,
-          novas coleções e campanhas da Ótica Líder Brasil. Se mudar de ideia, você pode pedir para sair a
-          qualquer momento.
+        <p className="mx-auto mt-8 max-w-2xl font-body text-xs leading-5 text-brand-ink/55">
+          Ao se cadastrar, você concorda em receber comunicações nos termos da nossa{" "}
+          <Link href="/politica-de-privacidade" className="underline decoration-brand-ink/30 underline-offset-2 hover:text-brand-ink hover:decoration-brand-orange">
+            Política de Privacidade
+          </Link>
+          .
         </p>
       </div>
     </section>

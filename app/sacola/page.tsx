@@ -37,11 +37,22 @@ export default function SacolaPage() {
   const [couponInput, setCouponInput] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
+  const [couponBoxOpen, setCouponBoxOpen] = useState(false);
   const [address, setAddress] = useState<Omit<SavedAddress, "cep">>(EMPTY_ADDRESS);
   const [loggedIn, setLoggedIn] = useState(false);
   const [cepInvalid, setCepInvalid] = useState(false);
   const [checkingAddress, setCheckingAddress] = useState(false);
   const [showCepLookup, setShowCepLookup] = useState(false);
+  const [contactEmail, setContactEmail] = useState("");
+  const [deliveryName, setDeliveryName] = useState("");
+  const [deliverySurname, setDeliverySurname] = useState("");
+  const [deliveryPhone, setDeliveryPhone] = useState("");
+  const [documentNumber, setDocumentNumber] = useState("");
+  const [sameAsDelivery, setSameAsDelivery] = useState(true);
+  const [payerName, setPayerName] = useState("");
+  const [payerSurname, setPayerSurname] = useState("");
+  const [payerPhone, setPayerPhone] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const skipNextClearRef = useRef(false);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
@@ -156,7 +167,33 @@ export default function SacolaPage() {
 	  } : current);
 	}
 
+  const REQUIRED_MESSAGE = "Esse campo deve ser preenchido.";
+
+  function validateContactAndDelivery(): boolean {
+    const errors: Record<string, string> = {};
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim());
+
+    if (!contactEmail.trim()) errors.contactEmail = REQUIRED_MESSAGE;
+    else if (!emailValid) errors.contactEmail = "Digite um e-mail em um formato válido.";
+
+    if (!deliveryName.trim()) errors.deliveryName = REQUIRED_MESSAGE;
+    if (!deliverySurname.trim()) errors.deliverySurname = REQUIRED_MESSAGE;
+    if (!deliveryPhone.trim()) errors.deliveryPhone = REQUIRED_MESSAGE;
+    if (!documentNumber.trim()) errors.documentNumber = REQUIRED_MESSAGE;
+
+    if (!sameAsDelivery) {
+      if (!payerName.trim()) errors.payerName = REQUIRED_MESSAGE;
+      if (!payerSurname.trim()) errors.payerSurname = REQUIRED_MESSAGE;
+      if (!payerPhone.trim()) errors.payerPhone = REQUIRED_MESSAGE;
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  }
+
   function handleCheckout() {
+    if (!validateContactAndDelivery()) return;
+
 			const message = buildWhatsAppOrderMessage(
 				items,
 				cep,
@@ -164,6 +201,14 @@ export default function SacolaPage() {
 				payment,
 				appliedCoupon ? { code: appliedCoupon, discount: couponDiscount } : undefined,
 				address,
+				{
+					name: deliveryName,
+					surname: deliverySurname,
+					phone: deliveryPhone,
+					email: contactEmail,
+					document: documentNumber,
+					payer: sameAsDelivery ? undefined : { name: payerName, surname: payerSurname, phone: payerPhone },
+				},
 			);
 	    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
 
@@ -269,17 +314,54 @@ export default function SacolaPage() {
             <div className="flex items-center justify-between"><span className="text-brand-ink/60">Subtotal ({totalItems})</span><span>{formatBRL(grossSubtotal)}</span></div>
             {offerDiscount > 0 && <div className="flex items-center justify-between text-red-600"><span>Desconto em ofertas</span><span>- {formatBRL(offerDiscount)}</span></div>}
             <div className="pt-2">
-              <label htmlFor="coupon" className="block font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Cupom de primeira compra</label>
-              <div className="mt-2 flex gap-2">
-              <input id="coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }} placeholder="Digite seu cupom" className="min-w-0 flex-1 rounded-md border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[12px] uppercase text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-                <button type="button" onClick={handleApplyCoupon} className="rounded-md bg-black px-3 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-white transition-colors hover:bg-brand-gold">Aplicar</button>
+              <button
+                type="button"
+                onClick={() => setCouponBoxOpen((value) => !value)}
+                aria-expanded={couponBoxOpen}
+                className="flex w-full items-center justify-between font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60 transition-colors hover:text-brand-ink"
+              >
+                Tem cupom de desconto?
+                <span className={`inline-block transition-transform duration-300 ease-premium-out ${couponBoxOpen ? "rotate-180" : ""}`} aria-hidden="true">▾</span>
+              </button>
+              <div className="coupon-flip-wrap">
+                <div className={`coupon-flip-panel ${couponBoxOpen ? "is-open" : ""}`}>
+                  <div className="mt-2 flex gap-2">
+                    <input id="coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }} placeholder="Digite seu cupom" className="min-w-0 flex-1 rounded-md border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[12px] uppercase text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
+                    <button type="button" onClick={handleApplyCoupon} className="rounded-md bg-black px-3 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-white transition-colors hover:bg-brand-gold">Aplicar</button>
+                  </div>
+                  {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
+                </div>
               </div>
-              {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
               <div className="mt-4"><FreeShippingBar subtotal={subtotal} /></div>
             </div>
             {couponDiscount > 0 && <div className="flex items-center justify-between font-semibold text-brand-gold"><span>Cupom ({appliedCoupon})</span><span>- {formatBRL(couponDiscount)}</span></div>}
             <div className="pt-1">
-		            <div className="flex items-center justify-between">
+              <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de contato</p>
+              <input
+                id="contact-email"
+                type="email"
+                placeholder="E-mail"
+                value={contactEmail}
+                onChange={(event) => setContactEmail(event.target.value)}
+                className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.contactEmail ? "border-red-500" : "border-brand-ink/15"}`}
+              />
+              {fieldErrors.contactEmail && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.contactEmail}</p>}
+
+              <p className="mt-4 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para entrega</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div>
+                  <input placeholder="Nome" value={deliveryName} onChange={(event) => setDeliveryName(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryName ? "border-red-500" : "border-brand-ink/15"}`} />
+                  {fieldErrors.deliveryName && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryName}</p>}
+                </div>
+                <div>
+                  <input placeholder="Sobrenome" value={deliverySurname} onChange={(event) => setDeliverySurname(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliverySurname ? "border-red-500" : "border-brand-ink/15"}`} />
+                  {fieldErrors.deliverySurname && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliverySurname}</p>}
+                </div>
+              </div>
+              <input placeholder="Telefone com DDD" value={deliveryPhone} onChange={(event) => setDeliveryPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.deliveryPhone ? "border-red-500" : "border-brand-ink/15"}`} />
+              {fieldErrors.deliveryPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.deliveryPhone}</p>}
+
+		            <div className="mt-4 flex items-center justify-between">
 		              <span className="text-brand-ink/60">Frete</span>
 		              <span>{isFreeShipping ? "Frete grátis" : shipping?.price != null ? formatBRL(shipping.price) : "A combinar"}</span>
 		            </div>
@@ -319,6 +401,45 @@ export default function SacolaPage() {
                   <input value={address.cidade ? `${address.cidade}${address.estado ? ` - ${address.estado}` : ""}` : ""} readOnly placeholder="Cidade" className="rounded-xl border border-brand-ink/10 bg-brand-ink/5 px-3 py-2.5 font-body text-[13px] text-brand-ink/60 outline-none" />
                 </div>
               )}
+
+              <div className="mt-5 border-t border-brand-ink/8 pt-4">
+                <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados para nota fiscal</p>
+                <input
+                  placeholder="CPF ou CNPJ"
+                  value={documentNumber}
+                  onChange={(event) => setDocumentNumber(event.target.value)}
+                  className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.documentNumber ? "border-red-500" : "border-brand-ink/15"}`}
+                />
+                {fieldErrors.documentNumber && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.documentNumber}</p>}
+
+                <label className="mt-3 flex cursor-pointer items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={sameAsDelivery}
+                    onChange={(event) => setSameAsDelivery(event.target.checked)}
+                    className="h-4 w-4 rounded border-brand-ink/25 text-brand-gold focus:ring-brand-gold"
+                  />
+                  <span className="font-body text-[13px] text-brand-ink/75">Usar as mesmas informações da entrega</span>
+                </label>
+
+                {!sameAsDelivery && (
+                  <div className="mt-3">
+                    <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Dados de quem vai fazer o pagamento</p>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <div>
+                        <input placeholder="Nome" value={payerName} onChange={(event) => setPayerName(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerName ? "border-red-500" : "border-brand-ink/15"}`} />
+                        {fieldErrors.payerName && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerName}</p>}
+                      </div>
+                      <div>
+                        <input placeholder="Sobrenome" value={payerSurname} onChange={(event) => setPayerSurname(event.target.value)} className={`w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerSurname ? "border-red-500" : "border-brand-ink/15"}`} />
+                        {fieldErrors.payerSurname && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerSurname}</p>}
+                      </div>
+                    </div>
+                    <input placeholder="Telefone com DDD" value={payerPhone} onChange={(event) => setPayerPhone(event.target.value)} className={`mt-2 w-full rounded-xl border bg-brand-cream/50 px-3 py-2.5 font-body text-[13px] text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold ${fieldErrors.payerPhone ? "border-red-500" : "border-brand-ink/15"}`} />
+                    {fieldErrors.payerPhone && <p className="mt-1.5 font-body text-[12px] font-semibold text-red-600">{fieldErrors.payerPhone}</p>}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

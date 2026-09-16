@@ -55,7 +55,23 @@ export default function FilterDrawer({
   const searchParams = useSearchParams();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const [draft, setDraft] = useState<ProductFilterState>(EMPTY_FILTER_STATE);
+
+  // Abre em duas etapas: primeiro monta o painel fora da tela (isOpen),
+  // depois — já no próximo frame — liga a classe que dispara a transição
+  // suave (isVisible). Fechar faz o caminho inverso: tira a classe (a
+  // transição de saída roda) e só desmonta depois que ela termina.
+  function requestClose() {
+    setIsVisible(false);
+    window.setTimeout(() => setIsOpen(false), 320);
+  }
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const frame = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, [isOpen]);
 
   const appliedState = useMemo(
     () =>
@@ -95,7 +111,7 @@ export default function FilterDrawer({
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsOpen(false);
+      if (event.key === "Escape") requestClose();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -152,7 +168,7 @@ export default function FilterDrawer({
 
     const query = params.toString();
     const hash = anchor ? `#${anchor}` : "";
-    setIsOpen(false);
+    requestClose();
     router.replace(`${pathname}${query ? `?${query}` : ""}${hash}`, { scroll: false });
   }
 
@@ -172,15 +188,21 @@ export default function FilterDrawer({
           <button
             type="button"
             aria-label="Fechar filtros"
-            onClick={() => setIsOpen(false)}
-            className="absolute inset-0 bg-brand-ink/50 backdrop-blur-[1px]"
+            onClick={requestClose}
+            className={`absolute inset-0 bg-brand-ink/50 backdrop-blur-[1px] transition-opacity duration-300 ease-premium-out ${
+              isVisible ? "opacity-100" : "opacity-0"
+            }`}
           />
 
-          <div className="relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-3xl bg-brand-paper shadow-soft sm:max-w-lg sm:rounded-3xl">
+          <div
+            className={`relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-3xl bg-brand-paper shadow-soft transition-all duration-300 ease-premium-out sm:max-w-lg sm:rounded-3xl ${
+              isVisible ? "translate-y-0 opacity-100 sm:scale-100" : "translate-y-6 opacity-0 sm:translate-y-2 sm:scale-95"
+            }`}
+          >
             <div className="flex shrink-0 items-center justify-between gap-3 bg-brand-ink px-5 py-4">
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={requestClose}
                 className="font-body text-[12px] font-semibold uppercase tracking-[0.1em] text-brand-paper/70 transition-colors hover:text-brand-paper"
               >
                 Cancelar

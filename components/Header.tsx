@@ -14,6 +14,7 @@ import { QUICK_FILTERS } from "@/lib/filters";
 import FaceIcon, { FaceShape } from "./icons/FaceIcon";
 import RunningIcon from "./icons/RunningIcon";
 import BikeIcon from "./icons/BikeIcon";
+import SearchSuggestions from "./SearchSuggestions";
 
 // Os mesmos atalhos do menu mobile ("Filtrar por"), reaproveitados no dropdown de desktop.
 const NAV_QUICK_FILTERS = QUICK_FILTERS.filter((filter) => ["mais-vendidos", "destaques", "ofertas"].includes(filter.value));
@@ -44,15 +45,28 @@ export default function Header() {
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => setLoggedIn(!!session?.user));
     return () => subscription.subscription.unsubscribe();
   }, []);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuMounted, setMenuMounted] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [filterMenuOpen, setFilterMenuOpen] = useState(false);
   const filterMenuRef = useRef<HTMLDivElement>(null);
+  const menuOpen = menuMounted;
+
+  function openMenu() {
+    setMenuMounted(true);
+  }
 
   function closeMenu() {
-    setMenuOpen(false);
+    setMenuVisible(false);
+    window.setTimeout(() => setMenuMounted(false), 320);
   }
+
+  useEffect(() => {
+    if (!menuMounted) return;
+    const frame = requestAnimationFrame(() => setMenuVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, [menuMounted]);
 
   useEffect(() => {
     if (!filterMenuOpen) return;
@@ -83,7 +97,7 @@ export default function Header() {
       <div className="section-shell flex h-[72px] items-center justify-between gap-1.5 sm:h-[80px] sm:gap-5">
         <button
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink sm:hidden"
-          onClick={() => setMenuOpen((value) => !value)}
+          onClick={() => (menuOpen ? closeMenu() : openMenu())}
           aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
           aria-expanded={menuOpen}
         >
@@ -234,67 +248,104 @@ export default function Header() {
               Buscar
             </button>
           </form>
+          <div className="section-shell !px-0">
+            <SearchSuggestions query={searchValue} onNavigate={() => { setSearchOpen(false); setSearchValue(""); }} />
+          </div>
         </div>
       )}
 
       {menuOpen && (
-        <nav className="border-t border-brand-ink/10 bg-brand-paper px-5 py-5 font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-brand-ink sm:hidden">
-          <div className="section-shell flex flex-col gap-5 !px-0">
-            <Link href="/" onClick={closeMenu}>
-              Início
-            </Link>
-            <Link href="/produtos" onClick={closeMenu}>
-              Coleção completa
-            </Link>
-            <button
-              type="button"
-              onClick={() => {
-                closeMenu();
-                openCart();
-              }}
-              className="text-left"
-            >
-              Meu carrinho {totalItems > 0 ? `(${totalItems})` : ""}
-            </button>
-            {loggedIn ? (
-              <Link href="/conta" onClick={closeMenu} className="flex items-center gap-2.5">
-                <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Minha conta
+        <div
+          className={`fixed inset-0 z-[100] flex justify-start bg-black/50 transition-opacity duration-300 ease-premium-out sm:hidden ${
+            menuVisible ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={closeMenu}
+        >
+          <nav
+            className={`flex h-full w-full max-w-[300px] flex-col overflow-y-auto bg-brand-paper shadow-2xl transition-transform duration-300 ease-premium-out ${
+              menuVisible ? "translate-x-0" : "-translate-x-full"
+            }`}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 bg-brand-ink px-5 py-4">
+              {loggedIn ? (
+                <Link
+                  href="/conta"
+                  onClick={closeMenu}
+                  className="flex items-center gap-2 font-body text-[12px] font-semibold uppercase tracking-[0.12em] text-brand-paper"
+                >
+                  <User size={16} strokeWidth={1.8} className="text-brand-gold" /> Minha conta
+                </Link>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu();
+                      openLogin();
+                    }}
+                    className="rounded-full bg-brand-paper px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-ink"
+                  >
+                    Entrar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu();
+                      openLogin();
+                    }}
+                    className="rounded-full border border-brand-paper/40 px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-paper"
+                  >
+                    Criar conta
+                  </button>
+                </div>
+              )}
+              <button type="button" onClick={closeMenu} aria-label="Fechar menu" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-brand-paper/30 text-brand-paper">
+                <X size={16} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            <div className="flex flex-1 flex-col gap-5 px-5 py-5 font-body text-[13px] font-semibold uppercase tracking-[0.16em] text-brand-ink">
+              <Link href="/" onClick={closeMenu}>
+                Início
               </Link>
-            ) : (
+              <Link href="/produtos" onClick={closeMenu}>
+                Coleção completa
+              </Link>
               <button
                 type="button"
                 onClick={() => {
                   closeMenu();
-                  openLogin();
+                  openCart();
                 }}
-                className="flex items-center gap-2.5 text-left"
+                className="text-left"
               >
-                <User size={18} strokeWidth={1.8} className="shrink-0 text-brand-gold" /> Entrar ou cadastrar
+                Meu carrinho {totalItems > 0 ? `(${totalItems})` : ""}
               </button>
-            )}
 
-            <div className="mt-1 border-t border-brand-ink/10 pt-5">
-              <p className="mb-3 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">
-                Filtrar por
-              </p>
-              <div className="flex flex-col gap-4">
-                {NAV_QUICK_FILTERS.map((filter) => (
-                  <Link key={filter.value} href={`/produtos?ordenar=${filter.value}`} onClick={closeMenu} className="flex items-center gap-2.5">
-                    {QUICK_FILTER_ICONS[filter.value]} {filter.label}
+              <div className="mt-1 border-t border-brand-ink/10 pt-5">
+                <p className="mb-3 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">
+                  Categorias
+                </p>
+                <div className="flex flex-col gap-4">
+                  {NAV_QUICK_FILTERS.map((filter) => (
+                    <Link key={filter.value} href={`/produtos?ordenar=${filter.value}`} onClick={closeMenu} className="flex items-center gap-2.5">
+                      {QUICK_FILTER_ICONS[filter.value]} {filter.label}
+                    </Link>
+                  ))}
+                  {NAV_GENDER_LINKS.map((item) => (
+                    <Link key={item.href} href={item.href} onClick={closeMenu} className="flex items-center gap-2.5">
+                      <FaceIcon shape={item.shape} className="h-5 w-5 shrink-0 text-brand-gold" /> {item.label}
+                    </Link>
+                  ))}
+                  <Link href={SPORT_LINK.href} onClick={closeMenu} className="flex items-center gap-2.5">
+                    <span className="flex shrink-0 items-center -space-x-1"><RunningIcon className="h-5 w-5 text-brand-gold" /><BikeIcon className="h-5 w-5 text-brand-gold" /></span> {SPORT_LINK.label}
                   </Link>
-                ))}
-                {NAV_GENDER_LINKS.map((item) => (
-                  <Link key={item.href} href={item.href} onClick={closeMenu} className="flex items-center gap-2.5">
-                    <FaceIcon shape={item.shape} className="h-5 w-5 shrink-0 text-brand-gold" /> {item.label}
-                  </Link>
-                ))}
-                <Link href={SPORT_LINK.href} onClick={closeMenu} className="flex items-center gap-2.5">
-                  <span className="flex shrink-0 items-center -space-x-1"><RunningIcon className="h-5 w-5 text-brand-gold" /><BikeIcon className="h-5 w-5 text-brand-gold" /></span> {SPORT_LINK.label}
-                </Link>
+                </div>
               </div>
             </div>
-          </div>
-        </nav>
+          </nav>
+        </div>
       )}
     </header>
   );

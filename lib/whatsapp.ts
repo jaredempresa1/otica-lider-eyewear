@@ -35,11 +35,31 @@ export function buildWhatsAppOrderMessage(
   payment: PaymentSelection,
   coupon?: { code: string; discount: number },
   address?: { logradouro: string; numero: string; complemento: string; bairro: string; cidade: string; estado: string },
+  contact?: {
+    name?: string;
+    surname?: string;
+    phone?: string;
+    email?: string;
+    document?: string;
+    payer?: { name: string; surname: string; phone: string };
+  },
 ): string {
   const lines: string[] = [];
 
   lines.push("Olá! Gostaria de finalizar este pedido na Ótica Líder Brasil:");
   lines.push("");
+
+  if (contact?.name || contact?.email) {
+    const fullName = [contact?.name, contact?.surname].filter(Boolean).join(" ");
+    if (fullName) lines.push(`Nome: ${fullName}`);
+    if (contact?.phone) lines.push(`Telefone: ${contact.phone}`);
+    if (contact?.email) lines.push(`E-mail: ${contact.email}`);
+    if (contact?.document) lines.push(`CPF/CNPJ: ${contact.document}`);
+    if (contact?.payer) {
+      lines.push(`Pagamento em nome de: ${[contact.payer.name, contact.payer.surname].filter(Boolean).join(" ")} — ${contact.payer.phone}`);
+    }
+    lines.push("");
+  }
 
   let subtotal = 0;
   let grossSubtotal = 0;
