@@ -68,7 +68,10 @@ export default function SearchSuggestions({ query, onNavigate }: { query: string
     ? products.filter((product) => (product.collection_slugs ?? []).includes(matchedCollection.slug))
     : products;
 
-  const baseParams = matchedCollection ? `marca=${matchedCollection.slug}` : trimmed ? `q=${encodeURIComponent(trimmed)}` : "";
+  // Usa o mesmo parâmetro "colecao" da faixa de marcas da home, para abrir a
+  // mesma página com a logo da marca em destaque (banner) — antes usava
+  // "marca", que é um filtro diferente e não ativa esse banner.
+  const baseParams = matchedCollection ? `colecao=${matchedCollection.slug}` : trimmed ? `q=${encodeURIComponent(trimmed)}` : "";
   const withBase = (extra?: string) => `/produtos?${[baseParams, extra].filter(Boolean).join("&")}`;
 
   const hasMasculino = scopedProducts.some((product) => product.gender === "masculino");

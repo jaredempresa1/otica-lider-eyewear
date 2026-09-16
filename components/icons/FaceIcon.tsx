@@ -20,12 +20,18 @@ function ShapeSvg({ shape }: { shape: FaceShape }) {
     case "feminino":
       return (
         <svg viewBox="0 0 32 32" {...common} stroke="currentColor" className="h-full w-full">
-          {/* Cabeça oval simples */}
-          <ellipse cx="17" cy="16" rx="6.4" ry="8" />
-          {/* Cabelo: alguns traços longos do lado esquerdo */}
-          <path d="M10.8 10c-2.6 1.2-4.4 3.6-4.8 6.4" />
-          <path d="M9.6 12.6c-2 1.4-3.3 3.5-3.6 5.8" />
-          <path d="M9.2 16c-1.6 1.4-2.5 3.2-2.6 5.2" />
+          {/* Cabelo longo e ondulado emoldurando o rosto até os ombros */}
+          <path d="M9.2 15.2c-.7-5.6 2.7-9.8 6.8-9.8s7.5 4.2 6.8 9.8" />
+          <path d="M9.7 14.8c-1.5 2.1-2.1 4.9-1.7 7.7.3 2 1 3.7 1.9 5.1" />
+          <path d="M22.3 14.8c1.5 2.1 2.1 4.9 1.7 7.7-.3 2-1 3.7-1.9 5.1" />
+          <path d="M11.3 16.2c-.7 1.8-.9 3.8-.5 5.7" />
+          <path d="M20.7 16.2c.7 1.8.9 3.8.5 5.7" />
+          {/* Rosto oval */}
+          <path d="M10.6 14.8v3.2c0 4.6 2.5 8.4 5.4 8.4s5.4-3.8 5.4-8.4v-3.2" />
+          {/* Repartição central do cabelo */}
+          <path d="M16 6v3.2" />
+          {/* Sorriso delicado */}
+          <path d="M13.6 20.6c.7.7 1.6 1.1 2.4 1.1s1.7-.4 2.4-1.1" />
         </svg>
       );
     case "infantil":

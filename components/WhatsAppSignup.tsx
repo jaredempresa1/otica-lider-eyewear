@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { User, Phone } from "lucide-react";
 import { hasSupabaseConfig } from "@/lib/supabaseClient";
 
 type Gender = "masculino" | "feminino";
@@ -74,12 +75,12 @@ export default function WhatsAppSignup() {
 
   if (status === "success") {
     return (
-      <section className="border-t border-brand-ink/10 bg-brand-paper">
+      <section className="border-t border-brand-logo-orange-dark bg-brand-logo-orange">
         <div className="section-shell py-14 text-center sm:py-20">
-          <h2 className="font-heading text-2xl font-semibold uppercase tracking-[-0.01em] text-brand-ink sm:text-3xl">
+          <h2 className="font-heading text-2xl font-semibold uppercase tracking-[-0.01em] text-white sm:text-3xl">
             Cadastro confirmado!
           </h2>
-          <p className="mx-auto mt-3 max-w-md font-body text-sm leading-6 text-brand-ink/60">
+          <p className="mx-auto mt-3 max-w-md font-body text-sm leading-6 text-white/80">
             Em breve você recebe novidades e promoções exclusivas direto no seu WhatsApp.
           </p>
         </div>
@@ -88,49 +89,55 @@ export default function WhatsAppSignup() {
   }
 
   return (
-    <section className="border-t border-brand-ink/10 bg-brand-paper">
+    <section className="border-t border-brand-logo-orange-dark bg-brand-logo-orange">
       <div className="section-shell py-14 text-center sm:py-20">
-        <h2 className="mx-auto max-w-2xl font-heading text-lg font-bold uppercase leading-tight tracking-[-0.01em] text-brand-orange sm:text-xl">
-          Cadastre-se e receba novidades e promoções em primeira mão
+        <h2 className="mx-auto max-w-2xl font-heading text-lg font-bold uppercase leading-tight tracking-[-0.01em] text-white sm:text-xl">
+          Cadastre-se e receba lançamentos e ofertas com muito amor e beleza!
         </h2>
 
         <form onSubmit={handleSubmit} className="mx-auto mt-8 flex max-w-xl flex-col gap-3 text-left">
           <input tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} className="hidden" aria-hidden="true" />
-          <input
-            type="tel"
-            inputMode="numeric"
-            placeholder="Digite o seu WhatsApp"
-            value={whatsapp}
-            onChange={(event) => setWhatsapp(formatWhatsApp(event.target.value))}
-            className="w-full rounded-lg border border-brand-ink/15 bg-white px-4 py-3.5 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold"
-          />
-          <input
-            type="text"
-            placeholder="Digite o seu nome"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            className="w-full rounded-lg border border-brand-ink/15 bg-white px-4 py-3.5 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold"
-          />
+          <div className="relative">
+            <User size={18} strokeWidth={1.8} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand-logo-orange/70" aria-hidden="true" />
+            <input
+              type="text"
+              placeholder="Nome"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              className="w-full rounded-lg border border-transparent bg-white py-3.5 pl-12 pr-4 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-ink/30"
+            />
+          </div>
+          <div className="relative">
+            <Phone size={18} strokeWidth={1.8} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-brand-logo-orange/70" aria-hidden="true" />
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="Número de WhatsApp"
+              value={whatsapp}
+              onChange={(event) => setWhatsapp(formatWhatsApp(event.target.value))}
+              className="w-full rounded-lg border border-transparent bg-white py-3.5 pl-12 pr-4 font-body text-[15px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-ink/30"
+            />
+          </div>
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full shrink-0 rounded-lg bg-brand-ink px-8 py-3.5 font-body text-[15px] font-medium text-brand-paper transition-colors hover:bg-brand-ink/85 disabled:opacity-60 sm:w-fit"
+            className="w-full shrink-0 rounded-lg border-2 border-white bg-transparent px-8 py-3.5 font-body text-[15px] font-bold uppercase tracking-[0.06em] text-white transition-colors hover:bg-white hover:text-brand-logo-orange disabled:opacity-60"
           >
-            {status === "loading" ? "Enviando..." : "Enviar"}
+            {status === "loading" ? "Enviando..." : "Cadastrar"}
           </button>
         </form>
 
-        {errorMessage && <p className="mt-2 font-body text-sm text-red-600">{errorMessage}</p>}
+        {errorMessage && <p className="mt-2 font-body text-sm text-white">{errorMessage}</p>}
 
         <div className="mt-6 flex flex-wrap justify-center gap-x-8 gap-y-3">
           {(["masculino", "feminino"] as Gender[]).map((option) => (
             <label key={option} className="flex cursor-pointer items-center gap-3">
               <span
                 className={`flex h-6 w-6 items-center justify-center rounded-full border transition-colors ${
-                  gender === option ? "border-brand-ink" : "border-brand-ink/25"
+                  gender === option ? "border-white" : "border-white/40"
                 }`}
               >
-                {gender === option && <span className="h-3 w-3 rounded-full bg-brand-ink" />}
+                {gender === option && <span className="h-3 w-3 rounded-full bg-white" />}
               </span>
               <input
                 type="radio"
@@ -140,16 +147,16 @@ export default function WhatsAppSignup() {
                 onChange={() => setGender(option)}
                 className="sr-only"
               />
-              <span className="font-body text-[15px] text-brand-ink">
+              <span className="font-body text-[15px] text-white">
                 {option === "masculino" ? "Masculino" : "Feminino"}
               </span>
             </label>
           ))}
         </div>
 
-        <p className="mx-auto mt-8 max-w-2xl font-body text-xs leading-5 text-brand-ink/55">
+        <p className="mx-auto mt-8 max-w-2xl font-body text-xs leading-5 text-white/80">
           Ao se cadastrar, você concorda em receber comunicações nos termos da nossa{" "}
-          <Link href="/politica-de-privacidade" className="underline decoration-brand-ink/30 underline-offset-2 hover:text-brand-ink hover:decoration-brand-orange">
+          <Link href="/politica-de-privacidade" className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white">
             Política de Privacidade
           </Link>
           .

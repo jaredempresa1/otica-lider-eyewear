@@ -36,7 +36,7 @@ const SPORT_LINK = { href: "/produtos?esportivo=1", label: "Óculos esportivo" }
 export default function Header() {
   const router = useRouter();
   const { totalItems } = useCart();
-  const { openLogin } = useAuthModal();
+  const { openLogin, openSignup } = useAuthModal();
   const { open: openCart } = useCartDrawer();
   const [loggedIn, setLoggedIn] = useState(false);
 
@@ -296,7 +296,7 @@ export default function Header() {
                     type="button"
                     onClick={() => {
                       closeMenu();
-                      openLogin();
+                      openSignup();
                     }}
                     className="rounded-full border border-brand-paper/40 px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.1em] text-brand-paper"
                   >
