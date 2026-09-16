@@ -11,7 +11,8 @@ import { Check, ChevronDown, ChevronRight, CreditCard, Lock, MapPin, Minus, Plus
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
-import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
+import { checkShipping, cleanCep, isValidCep, ShippingResult } from "@/lib/shipping";
+import { CHECKOUT_CEP_KEY } from "@/lib/checkoutCep";
 import { buildWhatsAppLink, buildWhatsAppOrderMessage, PaymentSelection } from "@/lib/whatsapp";
 import { FIRST_PURCHASE_COUPON, FIRST_PURCHASE_MINIMUM, getCouponDiscount, normalizeCoupon } from "@/lib/coupon";
 import AbandonedCartSignup from "@/components/AbandonedCartSignup";
@@ -59,6 +60,7 @@ export default function SacolaPage() {
   const [addressEditing, setAddressEditing] = useState(true);
   const [showCepLookupFor, setShowCepLookupFor] = useState<"entrega" | "payer" | null>(null);
   const skipNextClearRef = useRef(false);
+  const drawerCepRef = useRef<string | null>(null);
   const isFreeShipping = shipping?.freeShipping === true;
   const couponDiscount = getCouponDiscount(appliedCoupon, subtotal);
   const discountedSubtotal = Math.max(0, subtotal - couponDiscount);
@@ -73,6 +75,21 @@ export default function SacolaPage() {
   }, 0);
   const offerDiscount = Math.max(0, grossSubtotal - subtotal);
 
+  // O cliente pode ter consultado um CEP na pré-visualização do carrinho.
+  // Nesse caso ele continua valendo aqui, em vez de ser trocado pelo CEP
+  // salvo na conta.
+  useEffect(() => {
+    try {
+      const stored = window.sessionStorage.getItem(CHECKOUT_CEP_KEY);
+      if (stored && isValidCep(stored)) {
+        drawerCepRef.current = stored;
+        setCep(stored);
+      }
+    } catch {
+      // sessionStorage indisponível: segue com o CEP da conta.
+    }
+  }, []);
+
   // Se o cliente já tem conta, carrega o CEP + endereço salvos da última
   // compra automaticamente — igual à Renner, à Amazon etc.
   useEffect(() => {
@@ -80,11 +97,13 @@ export default function SacolaPage() {
       if (!data.user) return;
       setLoggedIn(true);
       const saved = await getMyAddress();
-      if (saved) {
-        skipNextClearRef.current = true;
-        setCep(saved.cep);
-        setAddress({ logradouro: saved.logradouro, numero: saved.numero, complemento: saved.complemento, bairro: saved.bairro, cidade: saved.cidade, estado: saved.estado });
-      }
+      if (!saved) return;
+      // Veio um CEP diferente do carrinho? Ele tem prioridade: o endereço
+      // certo será buscado pelo próprio CEP (ViaCEP).
+      if (drawerCepRef.current && cleanCep(drawerCepRef.current) !== cleanCep(saved.cep)) return;
+      skipNextClearRef.current = true;
+      setCep(saved.cep);
+      setAddress({ logradouro: saved.logradouro, numero: saved.numero, complemento: saved.complemento, bairro: saved.bairro, cidade: saved.cidade, estado: saved.estado });
     });
   }, []);
 

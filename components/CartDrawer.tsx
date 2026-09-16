@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Minus, Plus, ShoppingBag, Trash2, Truck, X } from "lucide-react";
 import { useCart } from "@/components/CartContext";
-import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
+import { checkShipping, cleanCep, isValidCep, ShippingResult } from "@/lib/shipping";
+import { CHECKOUT_CEP_KEY } from "@/lib/checkoutCep";
 import FreeShippingBar from "@/components/FreeShippingBar";
 
 type CartDrawerContextValue = {
@@ -61,6 +62,17 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
   const [checkingShipping, setCheckingShipping] = useState(false);
   // Apenas visual: marca qual forma de entrega aparece selecionada na pré-visualização.
   const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
+
+  // Guarda o CEP digitado aqui para a etapa de Entrega continuar de onde o
+  // cliente parou, em vez de voltar para o CEP salvo na conta.
+  useEffect(() => {
+    try {
+      if (isValidCep(cep)) window.sessionStorage.setItem(CHECKOUT_CEP_KEY, cleanCep(cep));
+      else window.sessionStorage.removeItem(CHECKOUT_CEP_KEY);
+    } catch {
+      // sessionStorage indisponível (navegação privada): segue sem guardar.
+    }
+  }, [cep]);
 
   useEffect(() => {
     if (!isValidCep(cep)) {
@@ -136,15 +148,15 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
                       <Image src={item.image} alt={item.name} fill className="object-contain p-2 mix-blend-multiply" sizes="80px" />
                     </div>
                   )}
-                  <div className="relative z-0 flex flex-1 flex-col gap-1.5">
+                  <div className="pointer-events-none relative z-10 flex flex-1 flex-col gap-1.5">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="pointer-events-none font-body text-sm font-semibold leading-snug text-brand-ink">{item.name}</p>
-                      <button type="button" onClick={() => removeItem(item.productId, item.colorName)} aria-label="Remover item" className="relative z-10 shrink-0 text-brand-ink/40 transition-colors hover:text-red-600">
+                      <p className="font-body text-sm font-semibold leading-snug text-brand-ink">{item.name}</p>
+                      <button type="button" onClick={() => removeItem(item.productId, item.colorName)} aria-label="Remover item" className="pointer-events-auto shrink-0 text-brand-ink/40 transition-colors hover:text-red-600">
                         <Trash2 size={16} />
                       </button>
                     </div>
-                    <p className="pointer-events-none font-body text-sm font-semibold text-brand-ink">{formatBRL(item.price)}</p>
-                    <div className="relative z-10 mt-1 flex w-fit items-center gap-3 rounded-full border border-brand-ink/15 bg-brand-paper px-3 py-1.5">
+                    <p className="font-body text-sm font-semibold text-brand-ink">{formatBRL(item.price)}</p>
+                    <div className="pointer-events-auto mt-1 flex w-fit items-center gap-3 rounded-full border border-brand-ink/15 bg-brand-paper px-3 py-1.5">
                       <button type="button" onClick={() => updateQuantity(item.productId, item.colorName, item.quantity - 1)} aria-label="Diminuir quantidade" className="text-brand-ink/60 transition-colors hover:text-brand-gold">
                         <Minus size={14} />
                       </button>
