@@ -7,7 +7,7 @@
  */
 import Link from "next/link";
 import Image from "next/image";
-import { Check, ChevronDown, CreditCard, Lock, MapPin, Minus, Plus, QrCode, ShoppingCart, Trash2, Truck, Wallet } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, CreditCard, Lock, MapPin, Minus, Plus, QrCode, ShoppingCart, Tag, Trash2, Truck, Wallet } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/CartContext";
@@ -272,15 +272,14 @@ export default function SacolaPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between bg-black px-4 py-3 sm:px-8">
-        <span className="font-heading text-lg font-bold tracking-[-0.04em] text-white sm:text-2xl">Ótica Líder Brasil</span>
-        <span className="flex items-center gap-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-white sm:text-xs">
-          Site seguro <Lock size={13} strokeWidth={2} />
-        </span>
-      </div>
-
       <main className="section-shell bg-brand-cream/30 py-6 sm:py-10">
         <div className="mx-auto w-full max-w-md">
+          <div className="flex justify-end pb-2">
+            <span className="flex items-center gap-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-ink/40">
+              Site seguro <Lock size={11} strokeWidth={2} />
+            </span>
+          </div>
+
           {/* Resumo/valor do pedido + detalhes recolhíveis */}
           <div className="rounded-xl border border-brand-ink/10 bg-white shadow-[0_3px_18px_rgba(0,0,0,0.05)]">
             <button
@@ -296,8 +295,8 @@ export default function SacolaPage() {
               <span className="font-heading text-[17px] font-semibold text-brand-ink">{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span>
             </button>
 
-            <div className={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-premium-out ${orderDetailsOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-              <div className="min-h-0 overflow-hidden border-t border-brand-ink/8 px-4 py-4">
+            {orderDetailsOpen && (
+              <div className="border-t border-brand-ink/8 px-4 py-4">
                 <ul className="flex flex-col gap-3">
                   {items.map((item) => (
                     <li key={`${item.productId}-${item.colorName}`} className="flex items-center gap-3">
@@ -320,7 +319,7 @@ export default function SacolaPage() {
                   <div className="flex items-center justify-between pt-1.5 font-bold"><span>Total</span><span>{formatBRL(discountedSubtotal + (shipping?.price || 0))}</span></div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Stepper: Carrinho -> Entrega -> Pagamento */}
@@ -346,24 +345,36 @@ export default function SacolaPage() {
           {step === "entrega" && (
             <div className="mt-5 rounded-xl border border-brand-ink/10 bg-white p-4 shadow-[0_3px_18px_rgba(0,0,0,0.05)] sm:p-5">
               {/* Cupom */}
-              <button
-                type="button"
-                onClick={() => setCouponBoxOpen((value) => !value)}
-                aria-expanded={couponBoxOpen}
-                className="flex w-full items-center justify-between font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60 transition-colors hover:text-brand-ink"
-              >
-                Tem cupom de desconto?
-                <span className={`inline-block transition-transform duration-300 ease-premium-out ${couponBoxOpen ? "rotate-180" : ""}`} aria-hidden="true">▾</span>
-              </button>
-              <div className="coupon-flip-wrap">
-                <div className={`coupon-flip-panel ${couponBoxOpen ? "is-open" : ""}`}>
-                  <div className="mt-2 flex gap-2">
-                    <input id="coupon" value={couponInput} onChange={(event) => setCouponInput(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }} placeholder="Digite seu cupom" className="min-w-0 flex-1 rounded-md border border-brand-ink/15 bg-white px-3 py-2.5 font-body text-[12px] uppercase text-brand-ink outline-none placeholder:text-brand-ink/35 focus:border-brand-gold" />
-                    <button type="button" onClick={handleApplyCoupon} className="rounded-md bg-black px-3 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-white transition-colors hover:bg-brand-gold">Aplicar</button>
+              {!couponBoxOpen && (
+                <button
+                  type="button"
+                  onClick={() => setCouponBoxOpen(true)}
+                  aria-expanded={couponBoxOpen}
+                  className="flex w-full items-center justify-center gap-2 rounded-full border border-brand-ink/25 py-3 font-body text-[13px] font-semibold text-brand-ink transition-colors hover:border-brand-ink"
+                >
+                  <Tag size={15} className="shrink-0" />
+                  Tem cupom de desconto?
+                </button>
+              )}
+              {couponBoxOpen && (
+                <div>
+                  <div className="flex items-center gap-1.5 rounded-full border border-brand-ink/25 bg-white p-1.5 pl-4">
+                    <input
+                      id="coupon"
+                      value={couponInput}
+                      onChange={(event) => setCouponInput(event.target.value)}
+                      onKeyDown={(event) => { if (event.key === "Enter") handleApplyCoupon(); }}
+                      placeholder="Código do cupom"
+                      autoFocus
+                      className="min-w-0 flex-1 bg-transparent font-body text-[13px] uppercase text-brand-ink outline-none placeholder:normal-case placeholder:text-brand-ink/40"
+                    />
+                    <button type="button" onClick={handleApplyCoupon} className="flex shrink-0 items-center gap-1 rounded-full bg-brand-ink px-4 py-2.5 font-body text-[12px] font-semibold text-white transition-colors hover:bg-brand-gold">
+                      Aplicar <ChevronRight size={14} />
+                    </button>
                   </div>
-                  {couponMessage && <p className={`mt-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
+                  {couponMessage && <p className={`mt-2 px-2 font-body text-[12px] leading-5 ${couponDiscount > 0 ? "text-brand-gold" : "text-brand-ink/50"}`} role="status">{couponMessage}</p>}
                 </div>
-              </div>
+              )}
 
               <div className="mt-4"><FreeShippingBar subtotal={subtotal} /></div>
 

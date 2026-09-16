@@ -1,14 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Tag, X } from "lucide-react";
 
 export default function CouponBanner() {
   const [visible, setVisible] = useState(true);
+  const pathname = usePathname();
 
   function handleDismiss() {
     setVisible(false);
   }
+
+  // Não mostra esse aviso durante o checkout (etapas de entrega/pagamento
+  // da sacola) — só nas demais páginas do site.
+  if (pathname?.startsWith("/sacola")) return null;
 
   if (!visible) return null;
 

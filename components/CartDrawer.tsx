@@ -89,27 +89,27 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex justify-end bg-black/50 transition-opacity duration-300 ease-premium-out ${
+      className={`fixed inset-0 z-[100] flex items-start justify-end bg-black/50 transition-opacity duration-300 ease-premium-out ${
         isVisible ? "opacity-100" : "opacity-0"
       }`}
       onClick={onClose}
     >
       <div
-        className={`flex h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl transition-transform duration-300 ease-premium-out ${
+        className={`flex max-h-full w-full max-w-sm flex-col bg-brand-paper shadow-2xl transition-transform duration-300 ease-premium-out ${
           isVisible ? "translate-x-0" : "translate-x-full"
         }`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center gap-3 bg-brand-ink px-5 py-4">
+        <div className="flex shrink-0 items-center gap-3 bg-brand-ink px-5 py-4">
           <button type="button" onClick={onClose} aria-label="Fechar" className="text-brand-paper/80 transition-colors hover:text-brand-gold">
             <X size={20} />
           </button>
           <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Carrinho de compras</span>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div className="overflow-y-auto px-5 py-4">
           {items.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
+            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
               <ShoppingBag size={32} strokeWidth={1.5} className="text-brand-ink/30" />
               <p className="font-body text-sm text-brand-ink/60">Seu carrinho está vazio.</p>
               <button type="button" onClick={onClose} className="mt-2 rounded-full border border-brand-ink px-5 py-2.5 font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper">
@@ -150,7 +150,7 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
         </div>
 
         {items.length > 0 && (
-          <div className="border-t border-brand-ink/10 px-5 py-4">
+          <div className="shrink-0 border-t border-brand-ink/10 px-5 py-4">
             <FreeShippingBar subtotal={subtotal} />
 
             <label htmlFor="cart-drawer-cep" className="mt-3 block font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink/50">
