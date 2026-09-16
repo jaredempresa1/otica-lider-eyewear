@@ -42,7 +42,7 @@ export default async function ProdutosPage({
 
   return (
     <main className="section-shell py-10 sm:py-14">
-      {activeCollection?.image_url && <div className="mb-8 relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-brand-ink"><img src={activeCollection.image_url} alt={activeCollection.name} className="absolute inset-0 h-full w-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-brand-ink/70 to-transparent" /><h2 className="absolute bottom-4 left-5 font-heading text-2xl font-semibold text-brand-paper sm:bottom-6 sm:left-8 sm:text-4xl">{activeCollection.name}</h2></div>}
+      {activeCollection?.image_url && <div className="mb-8 relative aspect-[21/9] max-h-[220px] w-full overflow-hidden rounded-2xl bg-brand-ink sm:max-h-[320px]"><img src={activeCollection.image_url} alt={activeCollection.name} className="absolute inset-0 h-full w-full object-contain object-center p-8 sm:p-12" /><div className="absolute inset-0 bg-gradient-to-t from-brand-ink/70 to-transparent" /><h2 className="absolute bottom-4 left-5 font-heading text-2xl font-semibold text-brand-paper sm:bottom-6 sm:left-8 sm:text-4xl">{activeCollection.name}</h2></div>}
       <Link href="/" className="mb-6 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink transition-colors hover:text-brand-gold sm:hidden">
         <ArrowLeft size={14} /> Voltar para o início
       </Link>
