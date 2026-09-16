@@ -28,10 +28,10 @@ function getColorImages(product: Product, color?: ProductColor): string[] {
   return product.images?.filter(Boolean) ?? [];
 }
 
-function ProductImagePreview({ src, alt, priority, sizes, onOpen }: { src?: string; alt: string; priority?: boolean; sizes: string; onOpen: () => void }) {
+function ProductImagePreview({ src, alt, priority, sizes, onOpen, isFirst }: { src?: string; alt: string; priority?: boolean; sizes: string; onOpen: () => void; isFirst?: boolean }) {
   return (
     <button type="button" onClick={onOpen} className="relative h-full w-full overflow-hidden select-none" aria-label="Abrir imagem ampliada do produto">
-      {src ? <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="object-contain p-3 mix-blend-multiply sm:p-7" /> : <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>}
+      {src ? <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className={isFirst ? "object-contain p-2 sm:p-4" : "object-contain p-3 mix-blend-multiply sm:p-7"} /> : <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>}
       {src && <span className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-brand-paper/90 px-3 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-ink/60 shadow-card backdrop-blur-sm"><ZoomIn size={13} /> Clique para ampliar</span>}
     </button>
   );
@@ -133,7 +133,7 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.5rem] bg-brand-sage/45">
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ touchAction: "none", cursor: zoomed ? (dragging ? "grabbing" : "zoom-out") : "zoom-in" }}>
           <div className="relative h-full w-full transition-transform duration-200 ease-out" style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoomed ? ZOOM_SCALE : 1})` }}>
-            <Image key={images[currentIndex]} src={images[currentIndex]} alt={`${alt}, foto ${currentIndex + 1}`} fill priority className="object-contain p-3 mix-blend-multiply sm:p-10" sizes="100vw" draggable={false} />
+            <Image key={images[currentIndex]} src={images[currentIndex]} alt={`${alt}, foto ${currentIndex + 1}`} fill priority className={currentIndex === 0 ? "object-contain p-2 sm:p-6" : "object-contain p-3 mix-blend-multiply sm:p-10"} sizes="100vw" draggable={false} />
           </div>
         </div>
         {!zoomed && images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Foto anterior"><ChevronLeft size={20} /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Próxima foto"><ChevronRight size={20} /></button></>}
@@ -324,7 +324,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: { produ
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            <ProductImagePreview src={activeImage} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} priority sizes="(max-width: 1024px) 100vw, 55vw" onOpen={() => openLightbox(activeImage || selectedGallery[0] || "")} />
+            <ProductImagePreview src={activeImage} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} priority sizes="(max-width: 1024px) 100vw, 55vw" onOpen={() => openLightbox(activeImage || selectedGallery[0] || "")} isFirst={activeImage === selectedGallery[0]} />
             {product.more_sold && <span className="pointer-events-none absolute left-5 top-5 z-10 rounded-full bg-brand-paper/90 px-4 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-ink backdrop-blur-sm">Mais vendido</span>}
             {madeToOrder && <span className="pointer-events-none absolute right-5 top-5 z-10 rounded-full bg-brand-gold px-4 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.14em] text-brand-paper backdrop-blur-sm">Sob encomenda</span>}
             {productSoldOut && !madeToOrder && (
@@ -353,7 +353,7 @@ export default function ProductDetail({ product, relatedProducts = [] }: { produ
               </>
             )}
           </div>
-          {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-sage/40 transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
+          {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-sage/40 transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className={index === 0 ? "object-contain p-0.5" : "object-contain p-1 mix-blend-multiply"} sizes="100px" /></button>)}</div>}
           {selectedGallery.length > 0 && <p className="mt-3 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/40">{selectedColor?.name ? `Galeria da cor ${selectedColor.name}` : "Galeria do produto"} · {selectedGallery.length} {selectedGallery.length === 1 ? "foto" : "fotos"}</p>}
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-5 border-t border-brand-ink/10 pt-5 lg:hidden" />}
         </div>
