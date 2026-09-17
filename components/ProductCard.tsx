@@ -131,7 +131,7 @@ export default function ProductCard({ product, collections }: { product: Product
           </div>
         </div>
         {hasDiscount && (
-          <div className={`absolute left-2 z-20 ${brandLogo ? "bottom-16 sm:bottom-[4.5rem]" : "bottom-2"}`}>
+          <div className="absolute bottom-2 left-2 z-20">
             <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>
           </div>
         )}
@@ -139,7 +139,7 @@ export default function ProductCard({ product, collections }: { product: Product
           <img
             src={brandLogo}
             alt={displayBrand}
-            className="pointer-events-none absolute bottom-2 left-2 z-20 h-11 w-auto max-w-[110px] object-contain drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] sm:h-14"
+            className="pointer-events-none absolute bottom-2 right-2 z-20 h-8 w-auto max-w-[80px] object-contain drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] sm:h-9"
           />
         )}
       </div>
