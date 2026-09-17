@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Check, MessageCircle, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Collection, Product, ProductColor } from "@/types/product";
+import { findBrandLogo } from "@/lib/brandLogo";
 import { useCart } from "./CartContext";
 import { isProductSoldOut } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
@@ -40,9 +41,7 @@ export default function ProductCard({ product, collections }: { product: Product
   // Casa a marca do produto com uma coleção de mesmo nome cadastrada em
   // "Marcas e coleções" no admin, e usa a imagem dela como logo ao lado do
   // nome. Se não existir coleção correspondente, some sem quebrar o layout.
-  const brandLogo = product.brand?.trim()
-    ? collections?.find((collection) => collection.name.trim().toLowerCase() === product.brand!.trim().toLowerCase())?.image_url
-    : undefined;
+  const brandLogo = findBrandLogo(product, collections);
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
 
   useEffect(() => {
@@ -166,11 +165,7 @@ export default function ProductCard({ product, collections }: { product: Product
       <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-2">
-            {brandLogo && (
-              <span className="relative h-7 w-7 shrink-0 overflow-hidden rounded-lg bg-brand-paper ring-1 ring-brand-ink/10 sm:h-8 sm:w-8">
-                <Image src={brandLogo} alt="" fill className="object-contain p-1" sizes="32px" />
-              </span>
-            )}
+            {brandLogo && <img src={brandLogo} alt="" className="h-7 w-auto max-w-[84px] shrink-0 object-contain sm:h-8" />}
             <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
           </div>
           {displayModel && <p className="mt-0.5 truncate font-body text-[11px] font-medium uppercase tracking-[0.12em] text-brand-ink/55 sm:text-[12px]">{displayModel}</p>}

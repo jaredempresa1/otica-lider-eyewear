@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Collection, Product, ProductColor } from "@/types/product";
+import { findBrandLogo } from "@/lib/brandLogo";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
@@ -228,9 +229,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
     : null;
   const displayBrand = product.brand?.trim() || product.name;
   const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
-  const brandLogo = product.brand?.trim()
-    ? collections?.find((collection) => collection.name.trim().toLowerCase() === product.brand!.trim().toLowerCase())?.image_url
-    : undefined;
+  const brandLogo = findBrandLogo(product, collections);
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
 
   useEffect(() => {
@@ -387,11 +386,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
         <div className="flex flex-col justify-center lg:py-8">
           <p className="eyebrow">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
           <div className="mt-3 flex items-center gap-2.5">
-            {brandLogo && (
-              <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl bg-brand-paper ring-1 ring-brand-ink/10 sm:h-11 sm:w-11">
-                <Image src={brandLogo} alt="" fill className="object-contain p-1.5" sizes="44px" />
-              </span>
-            )}
+            {brandLogo && <img src={brandLogo} alt="" className="h-9 w-auto max-w-[130px] shrink-0 object-contain sm:h-11" />}
             <p className="font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
           </div>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
