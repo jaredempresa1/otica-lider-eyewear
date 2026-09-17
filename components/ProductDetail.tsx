@@ -59,8 +59,21 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
   }, [currentIndex, images.length, onClose]);
 
   useEffect(() => {
-    setCurrentIndex(Math.max(0, Math.min(initialIndex, images.length - 1)));
-    resetZoom();
+    const requestedIndex = Math.max(0, Math.min(initialIndex, images.length - 1));
+    // Abrir o visualizador na foto 1 já É a tentativa de dar zoom (é pra
+    // isso que essa tela serve). Como a foto 1 costuma ter resolução pior,
+    // já entramos direto na foto 2 com o zoom ligado, em vez de mostrar a
+    // foto 1 sem zoom e só corrigir num segundo toque.
+    if (requestedIndex === 0 && images.length > 1) {
+      setCurrentIndex(1);
+      setOffset({ x: 0, y: 0 });
+      setDragging(false);
+      justZoomedIn.current = false;
+      setZoomed(true);
+    } else {
+      setCurrentIndex(requestedIndex);
+      resetZoom();
+    }
   }, [initialIndex, images.length]);
 
   function resetZoom() {
