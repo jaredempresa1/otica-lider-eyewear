@@ -3,7 +3,7 @@
 /** Direção visual: reforçar a legibilidade de preço, público e parcelamento sem alterar a composição do card. */
 import Image from "next/image";
 import Link from "next/link";
-import { Check, MessageCircle, Plus } from "lucide-react";
+import { Check, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Collection, Product, ProductColor } from "@/types/product";
 import { findBrandLogo } from "@/lib/brandLogo";
@@ -37,7 +37,6 @@ export default function ProductCard({ product, collections }: { product: Product
     ? product.installments.count * product.installments.amount
     : null;
   const displayBrand = product.brand?.trim() || product.name;
-  const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
   // Casa a marca do produto com uma coleção de mesmo nome cadastrada em
   // "Marcas e coleções" no admin, e usa a imagem dela como logo ao lado do
   // nome. Se não existir coleção correspondente, some sem quebrar o layout.
@@ -132,43 +131,39 @@ export default function ProductCard({ product, collections }: { product: Product
           </div>
         </div>
         {hasDiscount && (
-          <div className="absolute bottom-2 left-2 z-20">
+          <div className="absolute bottom-12 left-2 z-20 sm:bottom-[3.25rem]">
             <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>
           </div>
         )}
         <button
           type="button"
           onClick={canBuy ? handleQuickAdd : handleQuickInquiry}
-          className={`absolute bottom-2 right-2 z-30 flex items-center justify-center gap-1.5 rounded-full shadow-card transition-all duration-200 active:scale-[0.94] ${
-            added
-              ? "h-11 w-11 bg-brand-moss text-brand-paper sm:h-12 sm:w-12"
-              : canBuy
-              ? "h-11 w-11 bg-brand-paper text-brand-ink hover:bg-brand-gold hover:text-brand-paper sm:h-12 sm:w-12"
-              : "h-9 pl-3 pr-3.5 bg-brand-ink text-brand-paper hover:bg-brand-gold sm:h-10 sm:pl-3.5 sm:pr-4"
+          className={`absolute inset-x-0 bottom-0 z-30 flex h-11 items-center gap-2 px-3 transition-colors duration-200 active:scale-[0.98] sm:h-12 sm:px-4 ${
+            added ? "bg-brand-moss text-brand-paper" : "bg-brand-ink text-brand-paper hover:bg-brand-gold"
           }`}
           aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} ao carrinho` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
           title={canBuy ? "Adicionar ao carrinho" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
         >
-          {added ? (
-            <Check size={19} strokeWidth={2} />
-          ) : canBuy ? (
-            <Plus size={20} strokeWidth={1.7} />
-          ) : (
-            <>
-              <MessageCircle size={15} strokeWidth={1.8} />
-              <span className="font-body text-[10px] font-semibold uppercase tracking-[0.1em] sm:text-[11px]">{madeToOrder ? "Fazer pedido" : "Pedir"}</span>
-            </>
-          )}
+          {brandLogo && <img src={brandLogo} alt="" className="h-6 w-6 shrink-0 rounded-md bg-brand-paper/95 object-contain p-0.5 sm:h-7 sm:w-7" />}
+          <span className="flex flex-1 items-center justify-center gap-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.1em] sm:text-[11px]">
+            {added ? (
+              <>
+                <Check size={15} strokeWidth={2} /> Adicionado
+              </>
+            ) : canBuy ? (
+              "Adicionar ao carrinho"
+            ) : (
+              <>
+                <MessageCircle size={14} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir"}
+              </>
+            )}
+          </span>
         </button>
       </div>
 
       <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">
         <div className="min-w-0">
-          <div className="flex min-w-0 items-center gap-2">
-            {brandLogo && <img src={brandLogo} alt="" className="h-7 w-auto max-w-[84px] shrink-0 object-contain sm:h-8" />}
-            <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
-          </div>
-          {displayModel && <p className="mt-0.5 truncate font-body text-[11px] font-medium uppercase tracking-[0.12em] text-brand-ink/55 sm:text-[12px]">{displayModel}</p>}
+          <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
               {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
@@ -206,7 +201,6 @@ export default function ProductCard({ product, collections }: { product: Product
       )}
 
 
-      <p className={`mt-2 min-h-[16px] font-body text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors duration-200 ${added ? "text-brand-moss" : "text-transparent"}`}>{added ? "Adicionado ao carrinho" : " "}</p>
 
       {showPaymentModal && (
         <PaymentMethodModal

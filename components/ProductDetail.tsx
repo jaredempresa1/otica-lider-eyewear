@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, X, ZoomIn, ZoomOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Collection, Product, ProductColor } from "@/types/product";
-import { findBrandLogo } from "@/lib/brandLogo";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
@@ -229,7 +228,6 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
     : null;
   const displayBrand = product.brand?.trim() || product.name;
   const displayModel = product.brand?.trim() ? product.model?.trim() || product.name : "";
-  const brandLogo = findBrandLogo(product, collections);
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
 
   useEffect(() => {
@@ -385,10 +383,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
 
         <div className="flex flex-col justify-center lg:py-8">
           <p className="eyebrow">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
-          <div className="mt-3 flex items-center gap-2.5">
-            {brandLogo && <img src={brandLogo} alt="" className="h-9 w-auto max-w-[130px] shrink-0 object-contain sm:h-11" />}
-            <p className="font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
-          </div>
+          <p className="mt-3 font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className="mt-1 flex items-baseline gap-2"><span className={`text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{discountPercent !== null && <span className="text-[13px] font-bold text-red-600">{discountPercent}% OFF</span>}</span>{installmentTotal !== null && product.installments && <span className="mt-2 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>
           <div className="mt-5 max-w-sm"><FreeShippingBar subtotal={subtotal} /></div>
