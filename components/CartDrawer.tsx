@@ -145,8 +145,7 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
                   />
                   {item.image && (
                     <div className="pointer-events-none relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/40">
-                      <Image src={item.image} alt="" aria-hidden="true" fill className="scale-125 object-cover opacity-60 blur-md" sizes="80px" />
-                      <Image src={item.image} alt={item.name} fill className="relative object-contain p-1.5" sizes="80px" />
+                      <Image src={item.image} alt={item.name} fill className="object-contain p-2 mix-blend-multiply" sizes="80px" />
                     </div>
                   )}
                   <div className="pointer-events-none relative z-10 flex flex-1 flex-col gap-1.5">
