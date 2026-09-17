@@ -1,4 +1,4 @@
-import { Product } from "@/types/product";
+import { Collection, Product } from "@/types/product";
 import ProductCard from "./ProductCard";
 import { isProductSoldOut } from "@/lib/productStatus";
 
@@ -6,11 +6,14 @@ export default function ProductGrid({
   products,
   emptyMessage,
   scroll = false,
+  collections,
 }: {
   products: Product[];
   emptyMessage?: { title: string; description: string };
   /** Quando true, renderiza como um carrossel horizontal (arrastável no mobile) em vez de um grid. */
   scroll?: boolean;
+  /** Usadas para casar a marca do produto com o logo cadastrado em "Marcas e coleções" no admin. */
+  collections?: Collection[];
 }) {
   if (!products || products.length === 0) {
     return (
@@ -28,12 +31,12 @@ export default function ProductGrid({
       <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 pl-16 pr-5 sm:-mx-8 sm:gap-5 sm:px-8 lg:-mx-10 lg:px-10">
         {sortedProducts.map((product) => (
           <div key={product.id} className="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]">
-            <ProductCard product={product} />
+            <ProductCard product={product} collections={collections} />
           </div>
         ))}
       </div>
     );
   }
 
-  return <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4">{sortedProducts.map((product) => <ProductCard key={product.id} product={product} />)}</div>;
+  return <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4">{sortedProducts.map((product) => <ProductCard key={product.id} product={product} collections={collections} />)}</div>;
 }

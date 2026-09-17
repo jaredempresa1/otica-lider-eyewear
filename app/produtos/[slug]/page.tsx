@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Product } from "@/types/product";
+import { Collection, Product } from "@/types/product";
 import ProductDetail from "@/components/ProductDetail";
 
 export const revalidate = 60;
@@ -17,6 +17,10 @@ export default async function ProdutoPage({
     .single();
 
   if (!product) return notFound();
+
+  // Usadas pra casar a marca do produto com o logo cadastrado em "Marcas e coleções" no admin.
+  const { data: collectionData } = await supabase.from("collections").select("*");
+  const collections = (collectionData as Collection[]) ?? [];
 
   // Outros produtos pra seção "Outros clientes também viram" — só do mesmo formato
   // (redondo, quadrado, aviador...) e do mesmo público (ou unissex, que aparece pros
@@ -43,5 +47,5 @@ export default async function ProdutoPage({
       .slice(0, 12);
   }
 
-  return <ProductDetail product={product as Product} relatedProducts={relatedProducts} />;
+  return <ProductDetail product={product as Product} relatedProducts={relatedProducts} collections={collections} />;
 }

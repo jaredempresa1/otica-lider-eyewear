@@ -72,7 +72,7 @@ export default async function HomePage({
               Ver coleção completa <span aria-hidden="true">↗</span>
             </Link>
           </div>
-          <ProductGrid products={featuredProducts} scroll />
+          <ProductGrid products={featuredProducts} scroll collections={collections} />
         </section>
       )}
 
@@ -99,6 +99,7 @@ export default async function HomePage({
         <ProductGrid
           products={catalogProducts}
           emptyMessage={hasActiveFilters ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Veja a coleção completa ou tente outro filtro." } : undefined}
+          collections={collections}
         />
       </section>
 

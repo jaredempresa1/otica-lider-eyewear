@@ -75,6 +75,7 @@ export default async function ProdutosPage({
       <ProductGrid
         products={visibleProducts}
         emptyMessage={hasActiveFilters ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Tente outro filtro ou veja a coleção completa." } : undefined}
+        collections={collections}
       />
     </main>
   );
