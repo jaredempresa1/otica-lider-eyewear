@@ -31,7 +31,16 @@ function getColorImages(product: Product, color?: ProductColor): string[] {
 function ProductImagePreview({ src, alt, priority, sizes, onOpen, isFirst }: { src?: string; alt: string; priority?: boolean; sizes: string; onOpen: () => void; isFirst?: boolean }) {
   return (
     <button type="button" onClick={onOpen} className="relative h-full w-full overflow-hidden select-none" aria-label="Abrir imagem ampliada do produto">
-      {src ? <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="object-contain p-4 mix-blend-multiply sm:p-9" /> : <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>}
+      {src ? (
+        isFirst ? (
+          <>
+            <Image src={src} alt="" aria-hidden="true" fill priority={priority} sizes={sizes} className="scale-125 object-cover opacity-50 blur-lg" />
+            <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="relative object-contain p-3 sm:p-6" />
+          </>
+        ) : (
+          <Image src={src} alt={alt} fill priority={priority} sizes={sizes} className="object-contain p-3 mix-blend-multiply sm:p-7" />
+        )
+      ) : <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>}
       {src && <span className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-brand-paper/90 px-3 py-2 font-body text-[9px] font-semibold uppercase tracking-[0.12em] text-brand-ink/60 shadow-card backdrop-blur-sm"><ZoomIn size={13} /> Clique para ampliar</span>}
     </button>
   );
@@ -132,8 +141,9 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
       <div className="flex items-center justify-between gap-4 px-1 pb-3 sm:px-2"><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55">{currentIndex + 1} de {images.length} fotos</p><button type="button" onClick={onClose} className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-ink text-brand-paper transition-colors hover:bg-brand-gold" aria-label="Fechar galeria"><X size={18} /></button></div>
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.5rem] bg-brand-sage/45">
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden" onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerCancel={handlePointerUp} style={{ touchAction: "none", cursor: zoomed ? (dragging ? "grabbing" : "zoom-out") : "zoom-in" }}>
+          {currentIndex === 0 && <Image key={`${images[currentIndex]}-bg`} src={images[currentIndex]} alt="" aria-hidden="true" fill className="scale-125 object-cover opacity-40 blur-xl" sizes="100vw" />}
           <div className="relative h-full w-full transition-transform duration-200 ease-out" style={{ transform: `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoomed ? ZOOM_SCALE : 1})` }}>
-            <Image key={images[currentIndex]} src={images[currentIndex]} alt={`${alt}, foto ${currentIndex + 1}`} fill priority className="object-contain p-4 mix-blend-multiply sm:p-12" sizes="100vw" draggable={false} />
+            <Image key={images[currentIndex]} src={images[currentIndex]} alt={`${alt}, foto ${currentIndex + 1}`} fill priority className={currentIndex === 0 ? "relative object-contain p-3 sm:p-8" : "object-contain p-3 mix-blend-multiply sm:p-10"} sizes="100vw" draggable={false} />
           </div>
         </div>
         {!zoomed && images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Foto anterior"><ChevronLeft size={20} /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Próxima foto"><ChevronRight size={20} /></button></>}
