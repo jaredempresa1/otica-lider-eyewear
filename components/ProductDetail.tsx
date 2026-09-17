@@ -80,14 +80,24 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
     selectImage((currentIndex + direction + images.length) % images.length);
   }
 
+  // A foto 1 costuma ter resolução pior (é a de vitrine/capa). Se o cliente
+  // tentar ampliar justo nela e existir uma segunda foto, pulamos pra foto 2
+  // já com o zoom ativado, em vez de ampliar uma imagem de baixa qualidade.
+  function activateZoom() {
+    if (currentIndex === 0 && images.length > 1) {
+      setCurrentIndex(1);
+    }
+    setOffset({ x: 0, y: 0 });
+    setZoomed(true);
+  }
+
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (event.pointerType === "mouse" && event.button !== 0) return;
     pointerMoved.current = false;
     dragStart.current = { x: event.clientX, y: event.clientY, offsetX: offset.x, offsetY: offset.y };
     if (!zoomed) {
       justZoomedIn.current = true;
-      setZoomed(true);
-      setOffset({ x: 0, y: 0 });
+      activateZoom();
       return;
     }
     justZoomedIn.current = false;
@@ -137,7 +147,7 @@ function ProductLightbox({ images, initialIndex, alt, onClose }: { images: strin
           </div>
         </div>
         {!zoomed && images.length > 1 && <><button type="button" onClick={() => changeImage(-1)} className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Foto anterior"><ChevronLeft size={20} /></button><button type="button" onClick={() => changeImage(1)} className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-colors hover:bg-brand-gold hover:text-brand-paper" aria-label="Próxima foto"><ChevronRight size={20} /></button></>}
-        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-brand-paper/95 p-1 shadow-card sm:bottom-4"><button type="button" onClick={() => setZoomed(true)} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Aumentar zoom"><ZoomIn size={16} /></button><button type="button" onClick={() => setZoomed(false)} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Diminuir zoom"><ZoomOut size={16} /></button><button type="button" onClick={resetZoom} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Restaurar zoom"><RotateCcw size={15} /></button></div>
+        <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full bg-brand-paper/95 p-1 shadow-card sm:bottom-4"><button type="button" onClick={activateZoom} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Aumentar zoom"><ZoomIn size={16} /></button><button type="button" onClick={() => setZoomed(false)} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Diminuir zoom"><ZoomOut size={16} /></button><button type="button" onClick={resetZoom} className="flex h-9 w-9 items-center justify-center rounded-full text-brand-ink transition-colors hover:bg-brand-sage" aria-label="Restaurar zoom"><RotateCcw size={15} /></button></div>
       </div>
       <div className="mt-3 flex gap-2 overflow-x-auto px-1 pb-1 sm:mt-4 sm:justify-center">{images.map((image, index) => <button key={`${image}-${index}`} type="button" onClick={() => selectImage(index)} className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-brand-sage/40 transition-colors sm:h-20 sm:w-20 ${currentIndex === index ? "border-brand-gold" : "border-transparent"}`} aria-label={`Abrir foto ${index + 1}`}><Image src={image} alt={`${alt}, miniatura ${index + 1}`} fill className={index === 0 ? "object-cover" : "object-contain p-1 mix-blend-multiply"} sizes="80px" /></button>)}</div>
       <p className="pt-2 text-center font-body text-[10px] uppercase tracking-[0.12em] text-brand-ink/45 sm:hidden">Toque na imagem para ampliar ou arrastar. Toque de novo para voltar ao normal.</p>
