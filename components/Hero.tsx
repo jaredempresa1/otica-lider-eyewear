@@ -1,54 +1,109 @@
-import Image from "next/image";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+"use client";
 
-const HERO_IMAGE_MOBILE = "/hero-eyewear.png";
-const HERO_IMAGE_DESKTOP = "/hero-eyewear-desktop.png";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+
+type Slide = {
+  image: string;
+  alt: string;
+  eyebrow: string;
+  title: string;
+};
+
+const SLIDES: Slide[] = [
+  {
+    image: "/hero-ciclista-final.jpg",
+    alt: "Ciclista usando óculos de sol esportivo em trilha ao ar livre",
+    eyebrow: "Ciclismo",
+    title: "Esportivo",
+  },
+  {
+    image: "/hero-corredora-final.jpg",
+    alt: "Corredora usando óculos de sol esportivo com lente espelhada",
+    eyebrow: "Corrida",
+    title: "Esportivo",
+  },
+  {
+    image: "/hero-feminino-urbano.jpg",
+    alt: "Mulher usando óculos de sol em cenário urbano",
+    eyebrow: "Feminino",
+    title: "Urbano",
+  },
+  {
+    image: "/hero-feminino-praia.jpg",
+    alt: "Mulher usando óculos de sol estilo editorial na praia",
+    eyebrow: "Feminino",
+    title: "Editorial",
+  },
+  {
+    image: "/hero-masculino-praia.jpg",
+    alt: "Homem usando óculos de sol à beira da piscina",
+    eyebrow: "Masculino",
+    title: "Verão",
+  },
+  {
+    image: "/hero-infantil-final.jpg",
+    alt: "Crianças usando óculos de sol brincando ao ar livre",
+    eyebrow: "Infantil",
+    title: "Diversão",
+  },
+];
+
+const INTERVAL_MS = 2000;
 
 export default function Hero() {
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActive((current) => (current + 1) % SLIDES.length);
+    }, INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="w-full">
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-brand-ink sm:aspect-[16/10] lg:aspect-auto lg:h-[440px] xl:h-[500px]">
-        {/* Celular: foto em retrato, sem mexer. */}
-        <Image
-          src={HERO_IMAGE_MOBILE}
-          alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
-          fill
-          priority
-          className="object-cover object-top lg:hidden"
-          sizes="100vw"
-        />
+      <div className="relative h-[240px] w-full overflow-hidden bg-brand-ink sm:h-[300px] lg:h-[360px] xl:h-[400px]">
+        {SLIDES.map((slide, index) => (
+          <div
+            key={slide.image}
+            className="absolute inset-0 transition-opacity duration-700 ease-in-out"
+            style={{ opacity: index === active ? 1 : 0 }}
+            aria-hidden={index !== active}
+          >
+            <Image
+              src={slide.image}
+              alt={slide.alt}
+              fill
+              priority={index === 0}
+              className="object-cover object-top"
+              sizes="100vw"
+            />
 
-        {/* Desktop: foto já em 16:9, preenche o banner inteiro sem precisar de fundo borrado. */}
-        <Image
-          src={HERO_IMAGE_DESKTOP}
-          alt="Família com ciclista, criança, casal e corredora usando óculos de sol"
-          fill
-          priority
-          className="hidden object-cover object-top lg:block"
-          sizes="100vw"
-        />
+            {/* Escurece a base da foto só o suficiente pra manter o texto legível. */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 to-transparent sm:h-24" />
 
-        {/* Escurece a base da foto só o suficiente pra manter a barra de benefícios legível. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent sm:h-36 lg:hidden" />
-
-        <div className="absolute inset-x-0 bottom-0 border-t border-brand-paper/15 bg-brand-ink/55 backdrop-blur-sm">
-          <div className="grid grid-cols-3 divide-x divide-brand-paper/20">
-            <div className="flex flex-col items-center justify-center gap-0.5 px-2 py-3 text-center sm:py-5">
-              <span className="font-body text-[11px] font-semibold uppercase leading-tight text-brand-paper/80 sm:text-[13px]">Até 10x</span>
-              <span className="font-body text-[11px] font-bold uppercase leading-tight text-brand-gold sm:text-[13px]">no cartão*</span>
+            <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-6 sm:pb-4">
+              <p className="font-body text-[11px] font-semibold uppercase tracking-wide text-brand-gold sm:text-xs">
+                {slide.eyebrow}
+              </p>
+              <p className="font-heading text-lg font-semibold text-brand-paper sm:text-xl">
+                {slide.title}
+              </p>
             </div>
-            <div className="flex flex-col items-center justify-center gap-0.5 px-2 py-3 text-center sm:py-5">
-              <span className="font-body text-[11px] font-semibold uppercase leading-tight text-brand-paper/80 sm:text-[13px]">Garantia de</span>
-              <span className="font-body text-[11px] font-bold uppercase leading-tight text-brand-gold sm:text-[13px]">6 meses</span>
-            </div>
-            <Link href="/produtos" className="flex flex-col items-center justify-center gap-0.5 px-2 py-3 text-center transition-colors hover:bg-brand-paper/5 sm:py-5">
-              <span className="inline-flex items-center gap-0.5 font-body text-[11px] font-semibold uppercase leading-tight text-brand-paper/80 sm:text-[13px]">
-                Do Acessível ao Premium <ChevronRight size={12} className="shrink-0" />
-              </span>
-              <span className="font-body text-[11px] font-bold uppercase leading-tight text-brand-gold sm:text-[13px]">Óculos a partir de R$ 180,00</span>
-            </Link>
           </div>
+        ))}
+
+        {/* Indicadores discretos de posição no carrossel */}
+        <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
+          {SLIDES.map((slide, index) => (
+            <span
+              key={slide.image}
+              className={`h-1 rounded-full transition-all duration-500 ${
+                index === active ? "w-4 bg-brand-paper" : "w-1.5 bg-brand-paper/40"
+              }`}
+            />
+          ))}
         </div>
       </div>
     </section>
