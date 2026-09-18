@@ -135,18 +135,21 @@ export default function ProductCard({ product, collections }: { product: Product
             <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>
           </div>
         )}
-        {brandLogo && (
-          <img
-            src={brandLogo}
-            alt={displayBrand}
-            className="pointer-events-none absolute bottom-2 right-2 z-20 h-8 w-auto max-w-[80px] object-contain drop-shadow-[0_1px_4px_rgba(0,0,0,0.5)] sm:h-9"
-          />
-        )}
       </div>
 
       <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">
         <div className="min-w-0">
-          <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
+          <div className="flex min-w-0 items-center gap-1.5">
+            {brandLogo && (
+              <img
+                src={brandLogo}
+                alt=""
+                aria-hidden="true"
+                className="h-4 w-4 shrink-0 object-contain"
+              />
+            )}
+            <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
+          </div>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
               {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}

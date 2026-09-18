@@ -70,8 +70,8 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="w-full">
-      <div className="relative h-[340px] w-full overflow-hidden bg-brand-ink sm:h-[420px] lg:h-[460px] xl:h-[500px]">
+    <section className="w-full lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-6">
+      <div className="relative h-[420px] w-full overflow-hidden bg-brand-ink sm:h-[480px] lg:h-[560px] lg:rounded-[1.5rem] xl:h-[620px]">
         {SLIDES.map((slide, index) => (
           <div
             key={slide.image}
@@ -89,17 +89,8 @@ export default function Hero() {
               sizes="100vw"
             />
 
-            {/* Escurece a base da foto só o suficiente pra manter o texto legível. */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/75 to-transparent sm:h-24" />
-
-            <div className="absolute inset-x-0 bottom-0 px-4 pb-3 sm:px-6 sm:pb-4">
-              <p className="font-body text-[11px] font-semibold uppercase tracking-wide text-brand-gold sm:text-xs">
-                {slide.eyebrow}
-              </p>
-              <p className="font-heading text-lg font-semibold text-brand-paper sm:text-xl">
-                {slide.title}
-              </p>
-            </div>
+            {/* Leve escurecida na base só pra manter os indicadores legíveis. */}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/40 to-transparent" />
           </div>
         ))}
 
