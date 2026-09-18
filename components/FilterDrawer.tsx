@@ -280,7 +280,7 @@ export default function FilterDrawer({
                           }`}
                         >
                           <span className="h-4 w-4 shrink-0 rounded-full border border-brand-ink/10" style={{ backgroundColor: swatch }} />
-                          {name}
+                          {name.split(" ")[0]}
                         </button>
                       );
                     })}

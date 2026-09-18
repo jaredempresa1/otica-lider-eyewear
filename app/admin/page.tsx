@@ -68,7 +68,7 @@ export default function AdminLoginPage() {
       </form>
 
       <p className="mt-6 text-center font-body text-xs text-brand-black/50">
-        Acesso restrito. O login é criado direto no painel do Supabase.
+        Acesso restrito.
       </p>
     </main>
   );

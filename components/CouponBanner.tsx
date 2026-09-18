@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Tag, X } from "lucide-react";
 
@@ -11,6 +11,13 @@ export default function CouponBanner() {
   function handleDismiss() {
     setVisible(false);
   }
+
+  // Some sozinho depois de 10 segundos.
+  useEffect(() => {
+    if (!visible) return;
+    const timer = setTimeout(() => setVisible(false), 10000);
+    return () => clearTimeout(timer);
+  }, [visible]);
 
   // Não mostra esse aviso durante o checkout (etapas de entrega/pagamento
   // da sacola) — só nas demais páginas do site.
