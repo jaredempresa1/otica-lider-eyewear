@@ -1,6 +1,8 @@
-/** Ícones de rosto em linha fina para as categorias de gênero (masculino,
- * feminino, infantil), usados no lugar de emoji e no lugar do ícone de
- * óculos — que fica reservado para as categorias de tipo de armação. */
+/** Ícones em linha fina para as categorias de gênero (masculino, feminino,
+ * infantil), usados no lugar de emoji e no lugar do ícone de óculos — que
+ * fica reservado para as categorias de tipo de armação. Masculino e feminino
+ * usam os símbolos universais de Marte (♂) e Vênus (♀); infantil usa um
+ * rostinho ilustrado. */
 export type FaceShape = "masculino" | "feminino" | "infantil";
 
 function ShapeSvg({ shape }: { shape: FaceShape }) {
@@ -10,11 +12,10 @@ function ShapeSvg({ shape }: { shape: FaceShape }) {
     case "masculino":
       return (
         <svg viewBox="0 0 32 32" {...common} stroke="currentColor" className="h-full w-full">
-          {/* Cabelo curto reto no topo + rosto oval + mandíbula marcada. */}
-          <path d="M9.5 12.5c0-4 2.9-6.8 6.5-6.8s6.5 2.8 6.5 6.8" />
-          <path d="M9.4 12c1.8.3 11.6.3 13.2 0" />
-          <path d="M9.6 12.8v3.4c0 4.6 3 8.3 6.4 8.3s6.4-3.7 6.4-8.3v-3.4" />
-          <path d="M12.2 18.4c1.1.9 2.5 1.4 3.8 1.4s2.7-.5 3.8-1.4" />
+          {/* Símbolo de Marte — círculo com seta, referência universal ao masculino */}
+          <circle cx="14" cy="18" r="7" />
+          <path d="M19 13 25.5 6.5" />
+          <path d="M20 6.5h5.5V12" />
         </svg>
       );
     case "feminino":

@@ -68,7 +68,7 @@ export default function BrandMarquee({ collections }: { collections: Collection[
           href={`/produtos?colecao=${encodeURIComponent(collection.slug)}`}
           aria-label={collection.name}
           draggable={false}
-          className="relative block h-16 w-32 shrink-0 transition-transform duration-200 hover:scale-105 sm:h-24 sm:w-48"
+          className="relative block h-20 w-36 shrink-0 transition-transform duration-200 hover:scale-105 sm:h-28 sm:w-56"
         >
           {collection.image_url ? (
             <Image
@@ -77,7 +77,7 @@ export default function BrandMarquee({ collections }: { collections: Collection[
               fill
               draggable={false}
               className="pointer-events-none select-none object-contain object-center"
-              sizes="192px"
+              sizes="224px"
             />
           ) : (
             <span className="flex h-full w-full items-center justify-center rounded-lg bg-brand-ink/5 font-heading text-sm font-semibold text-brand-ink/60">
