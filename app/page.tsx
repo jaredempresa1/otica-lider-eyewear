@@ -100,16 +100,8 @@ export default async function HomePage({
           products={catalogProducts}
           emptyMessage={hasActiveFilters ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Veja a coleção completa ou tente outro filtro." } : undefined}
           collections={collections}
-          mobileLimit={10}
-          desktopLimit={12}
+          limit={hasActiveFilters ? undefined : { mobile: 10, desktop: 12 }}
         />
-        {catalogProducts.length > 0 && (
-          <div className="mt-8 flex justify-center">
-            <Link href="/produtos" className="btn-brand-outline px-8 py-3 text-[12px]">
-              Ver todos
-            </Link>
-          </div>
-        )}
       </section>
 
       <TrustBadges />

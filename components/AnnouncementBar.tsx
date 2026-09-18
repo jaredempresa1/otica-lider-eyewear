@@ -20,7 +20,7 @@ export default function AnnouncementBar() {
   }, []);
 
   return (
-    <div className="w-full overflow-hidden bg-brand-gold py-3 text-center font-body text-[10px] font-semibold uppercase tracking-[0.06em] text-brand-paper sm:py-3.5 sm:text-sm sm:tracking-[0.16em]">
+    <div className="w-full overflow-hidden bg-brand-gold py-2.5 text-center font-body text-[9.5px] font-semibold uppercase tracking-[0.06em] text-brand-paper sm:py-3 sm:text-sm sm:tracking-[0.16em]">
       <span className="whitespace-nowrap px-3">{MESSAGES[index]}</span>
     </div>
   );

@@ -66,30 +66,28 @@ const SLIDES: Slide[] = [
 ];
 
 const INTERVAL_MS = 2000;
+/** Distância mínima do arrasto (em px) pra contar como um swipe de verdade e não um toque sem querer. */
 const SWIPE_THRESHOLD = 40;
 
 export default function Hero() {
   const [active, setActive] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const touchDeltaX = useRef(0);
-  const pausedRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (pausedRef.current) return;
       setActive((current) => (current + 1) % SLIDES.length);
     }, INTERVAL_MS);
     return () => clearInterval(timer);
   }, []);
 
-  function goTo(index: number) {
-    setActive(((index % SLIDES.length) + SLIDES.length) % SLIDES.length);
+  function goTo(direction: 1 | -1) {
+    setActive((current) => (current + direction + SLIDES.length) % SLIDES.length);
   }
 
   function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
     touchStartX.current = event.touches[0].clientX;
     touchDeltaX.current = 0;
-    pausedRef.current = true;
   }
 
   function handleTouchMove(event: React.TouchEvent<HTMLDivElement>) {
@@ -98,16 +96,10 @@ export default function Hero() {
   }
 
   function handleTouchEnd() {
-    if (touchStartX.current !== null) {
-      if (touchDeltaX.current > SWIPE_THRESHOLD) {
-        goTo(active - 1);
-      } else if (touchDeltaX.current < -SWIPE_THRESHOLD) {
-        goTo(active + 1);
-      }
-    }
+    if (touchDeltaX.current > SWIPE_THRESHOLD) goTo(-1);
+    else if (touchDeltaX.current < -SWIPE_THRESHOLD) goTo(1);
     touchStartX.current = null;
     touchDeltaX.current = 0;
-    pausedRef.current = false;
   }
 
   return (
@@ -152,14 +144,11 @@ export default function Hero() {
           </div>
         ))}
 
-        {/* Indicadores discretos de posição no carrossel — também podem ser tocados para pular direto pro slide. */}
+        {/* Indicadores discretos de posição no carrossel */}
         <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
           {SLIDES.map((slide, index) => (
-            <button
+            <span
               key={slide.image}
-              type="button"
-              aria-label={`Ir para o slide ${index + 1}`}
-              onClick={() => goTo(index)}
               className={`h-1 rounded-full transition-all duration-500 ${
                 index === active ? "w-4 bg-brand-paper" : "w-1.5 bg-brand-paper/40"
               }`}

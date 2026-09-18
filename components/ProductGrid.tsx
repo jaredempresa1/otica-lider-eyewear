@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Collection, Product } from "@/types/product";
 import ProductCard from "./ProductCard";
 import { isProductSoldOut } from "@/lib/productStatus";
@@ -7,8 +8,7 @@ export default function ProductGrid({
   emptyMessage,
   scroll = false,
   collections,
-  mobileLimit,
-  desktopLimit,
+  limit,
 }: {
   products: Product[];
   emptyMessage?: { title: string; description: string };
@@ -16,10 +16,10 @@ export default function ProductGrid({
   scroll?: boolean;
   /** Usadas para casar a marca do produto com o logo cadastrado em "Marcas e coleções" no admin. */
   collections?: Collection[];
-  /** Quando definido (modo grid, não-scroll), mostra só os N primeiros produtos no mobile/tablet (abaixo do breakpoint lg). */
-  mobileLimit?: number;
-  /** Quando definido (modo grid, não-scroll), mostra só os N primeiros produtos no desktop (lg+). Os itens entre mobileLimit e desktopLimit ficam ocultos no mobile e visíveis no desktop. */
-  desktopLimit?: number;
+  /** Limita quantos cards aparecem no grid (usado na home): mostra `mobile` sempre e revela
+   * o restante até `desktop` só a partir do breakpoint sm. Abaixo do grid entra um botão
+   * "Ver todos" levando para a coleção completa, sem limite. */
+  limit?: { mobile: number; desktop: number };
 }) {
   if (!products || products.length === 0) {
     return (
@@ -44,13 +44,25 @@ export default function ProductGrid({
     );
   }
 
+  const displayProducts = limit ? sortedProducts.slice(0, limit.desktop) : sortedProducts;
+  const showViewAll = limit ? sortedProducts.length > limit.mobile : false;
+
   return (
-    <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4">
-      {sortedProducts.slice(0, desktopLimit ?? sortedProducts.length).map((product, index) => (
-        <div key={product.id} className={mobileLimit != null && index >= mobileLimit ? "hidden lg:block" : undefined}>
-          <ProductCard product={product} collections={collections} />
+    <>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4">
+        {displayProducts.map((product, index) => (
+          <div key={product.id} className={limit && index >= limit.mobile ? "hidden sm:block" : undefined}>
+            <ProductCard product={product} collections={collections} />
+          </div>
+        ))}
+      </div>
+      {showViewAll && (
+        <div className="mt-8 flex justify-center sm:mt-10">
+          <Link href="/produtos" className="btn-brand px-8 py-3.5 text-[12px]">
+            Ver todos
+          </Link>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   );
 }

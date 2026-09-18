@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 import { QUICK_FILTERS } from "@/lib/filters";
 
 export default function QuickFilters({ anchor }: { anchor?: string } = {}) {
@@ -11,8 +12,7 @@ export default function QuickFilters({ anchor }: { anchor?: string } = {}) {
 
   function handleChange(value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    const nextValue = value === current ? "" : value;
-    if (nextValue) params.set("ordenar", nextValue);
+    if (value) params.set("ordenar", value);
     else params.delete("ordenar");
 
     const query = params.toString();
@@ -21,26 +21,21 @@ export default function QuickFilters({ anchor }: { anchor?: string } = {}) {
   }
 
   return (
-    <div role="listbox" aria-label="Filtros rápidos" className="no-scrollbar flex min-w-0 flex-1 snap-x gap-2 overflow-x-auto">
-      {QUICK_FILTERS.map((filter) => {
-        const isSelected = filter.value === current;
-        return (
-          <button
-            key={filter.value}
-            type="button"
-            role="option"
-            aria-selected={isSelected}
-            onClick={() => handleChange(filter.value)}
-            className={`shrink-0 snap-start whitespace-nowrap rounded-full border px-4 py-2 font-body text-[11px] font-semibold uppercase tracking-[0.1em] transition-colors ${
-              isSelected
-                ? "border-brand-gold bg-brand-gold text-brand-paper"
-                : "border-brand-ink/15 bg-brand-paper text-brand-ink/60 hover:border-brand-gold hover:text-brand-ink"
-            }`}
-          >
+    <div className="relative shrink-0">
+      <select
+        value={current}
+        onChange={(event) => handleChange(event.target.value)}
+        aria-label="Ordenar por"
+        className="h-10 shrink-0 appearance-none rounded-full border border-brand-ink/10 bg-brand-paper py-2 pl-4 pr-9 font-body text-[13px] font-medium normal-case tracking-[0.04em] text-brand-ink/65 transition-colors hover:border-brand-gold focus:border-brand-gold focus:outline-none"
+      >
+        <option value="">Ordenar</option>
+        {QUICK_FILTERS.map((filter) => (
+          <option key={filter.value} value={filter.value}>
             {filter.label}
-          </button>
-        );
-      })}
+          </option>
+        ))}
+      </select>
+      <ChevronDown size={15} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brand-ink/45" aria-hidden="true" />
     </div>
   );
 }

@@ -81,6 +81,38 @@ export const QUICK_FILTERS: { value: QuickFilterValue; label: string }[] = [
   { value: "menor-preco", label: "Menor preço" },
 ];
 
+/** Atalhos de filtro (gênero, esportivo, ordenação) que também devem aparecer como
+ * sugestão na busca — ex.: digitar "masc" ou "fem" sugere o link do gênero, digitar
+ * "promo" sugere "Ofertas" etc. `keywords` cobre variações comuns de escrita. */
+type FilterSuggestion = { label: string; href: string; keywords: string[] };
+
+const SEARCH_FILTER_SUGGESTIONS: FilterSuggestion[] = [
+  { label: "Óculos Masculino", href: "/produtos?genero=masculino", keywords: ["masculino", "homem", "masc", "para homem"] },
+  { label: "Óculos Feminino", href: "/produtos?genero=feminino", keywords: ["feminino", "mulher", "fem", "para mulher"] },
+  { label: "Óculos Infantil", href: "/produtos?genero=infantil", keywords: ["infantil", "crianca", "kids", "filho", "filha"] },
+  { label: "Óculos Esportivo", href: "/produtos?esportivo=1", keywords: ["esportivo", "esporte", "sport", "corrida", "ciclismo", "bike"] },
+  { label: "Ofertas", href: "/produtos?ordenar=ofertas", keywords: ["oferta", "ofertas", "promocao", "promocoes", "desconto", "barato"] },
+  { label: "Mais vendidos", href: "/produtos?ordenar=mais-vendidos", keywords: ["mais vendido", "mais vendidos", "vendido", "populares", "top vendas"] },
+  { label: "Em destaque", href: "/produtos?ordenar=destaques", keywords: ["destaque", "destaques", "novidade", "novidades", "lancamento"] },
+];
+
+/** Compara a busca digitada com as palavras-chave de cada atalho, tolerando erro de
+ * digitação (reaproveita o mesmo comparador usado na busca de produtos). */
+export function matchFilterSuggestions(query: string): { label: string; href: string }[] {
+  const normalizedQuery = normalizeSearchText(query);
+  if (normalizedQuery.length < 2) return [];
+  const queryWords = normalizedQuery.split(" ").filter(Boolean);
+
+  return SEARCH_FILTER_SUGGESTIONS.filter((suggestion) =>
+    suggestion.keywords.some((keyword) => {
+      const normalizedKeyword = normalizeSearchText(keyword);
+      if (normalizedKeyword.includes(normalizedQuery) || normalizedQuery.includes(normalizedKeyword)) return true;
+      const keywordWords = normalizedKeyword.split(" ").filter(Boolean);
+      return queryWords.some((queryWord) => keywordWords.some((keywordWord) => wordsApproximatelyMatch(queryWord, keywordWord)));
+    })
+  ).map(({ label, href }) => ({ label, href }));
+}
+
 export type ProductFilterState = {
   busca: string;
   genero: string[];

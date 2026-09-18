@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
+import { matchFilterSuggestions } from "@/lib/filters";
 import { Collection, Product } from "@/types/product";
 
 function formatBRL(value: number): string {
@@ -57,7 +58,11 @@ export default function SearchSuggestions({ query, onNavigate }: { query: string
     };
   }, [trimmed]);
 
-  if (trimmed.length < 2 || (!loading && collections.length === 0 && products.length === 0)) return null;
+  // Atalhos de gênero/ofertas/etc. que batem com o texto digitado (ex.: "masc", "promo"),
+  // independem do Supabase e aparecem mesmo enquanto os produtos ainda carregam.
+  const filterSuggestions = matchFilterSuggestions(trimmed);
+
+  if (trimmed.length < 2 || (!loading && collections.length === 0 && products.length === 0 && filterSuggestions.length === 0)) return null;
 
   const matchedCollection = collections[0] ?? null;
   const matchedLabel = matchedCollection?.name ?? products[0]?.brand?.trim() ?? "";
@@ -102,16 +107,32 @@ export default function SearchSuggestions({ query, onNavigate }: { query: string
   });
   const topProducts = rankedProducts.slice(0, 3);
 
-  if (!loading && terms.length === 0 && topProducts.length === 0) return null;
+  if (!loading && terms.length === 0 && topProducts.length === 0 && filterSuggestions.length === 0) return null;
 
   return (
     <div className="mt-3 rounded-2xl border border-brand-ink/10 bg-brand-paper p-4 shadow-soft">
-      {loading && terms.length === 0 && topProducts.length === 0 && (
+      {loading && terms.length === 0 && topProducts.length === 0 && filterSuggestions.length === 0 && (
         <p className="font-body text-[13px] text-brand-ink/45">Buscando…</p>
       )}
 
-      {terms.length > 0 && (
+      {filterSuggestions.length > 0 && (
         <ul className="flex flex-col gap-1">
+          {filterSuggestions.map((suggestion) => (
+            <li key={suggestion.href}>
+              <Link
+                href={suggestion.href}
+                onClick={onNavigate}
+                className="block rounded-lg px-2 py-1.5 font-body text-[14px] text-brand-ink/75 transition-colors hover:bg-brand-gold/10 hover:text-brand-ink"
+              >
+                {suggestion.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {terms.length > 0 && (
+        <ul className={`flex flex-col gap-1 ${filterSuggestions.length > 0 ? "mt-2 border-t border-brand-ink/8 pt-2" : ""}`}>
           {terms.map((term) => (
             <li key={term.label}>
               <Link
@@ -127,7 +148,7 @@ export default function SearchSuggestions({ query, onNavigate }: { query: string
       )}
 
       {topProducts.length > 0 && (
-        <div className={terms.length > 0 ? "mt-4 border-t border-brand-ink/8 pt-4" : ""}>
+        <div className={terms.length > 0 || filterSuggestions.length > 0 ? "mt-4 border-t border-brand-ink/8 pt-4" : ""}>
           <div className="flex items-center justify-between">
             <p className="font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45">Principais resultados</p>
             <Link
