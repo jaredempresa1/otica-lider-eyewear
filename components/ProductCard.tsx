@@ -145,7 +145,7 @@ export default function ProductCard({ product, collections }: { product: Product
                 src={brandLogo}
                 alt=""
                 aria-hidden="true"
-                className="h-4 w-4 shrink-0 object-contain"
+                className="h-6 w-6 shrink-0 object-contain"
               />
             )}
             <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
