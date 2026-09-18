@@ -8,6 +8,8 @@ type Slide = {
   alt: string;
   eyebrow: string;
   title: string;
+  /** Posição do foco (rosto/óculos) dentro da foto vertical original. */
+  focus: string;
 };
 
 const SLIDES: Slide[] = [
@@ -16,36 +18,42 @@ const SLIDES: Slide[] = [
     alt: "Ciclista usando óculos de sol esportivo em trilha ao ar livre",
     eyebrow: "Ciclismo",
     title: "Esportivo",
+    focus: "center 32%",
   },
   {
     image: "/hero-corredora-final.jpg",
     alt: "Corredora usando óculos de sol esportivo com lente espelhada",
     eyebrow: "Corrida",
     title: "Esportivo",
+    focus: "center 42%",
   },
   {
     image: "/hero-feminino-urbano.jpg",
     alt: "Mulher usando óculos de sol em cenário urbano",
     eyebrow: "Feminino",
     title: "Urbano",
+    focus: "center 30%",
   },
   {
     image: "/hero-feminino-praia.jpg",
     alt: "Mulher usando óculos de sol estilo editorial na praia",
     eyebrow: "Feminino",
     title: "Editorial",
+    focus: "center 45%",
   },
   {
     image: "/hero-masculino-praia.jpg",
     alt: "Homem usando óculos de sol à beira da piscina",
     eyebrow: "Masculino",
     title: "Verão",
+    focus: "center 35%",
   },
   {
     image: "/hero-infantil-final.jpg",
     alt: "Crianças usando óculos de sol brincando ao ar livre",
     eyebrow: "Infantil",
     title: "Diversão",
+    focus: "center 38%",
   },
 ];
 
@@ -63,7 +71,7 @@ export default function Hero() {
 
   return (
     <section className="w-full">
-      <div className="relative h-[240px] w-full overflow-hidden bg-brand-ink sm:h-[300px] lg:h-[360px] xl:h-[400px]">
+      <div className="relative h-[340px] w-full overflow-hidden bg-brand-ink sm:h-[420px] lg:h-[460px] xl:h-[500px]">
         {SLIDES.map((slide, index) => (
           <div
             key={slide.image}
@@ -76,7 +84,8 @@ export default function Hero() {
               alt={slide.alt}
               fill
               priority={index === 0}
-              className="object-cover object-top"
+              className="object-cover"
+              style={{ objectPosition: slide.focus }}
               sizes="100vw"
             />
 
