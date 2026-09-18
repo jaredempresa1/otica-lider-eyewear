@@ -14,6 +14,13 @@ type Slide = {
 
 const SLIDES: Slide[] = [
   {
+    image: "/hero-feminino-urbano.jpg",
+    alt: "Mulher usando óculos de sol em cenário urbano",
+    eyebrow: "Feminino",
+    title: "Urbano",
+    focus: "center 30%",
+  },
+  {
     image: "/hero-ciclista-final.jpg",
     alt: "Ciclista usando óculos de sol esportivo em trilha ao ar livre",
     eyebrow: "Ciclismo",
@@ -28,11 +35,11 @@ const SLIDES: Slide[] = [
     focus: "center 42%",
   },
   {
-    image: "/hero-feminino-urbano.jpg",
-    alt: "Mulher usando óculos de sol em cenário urbano",
-    eyebrow: "Feminino",
-    title: "Urbano",
-    focus: "center 30%",
+    image: "/hero-masculino-praia.jpg",
+    alt: "Homem usando óculos de sol à beira da piscina",
+    eyebrow: "Masculino",
+    title: "Verão",
+    focus: "center 35%",
   },
   {
     image: "/hero-feminino-praia.jpg",
@@ -40,13 +47,6 @@ const SLIDES: Slide[] = [
     eyebrow: "Feminino",
     title: "Editorial",
     focus: "center 45%",
-  },
-  {
-    image: "/hero-masculino-praia.jpg",
-    alt: "Homem usando óculos de sol à beira da piscina",
-    eyebrow: "Masculino",
-    title: "Verão",
-    focus: "center 35%",
   },
   {
     image: "/hero-infantil-final.jpg",
