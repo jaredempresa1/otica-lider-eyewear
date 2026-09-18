@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Slide = {
   image: string;
@@ -66,21 +66,59 @@ const SLIDES: Slide[] = [
 ];
 
 const INTERVAL_MS = 2000;
+const SWIPE_THRESHOLD = 40;
 
 export default function Hero() {
   const [active, setActive] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (pausedRef.current) return;
       setActive((current) => (current + 1) % SLIDES.length);
     }, INTERVAL_MS);
     return () => clearInterval(timer);
   }, []);
 
+  function goTo(index: number) {
+    setActive(((index % SLIDES.length) + SLIDES.length) % SLIDES.length);
+  }
+
+  function handleTouchStart(event: React.TouchEvent<HTMLDivElement>) {
+    touchStartX.current = event.touches[0].clientX;
+    touchDeltaX.current = 0;
+    pausedRef.current = true;
+  }
+
+  function handleTouchMove(event: React.TouchEvent<HTMLDivElement>) {
+    if (touchStartX.current === null) return;
+    touchDeltaX.current = event.touches[0].clientX - touchStartX.current;
+  }
+
+  function handleTouchEnd() {
+    if (touchStartX.current !== null) {
+      if (touchDeltaX.current > SWIPE_THRESHOLD) {
+        goTo(active - 1);
+      } else if (touchDeltaX.current < -SWIPE_THRESHOLD) {
+        goTo(active + 1);
+      }
+    }
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
+    pausedRef.current = false;
+  }
+
   return (
     <section className="w-full lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-6">
       {/* Mobile/tablet: mantém a altura fixa e o enquadramento original. Desktop (lg+): vira 16:9 exato com as fotos widescreen. */}
-      <div className="relative h-[420px] w-full overflow-hidden bg-brand-ink sm:h-[480px] lg:aspect-video lg:h-auto lg:rounded-[1.5rem]">
+      <div
+        className="relative h-[420px] w-full touch-pan-y overflow-hidden bg-brand-ink sm:h-[480px] lg:aspect-video lg:h-auto lg:rounded-[1.5rem]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         {SLIDES.map((slide, index) => (
           <div
             key={slide.image}
@@ -114,11 +152,14 @@ export default function Hero() {
           </div>
         ))}
 
-        {/* Indicadores discretos de posição no carrossel */}
+        {/* Indicadores discretos de posição no carrossel — também podem ser tocados para pular direto pro slide. */}
         <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
           {SLIDES.map((slide, index) => (
-            <span
+            <button
               key={slide.image}
+              type="button"
+              aria-label={`Ir para o slide ${index + 1}`}
+              onClick={() => goTo(index)}
               className={`h-1 rounded-full transition-all duration-500 ${
                 index === active ? "w-4 bg-brand-paper" : "w-1.5 bg-brand-paper/40"
               }`}

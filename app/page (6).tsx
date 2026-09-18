@@ -1,4 +1,4 @@
-import Link from "next/link";
+cd otica-lider-eyewear-ed87434f77fbe3811b5613b4eaed64a317162923import Link from "next/link";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import Hero from "@/components/Hero";

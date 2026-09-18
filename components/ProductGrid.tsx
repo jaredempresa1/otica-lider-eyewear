@@ -7,6 +7,8 @@ export default function ProductGrid({
   emptyMessage,
   scroll = false,
   collections,
+  mobileLimit,
+  desktopLimit,
 }: {
   products: Product[];
   emptyMessage?: { title: string; description: string };
@@ -14,6 +16,10 @@ export default function ProductGrid({
   scroll?: boolean;
   /** Usadas para casar a marca do produto com o logo cadastrado em "Marcas e coleções" no admin. */
   collections?: Collection[];
+  /** Quando definido (modo grid, não-scroll), mostra só os N primeiros produtos no mobile/tablet (abaixo do breakpoint lg). */
+  mobileLimit?: number;
+  /** Quando definido (modo grid, não-scroll), mostra só os N primeiros produtos no desktop (lg+). Os itens entre mobileLimit e desktopLimit ficam ocultos no mobile e visíveis no desktop. */
+  desktopLimit?: number;
 }) {
   if (!products || products.length === 0) {
     return (
@@ -38,5 +44,13 @@ export default function ProductGrid({
     );
   }
 
-  return <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4">{sortedProducts.map((product) => <ProductCard key={product.id} product={product} collections={collections} />)}</div>;
+  return (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-4">
+      {sortedProducts.slice(0, desktopLimit ?? sortedProducts.length).map((product, index) => (
+        <div key={product.id} className={mobileLimit != null && index >= mobileLimit ? "hidden lg:block" : undefined}>
+          <ProductCard product={product} collections={collections} />
+        </div>
+      ))}
+    </div>
+  );
 }

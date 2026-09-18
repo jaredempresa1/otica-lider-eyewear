@@ -59,8 +59,6 @@ export default async function HomePage({
         </section>
       )}
 
-      <GenderQuickLinks />
-
       {featuredProducts.length > 0 && (
         <section className="section-shell pb-4 pt-12 sm:pb-6 sm:pt-16">
           <div className="mb-6 flex items-end justify-between gap-4">
@@ -75,6 +73,8 @@ export default async function HomePage({
           <ProductGrid products={featuredProducts} scroll collections={collections} />
         </section>
       )}
+
+      <GenderQuickLinks />
 
       <PromoBanner banner={promoBanner} />
 
@@ -100,7 +100,16 @@ export default async function HomePage({
           products={catalogProducts}
           emptyMessage={hasActiveFilters ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Veja a coleção completa ou tente outro filtro." } : undefined}
           collections={collections}
+          mobileLimit={10}
+          desktopLimit={12}
         />
+        {catalogProducts.length > 0 && (
+          <div className="mt-8 flex justify-center">
+            <Link href="/produtos" className="btn-brand-outline px-8 py-3 text-[12px]">
+              Ver todos
+            </Link>
+          </div>
+        )}
       </section>
 
       <TrustBadges />
