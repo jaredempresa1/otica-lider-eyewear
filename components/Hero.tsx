@@ -5,16 +5,19 @@ import { useEffect, useState } from "react";
 
 type Slide = {
   image: string;
+  /** Versão widescreen (16:9) usada só no desktop. */
+  imageDesktop: string;
   alt: string;
   eyebrow: string;
   title: string;
-  /** Posição do foco (rosto/óculos) dentro da foto vertical original. */
+  /** Posição do foco (rosto/óculos) dentro da foto vertical original (mobile). */
   focus: string;
 };
 
 const SLIDES: Slide[] = [
   {
     image: "/hero-feminino-urbano.jpg",
+    imageDesktop: "/hero-feminino-urbano-desktop.jpg",
     alt: "Mulher usando óculos de sol em cenário urbano",
     eyebrow: "Feminino",
     title: "Urbano",
@@ -22,6 +25,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: "/hero-ciclista-final.jpg",
+    imageDesktop: "/hero-ciclista-desktop.jpg",
     alt: "Ciclista usando óculos de sol esportivo em trilha ao ar livre",
     eyebrow: "Ciclismo",
     title: "Esportivo",
@@ -29,6 +33,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: "/hero-corredora-final.jpg",
+    imageDesktop: "/hero-corredora-desktop.jpg",
     alt: "Corredora usando óculos de sol esportivo com lente espelhada",
     eyebrow: "Corrida",
     title: "Esportivo",
@@ -36,6 +41,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: "/hero-masculino-praia.jpg",
+    imageDesktop: "/hero-masculino-praia-desktop.jpg",
     alt: "Homem usando óculos de sol à beira da piscina",
     eyebrow: "Masculino",
     title: "Verão",
@@ -43,6 +49,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: "/hero-feminino-praia.jpg",
+    imageDesktop: "/hero-feminino-praia-desktop.jpg",
     alt: "Mulher usando óculos de sol estilo editorial na praia",
     eyebrow: "Feminino",
     title: "Editorial",
@@ -50,6 +57,7 @@ const SLIDES: Slide[] = [
   },
   {
     image: "/hero-infantil-final.jpg",
+    imageDesktop: "/hero-infantil-desktop.jpg",
     alt: "Crianças usando óculos de sol brincando ao ar livre",
     eyebrow: "Infantil",
     title: "Diversão",
@@ -71,7 +79,8 @@ export default function Hero() {
 
   return (
     <section className="w-full lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-6">
-      <div className="relative h-[420px] w-full overflow-hidden bg-brand-ink sm:h-[480px] lg:h-[560px] lg:rounded-[1.5rem] xl:h-[620px]">
+      {/* Mobile/tablet: mantém a altura fixa e o enquadramento original. Desktop (lg+): vira 16:9 exato com as fotos widescreen. */}
+      <div className="relative h-[420px] w-full overflow-hidden bg-brand-ink sm:h-[480px] lg:aspect-video lg:h-auto lg:rounded-[1.5rem]">
         {SLIDES.map((slide, index) => (
           <div
             key={slide.image}
@@ -79,14 +88,25 @@ export default function Hero() {
             style={{ opacity: index === active ? 1 : 0 }}
             aria-hidden={index !== active}
           >
+            {/* Versão mobile/tablet — foto vertical original, sem alterações */}
             <Image
               src={slide.image}
               alt={slide.alt}
               fill
               priority={index === 0}
-              className="object-cover"
+              className="object-cover lg:hidden"
               style={{ objectPosition: slide.focus }}
               sizes="100vw"
+            />
+
+            {/* Versão desktop — foto widescreen 16:9 */}
+            <Image
+              src={slide.imageDesktop}
+              alt={slide.alt}
+              fill
+              priority={index === 0}
+              className="hidden object-cover lg:block"
+              sizes="1152px"
             />
 
             {/* Leve escurecida na base só pra manter os indicadores legíveis. */}
