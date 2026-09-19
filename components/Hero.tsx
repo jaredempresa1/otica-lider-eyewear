@@ -70,7 +70,7 @@ const DEFAULT_SLIDES: HeroSlide[] = [
   },
 ];
 
-const INTERVAL_MS = 2000;
+const INTERVAL_MS = 3000;
 /** Distância mínima do arrasto (em px) pra contar como um swipe de verdade e não um toque sem querer. */
 const SWIPE_THRESHOLD = 40;
 
@@ -117,9 +117,9 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
 
   return (
     <section className="w-full lg:mx-auto lg:max-w-6xl lg:px-6 lg:pt-6">
-      {/* Mobile/tablet: mantém a altura fixa e o enquadramento original. Desktop (lg+): vira 16:9 exato com as fotos widescreen. */}
+      {/* Mobile/tablet: proporção 4:5, igual à foto pedida no admin — assim a imagem cabe inteira, sem cortar embaixo. Desktop (lg+): vira 16:9 exato com as fotos widescreen. */}
       <div
-        className="relative h-[420px] w-full touch-pan-y overflow-hidden bg-brand-ink sm:h-[480px] lg:aspect-video lg:h-auto lg:rounded-[1.5rem]"
+        className="relative aspect-[4/5] max-h-[560px] w-full touch-pan-y overflow-hidden bg-brand-ink lg:aspect-video lg:max-h-none lg:rounded-[1.5rem]"
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
@@ -177,11 +177,19 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
           );
 
           return slide.href ? (
-            <Link key={slide.id} href={slide.href} className="absolute inset-0" aria-hidden={index !== active} tabIndex={index === active ? 0 : -1} aria-label={slide.title || alt || "Ver mais"}>
+            <Link
+              key={slide.id}
+              href={slide.href}
+              className="absolute inset-0"
+              style={{ pointerEvents: index === active ? "auto" : "none" }}
+              aria-hidden={index !== active}
+              tabIndex={index === active ? 0 : -1}
+              aria-label={slide.title || alt || "Ver mais"}
+            >
               {slideMedia}
             </Link>
           ) : (
-            <div key={slide.id} className="contents">
+            <div key={slide.id} className="contents" style={{ pointerEvents: "none" }}>
               {slideMedia}
             </div>
           );
