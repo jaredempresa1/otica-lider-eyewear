@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
-import { Collection, Product, Testimonial } from "@/types/product";
+import { Collection, HeroSlide, Product, Testimonial } from "@/types/product";
 import Hero from "@/components/Hero";
 import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
@@ -26,9 +26,10 @@ export default async function HomePage({
   let testimonialCount = 0;
   let collections: Collection[] = [];
   let promoBanner: { image_url: string; href: string; alt_text: string } | null = null;
+  let heroSlides: HeroSlide[] = [];
 
   if (hasSupabaseConfig) {
-    const [{ data: productData }, { data: testimonialData, count: testimonialTotal }, { data: collectionData }, { data: bannerData }] = await Promise.all([
+    const [{ data: productData }, { data: testimonialData, count: testimonialTotal }, { data: collectionData }, { data: bannerData }, { data: heroSlideData }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase
         .from("testimonials")
@@ -36,12 +37,14 @@ export default async function HomePage({
         .order("created_at", { ascending: false }),
       supabase.from("collections").select("*").order("sort_order", { ascending: true }),
       supabase.from("promo_banner").select("image_url, href, alt_text").eq("id", 1).maybeSingle(),
+      supabase.from("hero_slides").select("*").eq("active", true).order("sort_order", { ascending: true }),
     ]);
     products = (productData as Product[]) ?? [];
     testimonials = testimonialData ?? [];
     testimonialCount = testimonialTotal ?? testimonials.length;
     collections = (collectionData as Collection[]) ?? [];
     promoBanner = bannerData ?? null;
+    heroSlides = (heroSlideData as HeroSlide[]) ?? [];
   }
 
   const featuredProducts = products.filter((product) => product.featured).slice(0, 4);
@@ -51,7 +54,7 @@ export default async function HomePage({
 
   return (
     <main>
-      <Hero />
+      <Hero slides={heroSlides} />
 
       {collections.length > 0 && (
         <section className="mx-auto w-full max-w-7xl border-t border-brand-ink/10 px-0 pb-2 pt-8 sm:px-8 sm:pt-10 lg:px-10">

@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Collection, Product, ProductColor, ProductDownload, Testimonial } from "@/types/product";
+import { Collection, HeroSlide, Product, ProductColor, ProductDownload, Testimonial } from "@/types/product";
 import { isProductSoldOut } from "@/lib/productStatus";
-import { FORMAT_OPTIONS } from "@/lib/filters";
+import { FILTER_DESTINATIONS, FORMAT_OPTIONS } from "@/lib/filters";
 import { calculateDiscountPercent } from "@/lib/pricing";
 import { compressImageFile, compressImageFiles } from "@/lib/imageCompression";
 import {
@@ -13,6 +13,7 @@ import {
   ArrowUp,
   Check,
   FileText,
+  Film,
   ImageIcon,
   LogOut,
   MessageCircle,
@@ -22,6 +23,7 @@ import {
   Plus,
   Trash2,
   UploadCloud,
+  Video,
   X,
 } from "lucide-react";
 
@@ -54,6 +56,36 @@ type PromoBannerSettings = {
 
 type TestimonialFormState = { id?: string; author_name: string; content: string; image_url: string; rating: string };
 const EMPTY_TESTIMONIAL_FORM: TestimonialFormState = { author_name: "", content: "", image_url: "", rating: "5" };
+
+type HeroSlideFormState = {
+  id?: string;
+  media_type: "image" | "video";
+  image_url: string;
+  image_url_desktop: string;
+  video_url: string;
+  alt_text: string;
+  eyebrow: string;
+  title: string;
+  focus: string;
+  destination_type: "none" | "collection" | "product" | "filter";
+  destination_id: string;
+  href: string;
+  active: boolean;
+};
+const EMPTY_HERO_SLIDE_FORM: HeroSlideFormState = {
+  media_type: "image",
+  image_url: "",
+  image_url_desktop: "",
+  video_url: "",
+  alt_text: "",
+  eyebrow: "",
+  title: "",
+  focus: "center 30%",
+  destination_type: "none",
+  destination_id: "",
+  href: "",
+  active: true,
+};
 
 type FormState = {
   id?: string;
@@ -193,7 +225,14 @@ export default function AdminDashboardPage() {
   const [promoBanner, setPromoBanner] = useState<PromoBannerSettings>({ image_url: "", alt_text: "Novidade da Ótica Líder Brasil", href: "", active: false, destination_type: "none", destination_id: "" });
   const [promoSaving, setPromoSaving] = useState(false);
   const [promoMessage, setPromoMessage] = useState("");
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes">("produtos");
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [heroSlideForm, setHeroSlideForm] = useState<HeroSlideFormState>(EMPTY_HERO_SLIDE_FORM);
+  const [showHeroSlideForm, setShowHeroSlideForm] = useState(false);
+  const [heroSlideSaving, setHeroSlideSaving] = useState(false);
+  const [heroSlideUploading, setHeroSlideUploading] = useState(false);
+  const [heroSlideError, setHeroSlideError] = useState("");
+  const [heroSlideDragActive, setHeroSlideDragActive] = useState(false);
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes" | "slides">("produtos");
   const [shippingConnection, setShippingConnection] = useState<"checking" | "ok" | "down" | "unknown">("unknown");
 
   async function checkShippingConnection() {
@@ -237,6 +276,7 @@ export default function AdminDashboardPage() {
         void loadTestimonials();
         void loadShippingSettings();
         void loadPromoBanner();
+        void loadHeroSlides();
       }
     });
   }, [router]);
@@ -379,6 +419,134 @@ export default function AdminDashboardPage() {
     const { error } = await supabase.from("promo_banner").upsert({ id: 1, ...promoBanner, updated_at: new Date().toISOString() });
     setPromoMessage(error ? "Não foi possível salvar. Crie a tabela promo_banner no Supabase primeiro." : promoBanner.active ? "Destaque ativado na home." : "Destaque salvo e desativado.");
     setPromoSaving(false);
+  }
+
+  async function loadHeroSlides() {
+    const { data } = await supabase.from("hero_slides").select("*").order("sort_order", { ascending: true });
+    setHeroSlides((data as HeroSlide[]) ?? []);
+  }
+
+  function openNewHeroSlideForm() {
+    setHeroSlideForm(EMPTY_HERO_SLIDE_FORM);
+    setHeroSlideError("");
+    setShowHeroSlideForm(true);
+  }
+
+  function openEditHeroSlideForm(slide: HeroSlide) {
+    setHeroSlideForm({
+      id: slide.id,
+      media_type: slide.media_type === "video" ? "video" : "image",
+      image_url: slide.image_url || "",
+      image_url_desktop: slide.image_url_desktop || "",
+      video_url: slide.video_url || "",
+      alt_text: slide.alt_text || "",
+      eyebrow: slide.eyebrow || "",
+      title: slide.title || "",
+      focus: slide.focus || "center 30%",
+      destination_type: slide.destination_type || "none",
+      destination_id: slide.destination_id || "",
+      href: slide.href || "",
+      active: slide.active !== false,
+    });
+    setHeroSlideError("");
+    setShowHeroSlideForm(true);
+  }
+
+  // Foto: comprime como as demais imagens do site. Vídeo: envia direto (não dá pra
+  // comprimir vídeo no navegador aqui), só valida um limite de tamanho razoável.
+  async function uploadHeroSlideFile(file: File, field: "image_url" | "image_url_desktop" | "video_url") {
+    const isVideo = field === "video_url";
+    if (isVideo && !file.type.startsWith("video/")) { setHeroSlideError("Envie um arquivo de vídeo (MP4 ou WebM)."); return; }
+    if (!isVideo && !file.type.startsWith("image/")) { setHeroSlideError("Envie uma imagem JPG, PNG ou WebP."); return; }
+    if (isVideo && file.size > 30 * 1024 * 1024) { setHeroSlideError("Vídeo muito grande (máx. 30 MB). Comprima antes de enviar."); return; }
+
+    setHeroSlideUploading(true);
+    setHeroSlideError("");
+    const toUpload = isVideo ? file : await compressImageFile(file);
+    const extension = toUpload.name.split(".").pop() || (isVideo ? "mp4" : "jpg");
+    const path = `hero-slides/${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage.from("product-media").upload(path, toUpload, { upsert: true, contentType: toUpload.type });
+    if (error) {
+      setHeroSlideError(error.message);
+    } else {
+      const { data } = supabase.storage.from("product-media").getPublicUrl(path);
+      setHeroSlideForm((current) => ({ ...current, [field]: data.publicUrl, media_type: isVideo ? "video" : current.media_type }));
+    }
+    setHeroSlideUploading(false);
+  }
+
+  function handleHeroSlideDrop(event: React.DragEvent<HTMLDivElement>, field: "image_url" | "image_url_desktop" | "video_url") {
+    event.preventDefault();
+    setHeroSlideDragActive(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) void uploadHeroSlideFile(file, field);
+  }
+
+  async function handleSaveHeroSlide(event: React.FormEvent) {
+    event.preventDefault();
+    if (heroSlideForm.media_type === "image" && !heroSlideForm.image_url.trim()) {
+      setHeroSlideError("Envie ao menos a foto (versão mobile).");
+      return;
+    }
+    if (heroSlideForm.media_type === "video" && !heroSlideForm.video_url.trim()) {
+      setHeroSlideError("Envie o arquivo de vídeo.");
+      return;
+    }
+    setHeroSlideSaving(true);
+    setHeroSlideError("");
+
+    const payload = {
+      media_type: heroSlideForm.media_type,
+      image_url: heroSlideForm.image_url.trim(),
+      image_url_desktop: heroSlideForm.image_url_desktop.trim(),
+      video_url: heroSlideForm.video_url.trim(),
+      alt_text: heroSlideForm.alt_text.trim(),
+      eyebrow: heroSlideForm.eyebrow.trim(),
+      title: heroSlideForm.title.trim(),
+      focus: heroSlideForm.focus.trim() || "center 30%",
+      destination_type: heroSlideForm.destination_type,
+      destination_id: heroSlideForm.destination_id,
+      href: heroSlideForm.href.trim(),
+      active: heroSlideForm.active,
+      updated_at: new Date().toISOString(),
+      sort_order: heroSlideForm.id ? undefined : heroSlides.length,
+    };
+
+    const result = heroSlideForm.id
+      ? await supabase.from("hero_slides").update(payload).eq("id", heroSlideForm.id)
+      : await supabase.from("hero_slides").insert(payload);
+
+    if (result.error) {
+      setHeroSlideError(result.error.message.includes("does not exist") ? "Crie a tabela hero_slides no Supabase primeiro (veja supabase/migrations/add_hero_slides.sql)." : result.error.message);
+      setHeroSlideSaving(false);
+      return;
+    }
+
+    setHeroSlideSaving(false);
+    setShowHeroSlideForm(false);
+    await loadHeroSlides();
+  }
+
+  async function handleDeleteHeroSlide(slide: HeroSlide) {
+    if (!confirm(`Apagar este slide${slide.title ? ` ("${slide.title}")` : ""}?`)) return;
+    await supabase.from("hero_slides").delete().eq("id", slide.id);
+    await loadHeroSlides();
+  }
+
+  async function toggleHeroSlideActive(slide: HeroSlide) {
+    await supabase.from("hero_slides").update({ active: !slide.active }).eq("id", slide.id);
+    await loadHeroSlides();
+  }
+
+  async function moveHeroSlide(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= heroSlides.length) return;
+    const reordered = [...heroSlides];
+    [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
+    setHeroSlides(reordered);
+    await Promise.all(
+      reordered.map((slide, sortIndex) => supabase.from("hero_slides").update({ sort_order: sortIndex }).eq("id", slide.id))
+    );
   }
 
   function openNewCollectionForm() {
@@ -750,18 +918,19 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "carrinhos" ? "Carrinhos abandonados" : activeTab === "metricas" ? "Métricas da vitrine" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : "Destaque"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "carrinhos" ? "Carrinhos abandonados" : activeTab === "metricas" ? "Métricas da vitrine" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : activeTab === "slides" ? "Carrossel da home" : "Destaque"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "carrinhos" ? "Contatos que pediram para guardar os óculos da sacola." : activeTab === "metricas" ? "Produtos mais clicados desde que o rastreamento foi ativado." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : "Publique uma novidade opcional na home."}
+              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "carrinhos" ? "Contatos que pediram para guardar os óculos da sacola." : activeTab === "metricas" ? "Produtos mais clicados desde que o rastreamento foi ativado." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : activeTab === "slides" ? "Troque as fotos ou vídeos que passam no topo da home e escolha para onde cada um leva ao ser clicado." : "Publique uma novidade opcional na home."}
           </p>
         </div>
         <div className="flex gap-3">
           {activeTab === "produtos" && <button onClick={openNewForm} className="btn-brand"><Plus size={15} className="mr-2" /> Novo produto</button>}
+          {activeTab === "slides" && <button onClick={openNewHeroSlideForm} className="btn-brand"><Plus size={15} className="mr-2" /> Novo slide</button>}
           <button onClick={handleLogout} className="btn-brand-outline"><LogOut size={15} className="mr-2" /> Sair</button>
         </div>
       </div>
@@ -770,6 +939,7 @@ export default function AdminDashboardPage() {
         {([
           { key: "produtos", label: "Produtos" },
           { key: "colecoes", label: "Coleções" },
+          { key: "slides", label: `Carrossel da home${heroSlides.length > 0 ? ` (${heroSlides.length})` : ""}` },
           { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
           { key: "carrinhos", label: `Carrinhos${abandonedCarts.length > 0 ? ` (${abandonedCarts.length})` : ""}` },
           { key: "metricas", label: "Métricas" },
@@ -910,6 +1080,139 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </section>
+      )}
+
+      {activeTab === "slides" && (
+      <section className="mb-10">
+        <div className="mb-4">
+          <p className="eyebrow">Topo da home</p>
+          <h2 className="mt-1 font-heading text-2xl font-semibold text-brand-ink">Carrossel principal</h2>
+          <p className="mt-1 font-body text-xs leading-5 text-brand-ink/50">Foto (retrato) ou vídeo. Envie também uma versão widescreen da foto para ficar perfeita no desktop — se não enviar, usamos a mesma foto. Escolha para onde cada slide leva ao ser clicado.</p>
+        </div>
+
+        {heroSlides.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-brand-ink/15 bg-brand-paper px-6 py-8 text-center font-body text-sm text-brand-ink/50">Nenhum slide cadastrado ainda — a home está mostrando o carrossel padrão de fábrica. Clique em "Novo slide" para assumir o controle.</div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {heroSlides.map((slide, index) => (
+              <div key={slide.id} className={`group relative aspect-[9/16] overflow-hidden rounded-2xl bg-brand-ink shadow-card sm:aspect-video ${slide.active === false ? "opacity-50" : ""}`}>
+                {slide.media_type === "video" && slide.video_url ? (
+                  <video src={slide.video_url} muted loop playsInline className="absolute inset-0 h-full w-full object-cover" />
+                ) : slide.image_url ? (
+                  <img src={slide.image_url_desktop || slide.image_url} alt={slide.alt_text || slide.title || ""} className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-brand-moss/60" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-ink/85 via-brand-ink/10 to-transparent" />
+                <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-brand-ink/70 px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-paper">
+                  {slide.media_type === "video" ? <><Film size={11} /> Vídeo</> : <><ImageIcon size={11} /> Foto</>}
+                </span>
+                {slide.active === false && <span className="absolute right-3 top-3 rounded-full bg-red-600/90 px-2 py-1 font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-white">Oculto</span>}
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="font-heading text-sm font-semibold leading-tight text-brand-paper sm:text-base">{slide.eyebrow}{slide.eyebrow && slide.title ? " · " : ""}{slide.title}</p>
+                  <p className="mt-0.5 font-body text-[11px] leading-4 text-brand-paper/70">{slide.href ? `Leva para: ${slide.href}` : "Sem destino de clique"}</p>
+                </div>
+                <div className="absolute right-2 top-11 flex flex-col gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+                  <button type="button" onClick={() => moveHeroSlide(index, -1)} disabled={index === 0} className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink disabled:opacity-30" aria-label="Mover para cima"><ArrowUp size={13} /></button>
+                  <button type="button" onClick={() => moveHeroSlide(index, 1)} disabled={index === heroSlides.length - 1} className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink disabled:opacity-30" aria-label="Mover para baixo"><ArrowDown size={13} /></button>
+                  <button type="button" onClick={() => toggleHeroSlideActive(slide)} className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink" aria-label={slide.active === false ? "Mostrar na home" : "Esconder da home"}>{slide.active === false ? <PackageCheck size={13} /> : <PackageX size={13} />}</button>
+                  <button type="button" onClick={() => openEditHeroSlideForm(slide)} className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink" aria-label="Editar slide"><Pencil size={13} /></button>
+                  <button type="button" onClick={() => handleDeleteHeroSlide(slide)} className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-paper/90 text-red-600" aria-label="Apagar slide"><Trash2 size={13} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      )}
+
+      {showHeroSlideForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-brand-ink/60 px-4 py-8" onClick={() => setShowHeroSlideForm(false)}>
+          <form onSubmit={handleSaveHeroSlide} onClick={(event) => event.stopPropagation()} className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-[1.5rem] bg-brand-paper shadow-card">
+            <div className="flex items-start justify-between border-b border-brand-ink/10 px-6 py-5"><div><p className="eyebrow">Carrossel da home</p><h2 className="mt-1 font-heading text-2xl font-semibold text-brand-ink">{heroSlideForm.id ? "Editar slide" : "Novo slide"}</h2></div><button type="button" onClick={() => setShowHeroSlideForm(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-ink/10" aria-label="Fechar"><X size={16} /></button></div>
+
+            <div className="space-y-5 px-6 py-6">
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setHeroSlideForm((current) => ({ ...current, media_type: "image" }))} className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 font-body text-sm font-semibold transition-colors ${heroSlideForm.media_type === "image" ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/10 text-brand-ink/50"}`}><ImageIcon size={15} /> Foto</button>
+                <button type="button" onClick={() => setHeroSlideForm((current) => ({ ...current, media_type: "video" }))} className={`flex flex-1 items-center justify-center gap-2 rounded-xl border px-3 py-2.5 font-body text-sm font-semibold transition-colors ${heroSlideForm.media_type === "video" ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/10 text-brand-ink/50"}`}><Video size={15} /> Vídeo</button>
+              </div>
+
+              {heroSlideForm.media_type === "image" ? (
+                <>
+                  <label className="block font-body text-xs font-semibold text-brand-ink/65">Foto — versão retrato (mobile)
+                    <div onDragOver={(event) => { event.preventDefault(); setHeroSlideDragActive(true); }} onDragLeave={() => setHeroSlideDragActive(false)} onDrop={(event) => handleHeroSlideDrop(event, "image_url")} className={`mt-2 rounded-xl border-2 border-dashed p-4 text-center transition-colors ${heroSlideDragActive ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/15 bg-brand-cream"}`}>
+                      <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadHeroSlideFile(file, "image_url"); }} className="block w-full font-body text-xs" />
+                    </div>
+                  </label>
+                  {heroSlideForm.image_url && <img src={heroSlideForm.image_url} alt="Prévia mobile" className="aspect-[9/16] w-40 rounded-xl object-cover" />}
+
+                  <label className="block font-body text-xs font-semibold text-brand-ink/65">Foto — versão widescreen (desktop, opcional)
+                    <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadHeroSlideFile(file, "image_url_desktop"); }} className="mt-2 block w-full rounded-xl border border-dashed border-brand-ink/20 bg-brand-cream px-4 py-3 font-body text-xs" />
+                  </label>
+                  {heroSlideForm.image_url_desktop && <img src={heroSlideForm.image_url_desktop} alt="Prévia desktop" className="aspect-video w-full rounded-xl object-cover" />}
+                </>
+              ) : (
+                <>
+                  <label className="block font-body text-xs font-semibold text-brand-ink/65">Vídeo (MP4 ou WebM, até 30 MB)
+                    <div onDragOver={(event) => { event.preventDefault(); setHeroSlideDragActive(true); }} onDragLeave={() => setHeroSlideDragActive(false)} onDrop={(event) => handleHeroSlideDrop(event, "video_url")} className={`mt-2 rounded-xl border-2 border-dashed p-4 text-center transition-colors ${heroSlideDragActive ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/15 bg-brand-cream"}`}>
+                      <input type="file" accept="video/mp4,video/webm" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadHeroSlideFile(file, "video_url"); }} className="block w-full font-body text-xs" />
+                    </div>
+                  </label>
+                  {heroSlideForm.video_url && <video src={heroSlideForm.video_url} controls muted className="aspect-video w-full rounded-xl object-cover" />}
+                  <label className="block font-body text-xs font-semibold text-brand-ink/65">Imagem de capa (opcional, aparece antes do vídeo carregar)
+                    <input type="file" accept="image/*" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadHeroSlideFile(file, "image_url"); }} className="mt-2 block w-full rounded-xl border border-dashed border-brand-ink/20 bg-brand-cream px-4 py-3 font-body text-xs" />
+                  </label>
+                </>
+              )}
+
+              {heroSlideUploading && <p className="flex items-center gap-2 rounded-xl bg-brand-gold/10 px-4 py-3 font-body text-xs text-brand-gold"><UploadCloud size={15} /> Enviando arquivo...</p>}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block font-body text-xs font-semibold text-brand-ink/65">Texto pequeno (eyebrow)
+                  <input placeholder="Ex.: Feminino" value={heroSlideForm.eyebrow} onChange={(event) => setHeroSlideForm((current) => ({ ...current, eyebrow: event.target.value }))} className="input-premium mt-1" />
+                </label>
+                <label className="block font-body text-xs font-semibold text-brand-ink/65">Título
+                  <input placeholder="Ex.: Urbano" value={heroSlideForm.title} onChange={(event) => setHeroSlideForm((current) => ({ ...current, title: event.target.value }))} className="input-premium mt-1" />
+                </label>
+              </div>
+
+              <label className="block font-body text-xs font-semibold text-brand-ink/65">Texto alternativo (acessibilidade/SEO)
+                <input value={heroSlideForm.alt_text} onChange={(event) => setHeroSlideForm((current) => ({ ...current, alt_text: event.target.value }))} className="input-premium mt-1" placeholder="Descreva a cena da foto ou vídeo" />
+              </label>
+
+              <label className="block font-body text-xs font-semibold text-brand-ink/65">Ao clicar no slide, levar para
+                <select value={heroSlideForm.destination_type === "none" ? "none" : `${heroSlideForm.destination_type}:${heroSlideForm.destination_id}`} onChange={(event) => {
+                  const [type, id = ""] = event.target.value.split(":");
+                  const destinationType = type as HeroSlideFormState["destination_type"];
+                  const href =
+                    destinationType === "collection" ? `/produtos?colecao=${encodeURIComponent(id)}` :
+                    destinationType === "product" ? `/produtos/${encodeURIComponent(id)}` :
+                    destinationType === "filter" ? FILTER_DESTINATIONS.find((item) => item.value === id)?.href || "" :
+                    "";
+                  setHeroSlideForm((current) => ({ ...current, destination_type: destinationType, destination_id: id, href }));
+                }} className="input-premium mt-1">
+                  <option value="none">Nenhum destino (foto sem clique)</option>
+                  <optgroup label="Filtros da vitrine">
+                    {FILTER_DESTINATIONS.map((filter) => <option key={filter.value} value={`filter:${filter.value}`}>{filter.label}</option>)}
+                  </optgroup>
+                  <optgroup label="Coleções">
+                    {collections.map((collection) => <option key={collection.id} value={`collection:${collection.slug}`}>{collection.name}</option>)}
+                  </optgroup>
+                  <optgroup label="Produtos">
+                    {products.map((product) => <option key={product.id} value={`product:${product.slug}`}>{product.name}</option>)}
+                  </optgroup>
+                </select>
+                {heroSlideForm.href && <p className="mt-1.5 font-body text-[11px] text-brand-ink/40">Vai para: {heroSlideForm.href}</p>}
+              </label>
+
+              <label className="flex items-center gap-3 font-body text-sm font-semibold text-brand-ink/70"><input type="checkbox" checked={heroSlideForm.active} onChange={(event) => setHeroSlideForm((current) => ({ ...current, active: event.target.checked }))} className="h-4 w-4 accent-brand-gold" /> Mostrar este slide na home</label>
+
+              {heroSlideError && <p className="rounded-xl bg-red-50 px-4 py-3 font-body text-xs leading-5 text-red-700">{heroSlideError}</p>}
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-brand-ink/10 bg-brand-paper px-6 py-5 sm:flex-row sm:justify-end sm:px-8"><button type="button" onClick={() => setShowHeroSlideForm(false)} className="btn-brand-outline">Cancelar</button><button type="submit" disabled={heroSlideSaving || heroSlideUploading} className="btn-brand"><Check size={15} className="mr-2" />{heroSlideSaving ? "Salvando…" : "Salvar slide"}</button></div>
+          </form>
+        </div>
       )}
 
       {activeTab === "produtos" && (

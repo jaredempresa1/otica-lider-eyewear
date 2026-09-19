@@ -96,6 +96,22 @@ const SEARCH_FILTER_SUGGESTIONS: FilterSuggestion[] = [
   { label: "Em destaque", href: "/produtos?ordenar=destaques", keywords: ["destaque", "destaques", "novidade", "novidades", "lancamento"] },
 ];
 
+// Atalhos de filtro prontos para "ao clicar, levar para" (usado no destino do
+// destaque promocional e dos slides do carrossel principal). Mesmas URLs que
+// o filtro da vitrine já entende, então é só uma lista amigável pro admin.
+export type FilterDestination = { value: string; label: string; href: string };
+
+export const FILTER_DESTINATIONS: FilterDestination[] = [
+  { value: "genero-feminino", label: "Óculos Feminino", href: "/produtos?genero=feminino" },
+  { value: "genero-masculino", label: "Óculos Masculino", href: "/produtos?genero=masculino" },
+  { value: "genero-infantil", label: "Óculos Infantil", href: "/produtos?genero=infantil" },
+  { value: "esportivo", label: "Óculos Esportivo (Sport Vision)", href: "/produtos?esportivo=1" },
+  { value: "ofertas", label: "Ofertas", href: "/produtos?ordenar=ofertas" },
+  { value: "mais-vendidos", label: "Mais vendidos", href: "/produtos?ordenar=mais-vendidos" },
+  { value: "destaques", label: "Em destaque", href: "/produtos?ordenar=destaques" },
+  { value: "todos", label: "Todos os produtos", href: "/produtos" },
+];
+
 /** Compara a busca digitada com as palavras-chave de cada atalho, tolerando erro de
  * digitação (reaproveita o mesmo comparador usado na busca de produtos). */
 export function matchFilterSuggestions(query: string): { label: string; href: string }[] {

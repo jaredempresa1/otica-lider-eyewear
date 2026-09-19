@@ -82,6 +82,31 @@ export type Testimonial = {
   created_at?: string;
 };
 
+export type HeroSlideMediaType = "image" | "video";
+export type HeroSlideDestinationType = "none" | "collection" | "product" | "filter";
+
+// Um slide do carrossel principal da home, cadastrado pelo admin. Pode ser
+// foto (com versão vertical p/ mobile e widescreen p/ desktop) ou vídeo, e
+// pode levar a um destino ao ser clicado (coleção, produto ou atalho de
+// filtro como "Óculos Feminino", "Sport Vision", "Ofertas"...).
+export type HeroSlide = {
+  id: string;
+  media_type: HeroSlideMediaType;
+  image_url: string;
+  image_url_desktop?: string;
+  video_url?: string;
+  alt_text?: string;
+  eyebrow?: string;
+  title?: string;
+  focus?: string;
+  href?: string;
+  destination_type?: HeroSlideDestinationType;
+  destination_id?: string;
+  active?: boolean;
+  sort_order?: number;
+  created_at?: string;
+};
+
 export type CartItem = {
   productId: string;
   slug: string;
