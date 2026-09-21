@@ -4,10 +4,10 @@ import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import { AuthModalProvider } from "@/components/AuthModal";
 import { CartDrawerProvider } from "@/components/CartDrawer";
+import { SideMenuProvider } from "@/components/SideMenuContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
-import CouponBanner from "@/components/CouponBanner";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 
 const piazzolla = Piazzolla({
@@ -59,16 +59,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-body">
         <AuthModalProvider>
           <CartProvider>
-            <CartDrawerProvider>
-              <div className="sticky top-0 z-50">
-                <AnnouncementBar />
-                <Header />
-                <CouponBanner />
-              </div>
-              {children}
-              <Footer />
-              <FloatingWhatsApp />
-            </CartDrawerProvider>
+            <SideMenuProvider>
+              <CartDrawerProvider>
+                <div className="sticky top-0 z-50">
+                  <AnnouncementBar />
+                  <Header />
+                </div>
+                {children}
+                <Footer />
+                <FloatingWhatsApp />
+              </CartDrawerProvider>
+            </SideMenuProvider>
           </CartProvider>
         </AuthModalProvider>
       </body>

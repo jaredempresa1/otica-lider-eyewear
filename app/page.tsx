@@ -9,7 +9,7 @@ import BrandMarquee from "@/components/BrandMarquee";
 import GenderQuickLinks from "@/components/GenderQuickLinks";
 import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
-import WhatsAppSignup from "@/components/WhatsAppSignup";
+import NewsletterSignup from "@/components/NewsletterSignup";
 import FilterDrawer from "@/components/FilterDrawer";
 import QuickFilters from "@/components/QuickFilters";
 import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
@@ -109,7 +109,7 @@ export default async function HomePage({
 
       <TrustBadges />
       <Testimonials testimonials={testimonials} totalCount={testimonialCount} />
-      <WhatsAppSignup />
+      <NewsletterSignup />
     </main>
   );
 }

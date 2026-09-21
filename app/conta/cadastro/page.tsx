@@ -11,6 +11,7 @@ export default function CadastroPage() {
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [wantsMarketingEmails, setWantsMarketingEmails] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,7 +37,7 @@ export default function CadastroPage() {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name } },
+      options: { data: { full_name: name, marketing_email_opt_in: wantsMarketingEmails } },
     });
 
     setLoading(false);
@@ -112,6 +113,16 @@ export default function CadastroPage() {
               className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold"
             />
           </div>
+
+          <label className="flex items-start gap-2.5 font-body text-xs leading-5 text-brand-ink/70">
+            <input
+              type="checkbox"
+              checked={wantsMarketingEmails}
+              onChange={(e) => setWantsMarketingEmails(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-brand-ink"
+            />
+            <span>Enviar novidades e ofertas para mim por e-mail</span>
+          </label>
 
           {error && <p className="font-body text-sm text-red-600">{error}</p>}
 

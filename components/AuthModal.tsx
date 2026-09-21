@@ -7,7 +7,6 @@ import { Lock, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { passwordStrength } from "@/lib/passwordStrength";
 import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
-import WhatsAppSignup from "@/components/WhatsAppSignup";
 
 type ModalView = "closed" | "login" | "cadastro";
 
@@ -188,6 +187,7 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+  const [wantsMarketingEmails, setWantsMarketingEmails] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -219,7 +219,11 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({ email: normalizedEmail, password, options: { data: { full_name: fullName } } });
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizedEmail,
+      password,
+      options: { data: { full_name: fullName, marketing_email_opt_in: wantsMarketingEmails } },
+    });
 
     setLoading(false);
 
@@ -263,6 +267,16 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
             <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">E-mail</label>
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold" />
           </div>
+
+          <label className="flex items-start gap-2.5 font-body text-xs leading-5 text-brand-ink/70">
+            <input
+              type="checkbox"
+              checked={wantsMarketingEmails}
+              onChange={(e) => setWantsMarketingEmails(e.target.checked)}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-brand-ink"
+            />
+            <span>Enviar novidades e ofertas para mim por e-mail</span>
+          </label>
           <div>
             <label className="font-body text-xs font-semibold uppercase tracking-[0.1em] text-brand-ink/60">Senha</label>
             <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 w-full rounded-xl border border-brand-ink/15 px-3.5 py-2.5 font-body text-sm outline-none focus:border-brand-gold" />
@@ -294,12 +308,6 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
           Entrar
         </button>
       </p>
-
-      {!success && (
-        <div className="-mx-6 -mb-6 mt-8">
-          <WhatsAppSignup />
-        </div>
-      )}
     </div>
   );
 }

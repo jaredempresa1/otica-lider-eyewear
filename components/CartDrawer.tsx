@@ -4,8 +4,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Minus, Plus, ShoppingBag, Trash2, Truck, X } from "lucide-react";
+import { Check, Menu, Minus, Plus, ShoppingBag, Trash2, Truck, X } from "lucide-react";
 import { useCart } from "@/components/CartContext";
+import { useSideMenu } from "@/components/SideMenuContext";
 import { checkShipping, cleanCep, isValidCep, ShippingResult } from "@/lib/shipping";
 import { CHECKOUT_CEP_KEY } from "@/lib/checkoutCep";
 import FreeShippingBar from "@/components/FreeShippingBar";
@@ -57,6 +58,7 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
 function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () => void }) {
   const router = useRouter();
   const { items, updateQuantity, removeItem, subtotal } = useCart();
+  const { open: openSideMenu } = useSideMenu();
   const [cep, setCep] = useState("");
   const [shipping, setShipping] = useState<ShippingResult | null>(null);
   const [checkingShipping, setCheckingShipping] = useState(false);
@@ -101,6 +103,11 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
     router.push("/sacola");
   }
 
+  function handleOpenSideMenu() {
+    onClose();
+    openSideMenu();
+  }
+
   return (
     <div
       className={`fixed inset-0 z-[100] flex items-start justify-end bg-black/50 transition-opacity duration-300 ease-premium-out ${
@@ -114,11 +121,16 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
         }`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex shrink-0 items-center gap-3 bg-brand-ink px-5 py-4">
-          <button type="button" onClick={onClose} aria-label="Fechar" className="text-brand-paper/80 transition-colors hover:text-brand-gold">
-            <X size={20} />
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-brand-ink/10 bg-brand-paper px-5 py-4">
+          <button type="button" onClick={handleOpenSideMenu} aria-label="Abrir menu" className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-ink">
+            <Menu size={22} strokeWidth={1.6} />
           </button>
-          <span className="font-body text-sm font-bold uppercase tracking-[0.14em] text-brand-paper">Carrinho de compras</span>
+          <Link href="/" onClick={onClose} aria-label="Ótica Líder Brasil — início" className="flex min-w-0 flex-1 items-center justify-center">
+            <Image src="/logo.png" alt="Ótica Líder Brasil" width={496} height={198} className="h-9 w-auto max-w-[160px] object-contain" />
+          </Link>
+          <button type="button" onClick={onClose} aria-label="Fechar carrinho" className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-ink">
+            <X size={22} strokeWidth={1.6} />
+          </button>
         </div>
 
         {/* Uma única área de rolagem: produtos + resumo rolam juntos */}

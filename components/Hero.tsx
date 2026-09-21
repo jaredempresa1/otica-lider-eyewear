@@ -195,15 +195,23 @@ export default function Hero({ slides }: { slides?: HeroSlide[] }) {
           );
         })}
 
-        {/* Indicadores discretos de posição no carrossel */}
-        <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
+        {/* Indicadores de posição no carrossel — clicáveis, com área de toque confortável no mobile. */}
+        <div className="absolute inset-x-0 bottom-1.5 flex justify-center gap-0.5">
           {activeSlides.map((slide, index) => (
-            <span
+            <button
               key={slide.id}
-              className={`h-1 rounded-full transition-all duration-500 ${
-                index === active ? "w-4 bg-brand-paper" : "w-1.5 bg-brand-paper/40"
-              }`}
-            />
+              type="button"
+              onClick={() => setActive(index)}
+              aria-label={`Ir para o slide ${index + 1}`}
+              aria-current={index === active}
+              className="flex items-center justify-center p-2.5"
+            >
+              <span
+                className={`block h-2 rounded-full transition-all duration-500 ${
+                  index === active ? "w-7 bg-brand-paper" : "w-2 bg-brand-paper/50"
+                }`}
+              />
+            </button>
           ))}
         </div>
       </div>

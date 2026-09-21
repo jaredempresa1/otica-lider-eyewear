@@ -16,6 +16,7 @@ import {
   Film,
   ImageIcon,
   LogOut,
+  Mail,
   MessageCircle,
   PackageCheck,
   PackageX,
@@ -33,7 +34,7 @@ type ProductClick = { product_id: string; product_name: string; product_slug: st
 type Lead = {
   id: string;
   name: string | null;
-  whatsapp: string;
+  email: string;
   gender: string | null;
   created_at: string;
 };
@@ -232,7 +233,7 @@ export default function AdminDashboardPage() {
   const [heroSlideUploading, setHeroSlideUploading] = useState(false);
   const [heroSlideError, setHeroSlideError] = useState("");
   const [heroSlideDragActive, setHeroSlideDragActive] = useState(false);
-  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "whatsapp" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes" | "slides">("produtos");
+  const [activeTab, setActiveTab] = useState<"produtos" | "colecoes" | "emails" | "carrinhos" | "metricas" | "frete" | "destaque" | "avaliacoes" | "slides">("produtos");
   const [shippingConnection, setShippingConnection] = useState<"checking" | "ok" | "down" | "unknown">("unknown");
 
   async function checkShippingConnection() {
@@ -918,14 +919,14 @@ export default function AdminDashboardPage() {
         <div>
           <p className="eyebrow">Gestão da vitrine</p>
           <h1 className="mt-2 font-heading text-4xl font-semibold tracking-[-0.04em] text-brand-ink">
-            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "whatsapp" ? "Números de WhatsApp" : activeTab === "carrinhos" ? "Carrinhos abandonados" : activeTab === "metricas" ? "Métricas da vitrine" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : activeTab === "slides" ? "Carrossel da home" : "Destaque"}
+            {activeTab === "produtos" ? "Produtos" : activeTab === "colecoes" ? "Coleções" : activeTab === "emails" ? "E-mails cadastrados" : activeTab === "carrinhos" ? "Carrinhos abandonados" : activeTab === "metricas" ? "Métricas da vitrine" : activeTab === "frete" ? "Frete" : activeTab === "avaliacoes" ? "Avaliações" : activeTab === "slides" ? "Carrossel da home" : "Destaque"}
           </h1>
           <p className="mt-2 font-body text-sm text-brand-ink/55">
             {activeTab === "produtos"
               ? "Cadastre imagens, variações, ofertas e materiais em um só lugar."
               : activeTab === "colecoes"
               ? "Gerencie as vitrines de marcas e recortes que aparecem na home."
-              : activeTab === "whatsapp" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "carrinhos" ? "Contatos que pediram para guardar os óculos da sacola." : activeTab === "metricas" ? "Produtos mais clicados desde que o rastreamento foi ativado." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : activeTab === "slides" ? "Troque as fotos ou vídeos que passam no topo da home e escolha para onde cada um leva ao ser clicado." : "Publique uma novidade opcional na home."}
+              : activeTab === "emails" ? "Contatos que se cadastraram pelo formulário do final da home." : activeTab === "carrinhos" ? "Contatos que pediram para guardar os óculos da sacola." : activeTab === "metricas" ? "Produtos mais clicados desde que o rastreamento foi ativado." : activeTab === "frete" ? "Configure o pacote usado no cálculo automático de frete." : activeTab === "avaliacoes" ? "Publique avaliações do Google com foto, texto e estrelas." : activeTab === "slides" ? "Troque as fotos ou vídeos que passam no topo da home e escolha para onde cada um leva ao ser clicado." : "Publique uma novidade opcional na home."}
           </p>
         </div>
         <div className="flex gap-3">
@@ -940,7 +941,7 @@ export default function AdminDashboardPage() {
           { key: "produtos", label: "Produtos" },
           { key: "colecoes", label: "Coleções" },
           { key: "slides", label: `Carrossel da home${heroSlides.length > 0 ? ` (${heroSlides.length})` : ""}` },
-          { key: "whatsapp", label: `Números de WhatsApp${leads.length > 0 ? ` (${leads.length})` : ""}` },
+          { key: "emails", label: `E-mails cadastrados${leads.length > 0 ? ` (${leads.length})` : ""}` },
           { key: "carrinhos", label: `Carrinhos${abandonedCarts.length > 0 ? ` (${abandonedCarts.length})` : ""}` },
           { key: "metricas", label: "Métricas" },
           { key: "frete", label: "Frete" },
@@ -1257,25 +1258,23 @@ export default function AdminDashboardPage() {
         </section>
       )}
 
-      {activeTab === "whatsapp" && (
+      {activeTab === "emails" && (
       <div className="overflow-hidden rounded-[1.5rem] bg-brand-paper shadow-card">
-        <div className="hidden grid-cols-[1fr_170px_110px_90px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
-          <span>Nome</span><span>WhatsApp</span><span>Público</span><span>Data</span>
+        <div className="hidden grid-cols-[1fr_220px_110px_90px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
+          <span>Nome</span><span>E-mail</span><span>Público</span><span>Data</span>
         </div>
         {leads.length === 0 ? (
           <div className="px-6 py-14 text-center"><p className="font-heading text-2xl text-brand-ink">Nenhum cadastro ainda</p><p className="mt-2 font-body text-sm text-brand-ink/55">Assim que alguém se cadastrar na home, o contato aparece aqui.</p></div>
         ) : leads.map((lead) => (
-          <div key={lead.id} className="grid gap-3 border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[1fr_170px_110px_90px] sm:items-center sm:gap-4 sm:px-6">
+          <div key={lead.id} className="grid gap-3 border-b border-brand-ink/10 px-5 py-4 last:border-0 sm:grid-cols-[1fr_220px_110px_90px] sm:items-center sm:gap-4 sm:px-6">
             <p className="truncate font-body text-sm font-semibold text-brand-ink">{lead.name?.trim() || "Sem nome"}</p>
             <a
-              href={`https://wa.me/55${lead.whatsapp}`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 font-body text-sm text-brand-ink transition-colors hover:text-brand-gold"
-              aria-label={`Abrir conversa no WhatsApp com ${lead.name || lead.whatsapp}`}
+              href={`mailto:${lead.email}`}
+              className="flex items-center gap-2 truncate font-body text-sm text-brand-ink transition-colors hover:text-brand-gold"
+              aria-label={`Enviar e-mail para ${lead.name || lead.email}`}
             >
-              <MessageCircle size={16} className="shrink-0 text-green-600" />
-              {formatWhatsAppDigits(lead.whatsapp)}
+              <Mail size={16} className="shrink-0 text-brand-gold" />
+              <span className="truncate">{lead.email}</span>
             </a>
             <span className="font-body text-xs uppercase tracking-[0.08em] text-brand-ink/55">{lead.gender === "masculino" ? "Masculino" : lead.gender === "feminino" ? "Feminino" : "—"}</span>
             <span className="font-body text-xs text-brand-ink/45">{formatLeadDate(lead.created_at)}</span>

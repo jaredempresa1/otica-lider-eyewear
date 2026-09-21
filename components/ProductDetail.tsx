@@ -14,7 +14,7 @@ import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhat
 import TryOnModal from "./TryOnModal";
 import PaymentMethodModal from "./PaymentMethodModal";
 import ProductGrid from "./ProductGrid";
-import WhatsAppSignup from "./WhatsAppSignup";
+import NewsletterSignup from "./NewsletterSignup";
 import FreeShippingBar from "./FreeShippingBar";
 
 function formatBRL(value: number): string {
@@ -175,8 +175,7 @@ function ColorPicker({ colors, selectedColor, onSelect, className = "" }: { colo
     <div className={className}>
       <div className="flex items-center justify-between gap-3"><p className="font-body text-[11px] font-semibold uppercase tracking-[0.15em] text-brand-ink/55">Cor selecionada</p><span className="font-body text-[15px] font-medium text-brand-ink">{selectedColor?.name || "Único"}{colorSoldOut ? " · Esgotada" : ""}</span></div>
       <div className="mt-4 flex flex-wrap gap-3">{colors.map((color) => <button key={`${color.name}-${color.hex}`} onClick={() => onSelect(color)} title={color.sold_out ? `${color.name} · Esgotada` : `Ver galeria ${color.name}`} aria-label={color.sold_out ? `${color.name} está esgotada` : `Ver fotos do óculos na cor ${color.name}`} className={`relative h-11 w-11 rounded-full border-2 transition-transform duration-200 hover:scale-105 ${selectedColor?.name === color.name ? "border-brand-gold p-1" : "border-transparent"} ${color.sold_out ? "opacity-50" : ""}`}><span className="relative block h-full w-full overflow-hidden rounded-full border border-brand-ink/10"><span className="absolute inset-0" style={{ backgroundColor: color.hex }} />{color.sold_out && <span className="absolute left-1/2 top-1/2 h-[150%] w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-white" />}</span></button>)}</div>
-      {(colors.length > 1 || colorSoldOut) && <p className="mt-3 font-body text-[12px] leading-5 text-brand-ink/45">{colorSoldOut ? "Essa cor está esgotada no momento. Escolha outra opção disponível ou avise que quer ser avisado quando voltar." : "Ao trocar a cor, todas as fotos e ângulos exibidos mudam para essa variação."}</p>}
-      {(selectedColor?.frame_color || selectedColor?.lens_color) && <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-brand-paper p-4"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/45">Armação</p><p className="mt-1 font-body text-[15px] font-semibold text-brand-ink">{selectedColor.frame_color || "—"}</p></div><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/45">Lentes</p><p className="mt-1 font-body text-[15px] font-semibold text-brand-ink">{selectedColor.lens_color || "—"}</p></div></div>}
+      {colorSoldOut && <p className="mt-3 font-body text-[12px] leading-5 text-brand-ink/45">Essa cor está esgotada no momento. Escolha outra opção disponível ou avise que quer ser avisado quando voltar.</p>}
     </div>
   );
 }
@@ -457,13 +456,13 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
         <section className="section-shell border-t border-brand-ink/10 py-10 sm:py-14">
           <div className="mb-6">
             <p className="eyebrow">Você também pode gostar</p>
-            <h2 className="section-title">Outros clientes também viram</h2>
+            <h2 className="section-title">Mais modelos como esse:</h2>
           </div>
           <ProductGrid products={relatedProducts} scroll collections={collections} />
         </section>
       )}
 
-      <WhatsAppSignup />
+      <NewsletterSignup />
     </>
   );
 }

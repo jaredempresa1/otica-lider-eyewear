@@ -177,17 +177,24 @@ create policy "Logados podem apagar arquivos de produtos"
   to authenticated
   using (bucket_id = 'product-media' and is_admin());
 
--- Cadastro de WhatsApp (formulário "Cadastre-se e receba novidades" no fim da home).
+-- Cadastro de contatos (formulário "Cadastre-se e receba novidades" no fim da
+-- home, no cadastro de conta e na página de produto). Antes era feito por
+-- WhatsApp; agora é por e-mail — a coluna "whatsapp" continua existindo (com
+-- os contatos antigos) só para não perder o histórico, mas deixou de ser
+-- obrigatória.
 create table if not exists leads (
   id uuid primary key default uuid_generate_v4(),
   name text default '',
-  whatsapp text not null,
+  whatsapp text,
+  email text,
   gender text check (gender in ('masculino', 'feminino')),
   created_at timestamp with time zone default now()
 );
 
--- Compatibilidade com instalações que já tinham a tabela leads sem o campo nome.
+-- Compatibilidade com instalações que já tinham a tabela leads sem os campos abaixo.
 alter table leads add column if not exists name text default '';
+alter table leads add column if not exists email text;
+alter table leads alter column whatsapp drop not null;
 
 alter table leads enable row level security;
 

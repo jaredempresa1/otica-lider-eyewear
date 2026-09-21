@@ -69,7 +69,7 @@ export default function Testimonials({ testimonials, totalCount = testimonials.l
   }
 
   return (
-    <section id="avaliacoes" className="scroll-mt-40 border-t border-brand-ink/10 bg-brand-cream px-5 py-16 sm:py-20">
+    <section className="border-t border-brand-ink/10 bg-brand-cream px-5 py-16 sm:py-20">
       <div className="mx-auto max-w-6xl">
         <div className="flex items-end justify-between gap-4">
           <div>
