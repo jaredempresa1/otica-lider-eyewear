@@ -249,7 +249,7 @@ export default function ScratchOfferPopup() {
 
             {/* Foto — banner no topo (mobile) */}
             <div className="relative h-44 w-full overflow-hidden sm:hidden">
-              <Image src="/scratch-offer-model.jpg" alt="" fill className="object-cover" sizes="500px" />
+              <Image src="/scratch-offer-model.jpg" alt="" fill unoptimized className="object-cover" sizes="500px" />
             </div>
 
             {/* Conteúdo */}
@@ -358,7 +358,7 @@ export default function ScratchOfferPopup() {
 
             {/* Foto — coluna direita (desktop) */}
             <div className="relative order-1 hidden sm:order-2 sm:block">
-              <Image src="/scratch-offer-model.jpg" alt="" fill className="object-cover" sizes="500px" />
+              <Image src="/scratch-offer-model.jpg" alt="" fill unoptimized className="object-cover" sizes="500px" />
             </div>
           </div>
         </div>
