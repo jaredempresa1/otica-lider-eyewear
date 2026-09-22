@@ -6,7 +6,6 @@ import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
 import BrandMarquee from "@/components/BrandMarquee";
 import PromoBanner from "@/components/PromoBanner";
-import SocialProof from "@/components/SocialProof";
 import Testimonials from "@/components/Testimonials";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import ScrollReveal from "@/components/ScrollReveal";
@@ -74,11 +73,10 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
       )}
 
       <HomeShelf title="Óculos em destaque" section="destaque" products={featuredProducts} collections={collections} />
+      <HomeShelf title="Óculos Sport Vision" section="sport-vision" products={sportVisionProducts} collections={collections} />
       <HomeShelf title="Óculos de sol feminino" section="feminino" products={feminineProducts} collections={collections} />
       <div className="section-shell py-2 sm:py-4"><PromoBanner banner={promoBanner} /></div>
       <HomeShelf title="Óculos de sol masculino" section="masculino" products={masculineProducts} collections={collections} />
-      <SocialProof />
-      <HomeShelf title="Óculos Sport Vision" section="sport-vision" products={sportVisionProducts} collections={collections} />
       <HomeShelf title="Óculos de sol infantil" section="infantil" products={childrenProducts} collections={collections} />
 
       <TrustBadges /><Testimonials testimonials={testimonials} totalCount={testimonialCount} /><NewsletterSignup />
