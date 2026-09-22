@@ -146,7 +146,7 @@ export default function Header() {
           {menuOpen ? <X size={22} strokeWidth={1.8} className="hidden sm:block" /> : <Menu size={22} strokeWidth={1.8} className="hidden sm:block" />}
         </button>
 
-        <Link href="/" className="group flex min-w-0 shrink items-center" onClick={(event) => { closeMenu(); if (pathname === "/produtos" && window.location.search.includes("secao=")) { event.preventDefault(); router.back(); } }} aria-label="Ótica Líder Brasil — início">
+        <Link href="/" className="group flex min-w-0 shrink items-center" onClick={closeMenu} aria-label="Ótica Líder Brasil — início">
           <Image
             src="/logo.png"
             alt="Ótica Líder Brasil"
@@ -263,7 +263,7 @@ export default function Header() {
                 <button type="button" onClick={closeMenu} aria-label="Fechar menu" className="flex h-9 w-9 shrink-0 items-center justify-center text-brand-ink">
                   <X size={24} strokeWidth={1.6} />
                 </button>
-                <Link href="/" onClick={(event) => { closeMenu(); if (pathname === "/produtos" && window.location.search.includes("secao=")) { event.preventDefault(); router.back(); } }} aria-label="Ótica Líder Brasil — início" className="flex min-w-0 items-center">
+                <Link href="/" onClick={closeMenu} aria-label="Ótica Líder Brasil — início" className="flex min-w-0 items-center">
                   <Image
                     src="/logo.png"
                     alt="Ótica Líder Brasil"
