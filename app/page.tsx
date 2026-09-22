@@ -17,7 +17,7 @@ type ShelfProps = { title: string; section: string; products: Product[]; collect
 function HomeShelf({ title, section, products, collections }: ShelfProps) {
   if (products.length === 0) return null;
   return (
-    <section className="section-shell reveal-on-scroll pb-7 pt-10 sm:pb-10 sm:pt-14">
+    <section className="section-shell reveal-on-scroll pb-7 pt-6 sm:pb-10 sm:pt-9">
       <div className="mb-5 flex flex-col items-start gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h2 className="section-title whitespace-nowrap text-[26px] font-extrabold sm:text-4xl">{title}</h2>

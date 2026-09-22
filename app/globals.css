@@ -57,7 +57,9 @@ select:focus-visible {
   }
 
   .section-title {
-    @apply font-heading text-3xl font-extrabold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
+    @apply text-3xl font-extrabold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
+    font-family: "Arial Black", Arial, Helvetica, sans-serif;
+    font-weight: 900;
   }
 
   .shelf-link {
@@ -96,8 +98,8 @@ select:focus-visible {
 
 .reveal-on-scroll {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 420ms var(--ease-premium), transform 420ms var(--ease-premium);
+  transform: translateY(18px);
+  transition: opacity 680ms var(--ease-premium), transform 680ms var(--ease-premium);
 }
 
 .reveal-on-scroll.is-visible {

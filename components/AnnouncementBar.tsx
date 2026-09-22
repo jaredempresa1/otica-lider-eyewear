@@ -6,7 +6,7 @@ const MESSAGES = [
   "Entregamos para todo o Brasil",
   "Frete Grátis - João Pessoa e compras acima de R$500",
   "Parcelamento em até 10x no cartão",
-  "Ótica Desde 1999",
+  "Ótica Desde 2001",
 ];
 
 export default function AnnouncementBar() {

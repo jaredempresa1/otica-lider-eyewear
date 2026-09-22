@@ -87,9 +87,8 @@ export default function ProductCard({ product, collections }: { product: Product
                 className="h-7 w-7 shrink-0 object-contain"
               />
             )}
-            <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
+            <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}{displayModel && <span className="font-heading font-semibold text-brand-ink"> · {displayModel}</span>}</h3>
           </div>
-          {displayModel && <p className="mt-1 truncate font-body text-[12px] font-medium uppercase tracking-[0.1em] text-brand-ink/55 sm:text-[13px]">{displayModel}</p>}
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
               <div className="flex items-baseline gap-2 whitespace-nowrap">
