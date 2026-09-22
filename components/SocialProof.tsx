@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 
 const STATS_TARGET = 22000;
 const STATS_LABEL = "clientes satisfeitos desde 2001";
@@ -51,10 +51,10 @@ function useCountUp(target: number, active: boolean, duration = 2200) {
 
 export default function SocialProof() {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const sentinelRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [statActive, setStatActive] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const count = useCountUp(STATS_TARGET, statActive);
+  const touchStartX = useRef<number | null>(null);
 
   // Dispara o contador só quando a seção entra na tela pela primeira vez.
   useEffect(() => {
@@ -73,69 +73,62 @@ export default function SocialProof() {
     return () => observer.disconnect();
   }, []);
 
-  // Detecta qual dos 3 "trechos" de rolagem está no centro da tela e troca o card ativo.
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          const index = sentinelRefs.current.findIndex((el) => el === entry.target);
-          if (index !== -1) setActiveIndex(index);
-        });
-      },
-      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
-    );
-    sentinelRefs.current.forEach((el) => el && observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+  function goTo(index: number) {
+    setActiveIndex((index + CARDS.length) % CARDS.length);
+  }
+
+  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+  }
+
+  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
+    if (touchStartX.current === null) return;
+    const touchEndX = event.changedTouches[0]?.clientX;
+    if (touchEndX === undefined) return;
+    const distance = touchEndX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(distance) < 40) return;
+    goTo(activeIndex + (distance < 0 ? 1 : -1));
+  }
 
   return (
-    <section ref={sectionRef} className="relative bg-brand-ink" style={{ height: `${CARDS.length * 100}vh` }}>
-      {/* Faixas invisíveis: uma por card, é o que "avança" o conteúdo conforme o usuário rola. */}
-      <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
-        {CARDS.map((card, index) => (
-          <div
-            key={card.key}
-            ref={(el) => {
-              sentinelRefs.current[index] = el;
-            }}
-            style={{ height: "100vh" }}
-          />
-        ))}
-      </div>
+    <section ref={sectionRef} className="bg-brand-ink px-5 py-10 sm:py-14">
+      <div className="mx-auto w-full max-w-3xl">
+        {/* Número: fica parado, não faz parte do carrossel */}
+        <div className="text-center">
+          <p className="font-heading text-[clamp(2.75rem,12vw,4.5rem)] font-bold leading-none tracking-[-0.03em] text-brand-paper">+ de {count.toLocaleString("pt-BR")}</p>
+          <p className="mt-2 font-body text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold sm:text-sm">{STATS_LABEL}</p>
+        </div>
 
-      {/* Conteúdo grudado (sticky) na tela enquanto o usuário rola pela faixa acima. */}
-      <div className="sticky top-0 flex h-screen flex-col items-center justify-center px-5">
-        <div className="mx-auto w-full max-w-3xl">
-          <div className="text-center">
-            <p className="font-heading text-[clamp(2rem,9vw,3.25rem)] font-semibold leading-none tracking-[-0.03em] text-brand-paper">+ de {count.toLocaleString("pt-BR")}</p>
-            <p className="mt-2 font-body text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold">{STATS_LABEL}</p>
-          </div>
-
-          {/* Bloco de imagem + texto: limitado a ~40vh (mobile) / ~46vh (desktop) para a seção nunca ocupar a tela inteira. */}
-          <div className="relative mt-5 h-[40vh] w-full overflow-hidden rounded-[1.25rem] sm:mt-6 sm:h-[46vh]">
-            {CARDS.map((card, index) => (
-              <div
-                key={card.key}
-                className={`absolute inset-0 flex flex-col transition-opacity duration-700 ease-out motion-reduce:transition-none sm:grid sm:grid-cols-2 ${index === activeIndex ? "opacity-100" : "pointer-events-none opacity-0"}`}
-              >
-                <div className="h-[60%] w-full overflow-hidden sm:h-full">
+        {/* Carrossel horizontal: arrasta/swipe pra trocar entre os 3 temas */}
+        <div className="relative mt-7 touch-pan-y overflow-hidden rounded-[1.25rem] sm:mt-9" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+          <div className="flex transition-transform duration-500 ease-out motion-reduce:transition-none" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
+            {CARDS.map((card) => (
+              <div key={card.key} className="flex w-full shrink-0 flex-col sm:flex-row">
+                <div className="h-[32vh] w-full overflow-hidden sm:h-[38vh] sm:w-1/2">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={card.image} alt={card.title} className="h-full w-full object-cover" />
+                  <img src={card.image} alt={card.title} className="h-full w-full object-cover object-top" />
                 </div>
-                <div className="flex flex-1 flex-col justify-center bg-brand-ink px-5 py-3 sm:px-8">
+                <div className="flex flex-1 flex-col justify-center bg-brand-ink px-1 py-4 sm:px-8">
                   <h3 className="font-heading text-xl font-semibold text-brand-paper sm:text-2xl">{card.title}</h3>
-                  <p className="mt-2 line-clamp-3 font-body text-sm leading-6 text-brand-paper/70 sm:line-clamp-5 sm:text-[15px]">{card.text}</p>
+                  <p className="mt-2 font-body text-sm leading-6 text-brand-paper/70 sm:text-[15px]">{card.text}</p>
                 </div>
               </div>
             ))}
           </div>
+        </div>
 
-          <div className="mt-4 flex justify-center gap-2" aria-hidden="true">
-            {CARDS.map((card, index) => (
-              <span key={card.key} className={`h-1.5 w-6 rounded-full transition-colors motion-reduce:transition-none ${index === activeIndex ? "bg-brand-gold" : "bg-brand-paper/25"}`} />
-            ))}
-          </div>
+        {/* Indicadores de bolinha, iguais ao carrossel de produtos que já existe no site */}
+        <div className="mt-4 flex justify-center gap-2">
+          {CARDS.map((card, index) => (
+            <button
+              key={card.key}
+              type="button"
+              onClick={() => goTo(index)}
+              aria-label={`Ver tema ${card.title}`}
+              className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${index === activeIndex ? "w-6 bg-brand-gold" : "w-1.5 bg-brand-paper/25"}`}
+            />
+          ))}
         </div>
       </div>
     </section>

@@ -56,7 +56,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
     heroSlides = (heroSlideData as HeroSlide[]) ?? [];
   }
 
-  const isLegacyProduct = (product: Product) => product.home_section === undefined;
+  const isLegacyProduct = (product: Product) => !product.home_section;
   const featuredProducts = products.filter((product) => isLegacyProduct(product) ? product.featured : product.home_section === "destaque");
   const sportVisionProducts = products.filter((product) => isLegacyProduct(product) ? product.sportivo : product.home_section === "sport-vision");
   const feminineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "feminino" || product.gender === "unissex") : product.home_section === "feminino");
