@@ -294,7 +294,7 @@ export default function SacolaPage() {
         {items.map((item) => (
           <li key={`${item.productId}-${item.colorName}`} className="flex items-center gap-3">
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-[#f7f7f7]">
-              {item.image && <Image src={item.image} alt={item.name} fill sizes="48px" className="object-cover" />}
+              {item.image && <Image src={item.image} alt={item.name} fill sizes="48px" className="object-contain p-0.5" />}
             </div>
             <div className="min-w-0 flex-1 font-body text-[13px] leading-snug text-brand-ink">
               <p className="truncate font-semibold">{item.name}</p>

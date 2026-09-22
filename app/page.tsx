@@ -6,8 +6,8 @@ import TrustBadges from "@/components/TrustBadges";
 import ProductGrid from "@/components/ProductGrid";
 import BrandMarquee from "@/components/BrandMarquee";
 import PromoBanner from "@/components/PromoBanner";
-import Testimonials from "@/components/Testimonials";
 import SocialProof from "@/components/SocialProof";
+import Testimonials from "@/components/Testimonials";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import ScrollReveal from "@/components/ScrollReveal";
 
@@ -56,7 +56,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
     heroSlides = (heroSlideData as HeroSlide[]) ?? [];
   }
 
-  const isLegacyProduct = (product: Product) => !product.home_section;
+  const isLegacyProduct = (product: Product) => product.home_section === undefined;
   const featuredProducts = products.filter((product) => isLegacyProduct(product) ? product.featured : product.home_section === "destaque");
   const sportVisionProducts = products.filter((product) => isLegacyProduct(product) ? product.sportivo : product.home_section === "sport-vision");
   const feminineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "feminino" || product.gender === "unissex") : product.home_section === "feminino");

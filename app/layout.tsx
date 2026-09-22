@@ -31,6 +31,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
+  // Evita que números como "22.000" (na seção "Prova social") sejam detectados
+  // automaticamente como telefone pelo iOS/Safari e reestilizados como link (fica azul/roxo).
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
