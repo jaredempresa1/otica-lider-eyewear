@@ -261,7 +261,7 @@ export default function ScratchOfferPopup() {
                     {scratchRevealed ? "Veja o que você ganhou" : "Raspe abaixo para descobrir seu prêmio"}
                   </p>
 
-                  <div className="relative mx-auto mt-6 h-[136px] w-full max-w-[360px]">
+                  <div className="relative mx-auto mt-6 h-[136px] w-full max-w-[360px] sm:h-[168px] sm:max-w-[420px]">
                     {/* Cartão-prêmio, sempre presente por baixo da raspadinha */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-2xl bg-brand-ink px-4">
                       <span className="absolute left-0 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white" aria-hidden="true" />
