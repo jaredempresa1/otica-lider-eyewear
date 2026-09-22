@@ -34,8 +34,8 @@ export async function POST(request: Request) {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase().slice(0, 160) : "";
   const gender = body.gender === "masculino" || body.gender === "feminino" ? body.gender : null;
 
-  if (!name || !EMAIL_REGEX.test(email)) {
-    return NextResponse.json({ error: "Preencha nome e e-mail válidos." }, { status: 400 });
+  if (!EMAIL_REGEX.test(email)) {
+    return NextResponse.json({ error: "Digite um e-mail válido." }, { status: 400 });
   }
 
   const { data: existing } = await supabase.from("leads").select("id").eq("email", email).limit(1);

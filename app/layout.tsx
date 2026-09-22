@@ -4,11 +4,13 @@ import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import { AuthModalProvider } from "@/components/AuthModal";
 import { CartDrawerProvider } from "@/components/CartDrawer";
+import AddedToCartToast from "@/components/AddedToCartToast";
 import { SideMenuProvider } from "@/components/SideMenuContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
+import ScratchOfferPopup from "@/components/ScratchOfferPopup";
 
 const piazzolla = Piazzolla({
   subsets: ["latin"],
@@ -65,9 +67,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <AnnouncementBar />
                   <Header />
                 </div>
+                <AddedToCartToast />
                 {children}
                 <Footer />
                 <FloatingWhatsApp />
+                <ScratchOfferPopup />
               </CartDrawerProvider>
             </SideMenuProvider>
           </CartProvider>
