@@ -59,7 +59,7 @@ export default function ProductCard({ product, collections }: { product: Product
                 alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
                 fill
                 unoptimized={imageStatus === "retry-unoptimized"}
-                className="object-contain transition-opacity duration-300"
+                className="object-contain transition-opacity duration-300 lg:group-hover:opacity-0"
                 sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
                 onError={() => setImageStatus((current) => (current === "loading" ? "retry-unoptimized" : "failed"))}
               />
@@ -92,11 +92,11 @@ export default function ProductCard({ product, collections }: { product: Product
           {displayModel && <p className="mt-1 truncate font-body text-[12px] font-medium uppercase tracking-[0.1em] text-brand-ink/55 sm:text-[13px]">{displayModel}</p>}
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
-              {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
-              <span className="flex items-baseline gap-1.5">
-                <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
+              <div className="flex items-baseline gap-2 whitespace-nowrap">
+                <span className={`text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
+                {hasDiscount && <span className="text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
                 {discountPercent !== null && <span className="text-[11px] font-bold text-red-600 sm:text-[12px]">{discountPercent}% OFF</span>}
-              </span>
+              </div>
               {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
             </div>
           </div>

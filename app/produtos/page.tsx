@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowLeft } from "lucide-react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, Product } from "@/types/product";
 import ProductGrid from "@/components/ProductGrid";
@@ -13,9 +12,10 @@ export const revalidate = 60;
 export default async function ProdutosPage({
   searchParams,
 }: {
-  searchParams: { colecao?: string; q?: string; genero?: string; marca?: string; cor?: string; formato?: string; ia?: string; precoMin?: string; precoMax?: string; ordenar?: string };
+  searchParams: { colecao?: string; secao?: string; q?: string; genero?: string; marca?: string; cor?: string; formato?: string; ia?: string; precoMin?: string; precoMax?: string; ordenar?: string };
 }) {
   const colecao = searchParams?.colecao;
+  const secao = searchParams?.secao;
   let products: Product[] = [];
   let collections: Collection[] = [];
   let activeCollection: Collection | null = null;
@@ -34,7 +34,17 @@ export default async function ProdutosPage({
     activeCollection = (collectionResult?.data as Collection | null) ?? null;
   }
 
-  const collectionScopedProducts = colecao ? products.filter((product) => (product.collection_slugs ?? []).includes(colecao)) : products;
+  const sectionScopedProducts = secao ? products.filter((product) => {
+    if (product.home_section !== undefined) return product.home_section === secao;
+    if (secao === "destaque") return product.featured;
+    if (secao === "sport-vision") return Boolean(product.sportivo);
+    if (secao === "feminino") return !product.gender || product.gender === "feminino" || product.gender === "unissex";
+    if (secao === "masculino") return !product.gender || product.gender === "masculino" || product.gender === "unissex";
+    if (secao === "infantil") return product.gender === "infantil";
+    return true;
+  }) : products;
+  const collectionScopedProducts = colecao ? sectionScopedProducts.filter((product) => (product.collection_slugs ?? []).includes(colecao)) : sectionScopedProducts;
+  const fixedGender = secao === "feminino" || secao === "masculino" || secao === "infantil" ? secao : undefined;
 
   const filterState = parseFilterState(searchParams ?? {});
   const hasActiveFilters = filterState.busca.length > 0 || filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.formato.length > 0 || filterState.ia || filterState.precoMin !== null || filterState.precoMax !== null;
@@ -43,10 +53,7 @@ export default async function ProdutosPage({
   return (
     <main className="section-shell py-10 sm:py-14">
       {activeCollection?.image_url && <div className="mb-8 flex flex-col items-center gap-3"><div className="w-full max-w-xl overflow-hidden rounded-2xl bg-brand-ink"><img src={activeCollection.image_url} alt={activeCollection.name} className="block h-auto w-full" /></div><p className="font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/60 sm:text-sm">{activeCollection.name}</p></div>}
-      <Link href="/" className="mb-6 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink transition-colors hover:text-brand-gold sm:hidden">
-        <ArrowLeft size={14} /> Voltar para o início
-      </Link>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
           {activeCollection ? (
             <>
@@ -58,15 +65,15 @@ export default async function ProdutosPage({
             </>
           ) : (
             <>
-              <p className="eyebrow">A coleção inteira</p>
-              <h1 className="section-title mt-2">Encontre seu próximo óculos de sol</h1>
+              <p className="eyebrow">{secao ? "Seleção" : "A coleção inteira"}</p>
+              <h1 className="section-title mt-2">{secao === "feminino" ? "Óculos de sol feminino" : secao === "masculino" ? "Óculos de sol masculino" : secao === "infantil" ? "Óculos de sol infantil" : secao === "sport-vision" ? "Óculos Sport Vision" : secao === "destaque" ? "Óculos em destaque" : "Encontre seu próximo óculos de sol"}</h1>
             </>
           )}
         </div>
       </div>
       <div className="mb-8 flex min-w-0 items-center gap-3 overflow-hidden">
         <Suspense fallback={<div className="h-10 w-24 shrink-0 rounded-full bg-brand-paper" />}>
-          <FilterDrawer products={collectionScopedProducts} collections={collections} />
+          <FilterDrawer products={collectionScopedProducts} collections={collections} fixedGender={fixedGender} />
         </Suspense>
         <Suspense fallback={null}>
           <QuickFilters />

@@ -11,9 +11,9 @@ import NewsletterSignup from "@/components/NewsletterSignup";
 
 export const revalidate = 60;
 
-type ShelfProps = { title: string; products: Product[]; collections: Collection[] };
+type ShelfProps = { title: string; section: string; products: Product[]; collections: Collection[] };
 
-function HomeShelf({ title, products, collections }: ShelfProps) {
+function HomeShelf({ title, section, products, collections }: ShelfProps) {
   if (products.length === 0) return null;
   return (
     <section className="section-shell pb-7 pt-10 sm:pb-10 sm:pt-14">
@@ -21,7 +21,7 @@ function HomeShelf({ title, products, collections }: ShelfProps) {
         <div>
           <h2 className="section-title whitespace-nowrap text-[26px] font-bold sm:text-4xl">{title}</h2>
         </div>
-        <Link href="/produtos" className="shelf-link shrink-0">
+        <Link href={`/produtos?secao=${section}`} className="shelf-link shrink-0">
           Ver tudo <span aria-hidden="true" className="shelf-link-arrow">›</span>
         </Link>
       </div>
@@ -70,12 +70,12 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
         </section>
       )}
 
-      <HomeShelf title="Óculos em destaque" products={featuredProducts} collections={collections} />
-      <HomeShelf title="Óculos Sport Vision" products={sportVisionProducts} collections={collections} />
-      <HomeShelf title="Óculos de sol feminino" products={feminineProducts} collections={collections} />
+      <HomeShelf title="Óculos em destaque" section="destaque" products={featuredProducts} collections={collections} />
+      <HomeShelf title="Óculos Sport Vision" section="sport-vision" products={sportVisionProducts} collections={collections} />
+      <HomeShelf title="Óculos de sol feminino" section="feminino" products={feminineProducts} collections={collections} />
       <div className="section-shell py-2 sm:py-4"><PromoBanner banner={promoBanner} /></div>
-      <HomeShelf title="Óculos de sol masculino" products={masculineProducts} collections={collections} />
-      <HomeShelf title="Óculos de sol infantil" products={childrenProducts} collections={collections} />
+      <HomeShelf title="Óculos de sol masculino" section="masculino" products={masculineProducts} collections={collections} />
+      <HomeShelf title="Óculos de sol infantil" section="infantil" products={childrenProducts} collections={collections} />
 
       <TrustBadges /><Testimonials testimonials={testimonials} totalCount={testimonialCount} /><NewsletterSignup />
     </main>

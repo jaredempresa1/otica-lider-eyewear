@@ -6,13 +6,13 @@ import { SlidersHorizontal } from "lucide-react";
 import { Collection, Product } from "@/types/product";
 import {
   EMPTY_FILTER_STATE,
-  FORMAT_OPTIONS,
   ProductFilterState,
   countActiveFilters,
   filterProducts,
   getBrandCollections,
   getColorNames,
   getPriceBounds,
+  getFormatNames,
   parseFilterState,
 } from "@/lib/filters";
 
@@ -31,11 +31,13 @@ export default function FilterDrawer({
   products,
   collections,
   anchor,
+  fixedGender,
 }: {
   /** Produtos do recorte atual (usados só para calcular as opções e a contagem ao vivo). */
   products: Product[];
   collections: Collection[];
   anchor?: string;
+  fixedGender?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -78,6 +80,9 @@ export default function FilterDrawer({
   const priceBounds = useMemo(() => getPriceBounds(products), [products]);
   const colorNames = useMemo(() => getColorNames(products), [products]);
   const brandCollections = useMemo(() => getBrandCollections(products, collections), [products, collections]);
+  const formatNames = useMemo(() => getFormatNames(products), [products]);
+  const hasAiProducts = products.some((product) => product.ai_tryon);
+  const hasSportProducts = products.some((product) => product.sportivo);
   const activeCount = countActiveFilters(appliedState, priceBounds);
 
   const minValue = draft.precoMin ?? priceBounds.min;
@@ -205,7 +210,7 @@ export default function FilterDrawer({
             </div>
 
             <div className="flex-1 overflow-y-auto">
-              <section className="border-b border-brand-ink/8 px-5 py-5">
+              {!fixedGender && <section className="border-b border-brand-ink/8 px-5 py-5">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Gênero</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {GENDER_OPTIONS.map((option) => {
@@ -224,7 +229,7 @@ export default function FilterDrawer({
                     );
                   })}
                 </div>
-              </section>
+              </section>}
 
               {brandCollections.length > 0 && (
                 <section className="border-b border-brand-ink/8 px-5 py-5">
@@ -277,7 +282,7 @@ export default function FilterDrawer({
               <section className="border-b border-brand-ink/8 px-5 py-5">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Formato</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {FORMAT_OPTIONS.map((format) => {
+                  {formatNames.map((format) => {
                     const isSelected = draft.formato.includes(format);
                     return (
                       <button
@@ -292,11 +297,11 @@ export default function FilterDrawer({
                   })}
                 </div>
               </section>
-              <section className="border-b border-brand-ink/8 px-5 py-5">
+              {(hasAiProducts || hasSportProducts) && <section className="border-b border-brand-ink/8 px-5 py-5">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Recursos</p>
-                <button type="button" onClick={() => setDraft((current) => ({ ...current, ia: !current.ia }))} className={`mt-3 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.ia ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos com IA</button>
-                <button type="button" onClick={() => setDraft((current) => ({ ...current, esportivo: !current.esportivo }))} className={`mt-3 ml-2 inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.esportivo ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos esportivo</button>
-              </section>
+                {hasAiProducts && <button type="button" onClick={() => setDraft((current) => ({ ...current, ia: !current.ia }))} className={`mt-3 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.ia ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos com IA</button>}
+                {hasSportProducts && <button type="button" onClick={() => setDraft((current) => ({ ...current, esportivo: !current.esportivo }))} className={`mt-3 ml-2 inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.esportivo ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos esportivo</button>}
+              </section>}
               {hasPriceRange && (
                 <section className="px-5 py-5">
                   <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Preço</p>

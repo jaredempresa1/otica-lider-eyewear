@@ -297,6 +297,16 @@ export function getColorNames(products: Product[]): string[] {
   return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
+export function getFormatNames(products: Product[]): string[] {
+  const names = new Set<string>();
+  products.forEach((product) => {
+    const format = product.specifications?.format?.trim();
+    const match = FORMAT_OPTIONS.find((option) => option.toLocaleLowerCase("pt-BR") === format?.toLocaleLowerCase("pt-BR"));
+    if (match) names.add(match);
+  });
+  return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
 export function getPriceBounds(products: Product[]): { min: number; max: number } {
   if (!products.length) return { min: 0, max: 0 };
   const prices = products.map((product) => product.price);
