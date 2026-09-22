@@ -4,6 +4,7 @@ import { useState, FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { syncMarketingEmailOptIn } from "@/lib/marketingOptIn";
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -45,6 +46,10 @@ export default function CadastroPage() {
     if (error) {
       setError(error.message.includes("already registered") ? "Esse e-mail já tem uma conta. Tente entrar." : "Não deu pra criar sua conta agora. Tente de novo em instantes.");
       return;
+    }
+
+    if (wantsMarketingEmails) {
+      syncMarketingEmailOptIn(email.trim().toLowerCase(), name, true);
     }
 
     // Se já veio uma sessão ativa, a confirmação de e-mail está desligada

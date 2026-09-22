@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { getMyAddress, SavedAddress } from "@/lib/address";
+import { syncMarketingEmailOptIn } from "@/lib/marketingOptIn";
 
 type Tab = "pedidos" | "perfil";
 
@@ -84,7 +85,10 @@ export default function ContaPage() {
     if (error) {
       // Não deu pra salvar: volta o toggle pro estado anterior.
       setMarketingEmailOptIn(!next);
+      return;
     }
+    const fullName = `${firstName} ${lastName}`.trim();
+    syncMarketingEmailOptIn(email, fullName, next);
   }
 
   if (checking) return null;

@@ -7,6 +7,7 @@ import { Lock, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { passwordStrength } from "@/lib/passwordStrength";
 import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
+import { syncMarketingEmailOptIn } from "@/lib/marketingOptIn";
 
 type ModalView = "closed" | "login" | "cadastro";
 
@@ -236,6 +237,10 @@ function CadastroForm({ onClose, onSwitchView }: { onClose: () => void; onSwitch
     if (!data.session && data.user && data.user.identities?.length === 0) {
       setError("Esse e-mail já tem conta, tente entrar.");
       return;
+    }
+
+    if (wantsMarketingEmails) {
+      syncMarketingEmailOptIn(normalizedEmail, fullName, true);
     }
 
     if (data.session) {

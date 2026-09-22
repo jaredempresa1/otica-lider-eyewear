@@ -23,6 +23,7 @@ export default function ProductCard({ product, collections }: { product: Product
   const [added, setAdded] = useState(false);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [imageStatus, setImageStatus] = useState<"loading" | "retry-unoptimized" | "failed">("loading");
   const colors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
   const selectedColor: ProductColor | undefined = colors[selectedColorIndex];
   const selectedColorImages = selectedColor?.images?.filter(Boolean) ?? [];
@@ -48,6 +49,11 @@ export default function ProductCard({ product, collections }: { product: Product
     const timeout = window.setTimeout(() => setAdded(false), 2200);
     return () => window.clearTimeout(timeout);
   }, [added]);
+
+  // Reseta o estado da imagem sempre que o produto troca de cor (nova foto).
+  useEffect(() => {
+    setImageStatus("loading");
+  }, [mainImage]);
 
   function selectColor(event: React.MouseEvent<HTMLButtonElement>, index: number) {
     event.preventDefault();
@@ -102,14 +108,16 @@ export default function ProductCard({ product, collections }: { product: Product
     <article className="group min-w-0">
       <div className="relative aspect-[0.9] w-full overflow-hidden rounded-[1.25rem] bg-brand-sage/60">
         <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
-        {mainImage ? (
+        {mainImage && imageStatus !== "failed" ? (
           <Image
-            key={mainImage}
+            key={`${mainImage}-${imageStatus}`}
             src={mainImage}
             alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
             fill
+            unoptimized={imageStatus === "retry-unoptimized"}
             className={`object-cover transition-opacity duration-300`}
             sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
+            onError={() => setImageStatus((current) => (current === "loading" ? "retry-unoptimized" : "failed"))}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>

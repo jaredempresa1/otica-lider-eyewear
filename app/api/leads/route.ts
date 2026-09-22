@@ -50,3 +50,28 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(request: Request) {
+  if (isRateLimited(request, "leads-delete", { limit: 10, windowMs: 60_000 })) {
+    return NextResponse.json({ error: "Muitas tentativas. Aguarde um pouco e tente de novo." }, { status: 429 });
+  }
+
+  let body: { email?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Dados inválidos." }, { status: 400 });
+  }
+
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase().slice(0, 160) : "";
+  if (!EMAIL_REGEX.test(email)) {
+    return NextResponse.json({ error: "E-mail inválido." }, { status: 400 });
+  }
+
+  const { error } = await supabase.from("leads").delete().eq("email", email);
+  if (error) {
+    return NextResponse.json({ error: "Não foi possível remover o cadastro." }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
+}

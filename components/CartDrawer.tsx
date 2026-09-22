@@ -156,8 +156,8 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
                     className="absolute inset-0 z-0 rounded-xl transition-colors hover:bg-brand-ink/[0.03]"
                   />
                   {item.image && (
-                    <div className="pointer-events-none relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/40">
-                      <Image src={item.image} alt={item.name} fill className="object-contain p-2 mix-blend-multiply" sizes="80px" />
+                    <div className="pointer-events-none relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/20">
+                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="80px" />
                     </div>
                   )}
                   <div className="pointer-events-none relative z-10 flex flex-1 flex-col gap-1.5">

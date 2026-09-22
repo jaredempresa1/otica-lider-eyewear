@@ -4,10 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { SlidersHorizontal } from "lucide-react";
 import { Collection, Product } from "@/types/product";
-import RunningIcon from "./icons/RunningIcon";
-import BikeIcon from "./icons/BikeIcon";
-import GlassesIcon, { GlassesShape } from "./icons/GlassesIcon";
-import FaceIcon, { FaceShape } from "./icons/FaceIcon";
 import {
   EMPTY_FILTER_STATE,
   FORMAT_OPTIONS,
@@ -24,21 +20,12 @@ function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-const GENDER_OPTIONS: { value: string; label: string; shape: FaceShape }[] = [
-  { value: "masculino", label: "Masculino", shape: "masculino" },
-  { value: "feminino", label: "Feminino", shape: "feminino" },
-  { value: "infantil", label: "Infantil", shape: "infantil" },
+const GENDER_OPTIONS: { value: string; label: string }[] = [
+  { value: "masculino", label: "Masculino" },
+  { value: "feminino", label: "Feminino" },
+  { value: "infantil", label: "Infantil" },
 ];
 
-const FORMAT_ICONS: Record<string, GlassesShape> = {
-  Redondo: "redondo",
-  Quadrado: "quadrado",
-  Retangular: "retangular",
-  Oval: "oval",
-  Gatinho: "gatinho",
-  Aviador: "aviador",
-  Geométrico: "geometrico",
-};
 
 export default function FilterDrawer({
   products,
@@ -228,11 +215,10 @@ export default function FilterDrawer({
                         key={option.value}
                         type="button"
                         onClick={() => toggleValue("genero", option.value)}
-                        className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${
+                        className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${
                           isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"
                         }`}
                       >
-                        <FaceIcon shape={option.shape} className={`h-5 w-5 shrink-0 ${isSelected ? "text-brand-gold" : "text-brand-ink/55"}`} />
                         {option.label}
                       </button>
                     );
@@ -298,9 +284,8 @@ export default function FilterDrawer({
                         key={format}
                         type="button"
                         onClick={() => toggleValue("formato", format)}
-                        className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}
+                        className={`rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${isSelected ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}
                       >
-                        <GlassesIcon shape={FORMAT_ICONS[format] ?? "todos"} className={`h-4 w-7 shrink-0 ${isSelected ? "text-brand-gold" : "text-brand-ink/55"}`} />
                         {format}
                       </button>
                     );
@@ -310,7 +295,7 @@ export default function FilterDrawer({
               <section className="border-b border-brand-ink/8 px-5 py-5">
                 <p className="font-body text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-ink/45">Recursos</p>
                 <button type="button" onClick={() => setDraft((current) => ({ ...current, ia: !current.ia }))} className={`mt-3 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.ia ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos com IA</button>
-                <button type="button" onClick={() => setDraft((current) => ({ ...current, esportivo: !current.esportivo }))} className={`mt-3 ml-2 inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.esportivo ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}><span className="flex shrink-0 items-center -space-x-1"><RunningIcon className="h-4 w-4" /><BikeIcon className="h-4 w-4" /></span> Óculos esportivo</button>
+                <button type="button" onClick={() => setDraft((current) => ({ ...current, esportivo: !current.esportivo }))} className={`mt-3 ml-2 inline-flex items-center gap-1.5 rounded-xl border px-4 py-2.5 font-body text-[13px] font-medium transition-colors ${draft.esportivo ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/15 text-brand-ink/65 hover:border-brand-gold"}`}>Óculos esportivo</button>
               </section>
               {hasPriceRange && (
                 <section className="px-5 py-5">
