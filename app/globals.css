@@ -57,7 +57,7 @@ select:focus-visible {
   }
 
   .section-title {
-    @apply font-heading text-3xl font-bold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
+    @apply font-heading text-3xl font-extrabold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
   }
 
   .shelf-link {
@@ -65,7 +65,7 @@ select:focus-visible {
   }
 
   .shelf-link-arrow {
-    @apply flex h-6 w-6 items-center justify-center rounded-full bg-brand-ink/10 text-[17px] leading-none text-brand-ink transition-colors;
+    @apply flex h-6 w-6 items-center justify-center rounded-full bg-brand-ink/10 pb-[2px] text-[17px] leading-none text-brand-ink transition-colors;
   }
 
   .text-link {
@@ -92,6 +92,17 @@ select:focus-visible {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 420ms var(--ease-premium), transform 420ms var(--ease-premium);
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .shelf-scroll {
@@ -156,6 +167,12 @@ select:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal-on-scroll {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .coupon-flip-panel {
     transition: opacity 220ms var(--ease-premium);
     transform: none;

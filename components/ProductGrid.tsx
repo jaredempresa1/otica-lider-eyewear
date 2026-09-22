@@ -46,9 +46,7 @@ export default function ProductGrid({ products, emptyMessage, scroll = false, co
             </div>
           ))}
         </div>
-        {sortedProducts.length > (limit?.mobile ?? 0) && (
-          <div className="mt-3 px-5 sm:px-8 lg:hidden" aria-hidden="true"><div className="h-[3px] w-full overflow-hidden rounded-full bg-brand-ink/10"><div className="h-full rounded-full bg-brand-ink transition-[width] duration-150" style={{ width: `${40 + scrollProgress * 60}%` }} /></div></div>
-        )}
+        <div className="mt-3 px-5 sm:px-8 lg:hidden" aria-hidden="true"><div className="h-[3px] w-full overflow-hidden rounded-full bg-brand-ink/10"><div className="h-full rounded-full bg-brand-ink transition-[width] duration-150" style={{ width: `${40 + scrollProgress * 60}%` }} /></div></div>
       </>
     );
   }

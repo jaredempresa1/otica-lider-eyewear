@@ -8,6 +8,7 @@ import BrandMarquee from "@/components/BrandMarquee";
 import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
 import NewsletterSignup from "@/components/NewsletterSignup";
+import ScrollReveal from "@/components/ScrollReveal";
 
 export const revalidate = 60;
 
@@ -16,10 +17,10 @@ type ShelfProps = { title: string; section: string; products: Product[]; collect
 function HomeShelf({ title, section, products, collections }: ShelfProps) {
   if (products.length === 0) return null;
   return (
-    <section className="section-shell pb-7 pt-10 sm:pb-10 sm:pt-14">
+    <section className="section-shell reveal-on-scroll pb-7 pt-10 sm:pb-10 sm:pt-14">
       <div className="mb-5 flex flex-col items-start gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <h2 className="section-title whitespace-nowrap text-[26px] font-bold sm:text-4xl">{title}</h2>
+          <h2 className="section-title whitespace-nowrap text-[26px] font-extrabold sm:text-4xl">{title}</h2>
         </div>
         <Link href={`/produtos?secao=${section}`} className="shelf-link shrink-0">
           Ver tudo <span aria-hidden="true" className="shelf-link-arrow">›</span>
@@ -63,6 +64,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
 
   return (
     <main>
+      <ScrollReveal />
       <Hero slides={heroSlides} />
       {collections.length > 0 && (
         <section className="mx-auto w-full max-w-7xl border-t border-brand-ink/10 px-0 pb-2 pt-8 sm:px-8 sm:pt-10 lg:px-10">

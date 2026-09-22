@@ -48,10 +48,10 @@ export default function ProductCard({ product, collections }: { product: Product
 
   return (
     <article className="group min-w-0">
-      <div className="relative aspect-[0.86] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
+      <div className="relative aspect-[1.18] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
         <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
         {mainImage && imageStatus !== "failed" ? (
-          <div className="absolute inset-0 p-4 sm:p-7">
+          <div className="absolute inset-0 p-2 sm:p-3">
             <div className="relative h-full w-full">
               <Image
                 key={`${mainImage}-${imageStatus}`}
@@ -84,7 +84,7 @@ export default function ProductCard({ product, collections }: { product: Product
                 src={brandLogo}
                 alt=""
                 aria-hidden="true"
-                className="h-6 w-6 shrink-0 object-contain"
+                className="h-7 w-7 shrink-0 object-contain"
               />
             )}
             <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
@@ -104,7 +104,7 @@ export default function ProductCard({ product, collections }: { product: Product
       </Link>
 
       {colors.length > 0 && (
-        <div className="mt-3 flex items-center gap-2" aria-label={`Cores disponíveis de ${product.name}`}>
+        <div className="mt-3 flex items-center gap-1.5" aria-label={`Cores disponíveis de ${product.name}`}>
           {colors.slice(0, 6).map((color, index) => (
             <button
               key={`${color.name}-${index}`}
