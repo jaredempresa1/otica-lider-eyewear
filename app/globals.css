@@ -60,6 +60,14 @@ select:focus-visible {
     @apply font-heading text-3xl font-semibold leading-tight tracking-[-0.02em] text-brand-ink sm:text-4xl;
   }
 
+  .shelf-link {
+    @apply inline-flex items-center gap-2 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition-colors hover:text-brand-gold sm:text-[13px];
+  }
+
+  .shelf-link-arrow {
+    @apply flex h-6 w-6 items-center justify-center rounded-full bg-brand-ink/10 text-[17px] leading-none text-brand-ink transition-colors;
+  }
+
   .text-link {
     @apply inline-flex items-center gap-2 border-b border-brand-gold/60 pb-1 font-body text-[13px] font-semibold uppercase tracking-[0.15em] text-brand-ink transition-colors duration-200 hover:border-brand-ink hover:text-brand-gold;
   }

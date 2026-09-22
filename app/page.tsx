@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
 import { Collection, HeroSlide, Product, Testimonial } from "@/types/product";
 import Hero from "@/components/Hero";
@@ -9,9 +8,6 @@ import BrandMarquee from "@/components/BrandMarquee";
 import PromoBanner from "@/components/PromoBanner";
 import Testimonials from "@/components/Testimonials";
 import NewsletterSignup from "@/components/NewsletterSignup";
-import FilterDrawer from "@/components/FilterDrawer";
-import QuickFilters from "@/components/QuickFilters";
-import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
 
 export const revalidate = 60;
 
@@ -23,10 +19,10 @@ function HomeShelf({ title, products, collections }: ShelfProps) {
     <section className="section-shell pb-7 pt-10 sm:pb-10 sm:pt-14">
       <div className="mb-5 flex flex-col items-start gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <h2 className="section-title whitespace-nowrap text-[26px] sm:text-4xl">{title}</h2>
+          <h2 className="section-title whitespace-nowrap text-[26px] font-bold sm:text-4xl">{title}</h2>
         </div>
-        <Link href="/produtos" className="text-link shrink-0 text-[11px] sm:text-[13px]">
-          Ver tudo <span aria-hidden="true">›</span>
+        <Link href="/produtos" className="shelf-link shrink-0">
+          Ver tudo <span aria-hidden="true" className="shelf-link-arrow">›</span>
         </Link>
       </div>
       <ProductGrid products={products} scroll collections={collections} limit={{ mobile: 5, desktop: 3 }} />
@@ -65,10 +61,6 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
   const masculineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "masculino" || product.gender === "unissex") : product.home_section === "masculino");
   const childrenProducts = products.filter((product) => isLegacyProduct(product) ? product.gender === "infantil" : product.home_section === "infantil");
 
-  const filterState = parseFilterState(searchParams ?? {});
-  const hasActiveFilters = filterState.busca.length > 0 || filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.formato.length > 0 || filterState.ia || filterState.esportivo || filterState.precoMin !== null || filterState.precoMax !== null;
-  const catalogProducts = applyQuickFilter(filterProducts(products, filterState), searchParams?.ordenar);
-
   return (
     <main>
       <Hero slides={heroSlides} />
@@ -84,14 +76,6 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
       <div className="section-shell py-2 sm:py-4"><PromoBanner banner={promoBanner} /></div>
       <HomeShelf title="Óculos de sol masculino" products={masculineProducts} collections={collections} />
       <HomeShelf title="Óculos de sol infantil" products={childrenProducts} collections={collections} />
-
-      <section id="catalogo" className="section-shell border-t border-brand-ink/10 pb-12 pt-10 sm:pb-16 sm:pt-14">
-        <div className="mb-7 flex min-w-0 items-center gap-3 overflow-hidden">
-          <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}><FilterDrawer products={products} collections={collections} anchor="catalogo" /></Suspense>
-          <Suspense fallback={null}><QuickFilters anchor="catalogo" /></Suspense>
-        </div>
-        <ProductGrid products={catalogProducts} emptyMessage={hasActiveFilters ? { title: "Nenhum modelo encontrado.", description: "Ainda não há óculos cadastrados para esse filtro. Veja a coleção completa ou tente outro filtro." } : undefined} collections={collections} limit={hasActiveFilters ? undefined : { mobile: 10, desktop: 12 }} />
-      </section>
 
       <TrustBadges /><Testimonials testimonials={testimonials} totalCount={testimonialCount} /><NewsletterSignup />
     </main>

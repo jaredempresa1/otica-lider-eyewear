@@ -3,8 +3,7 @@
 /** Direção visual: no mobile, escolha de cor e ação de compra ficam próximas da galeria e do preço para reduzir fricção. */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, X, ZoomIn, ZoomOut } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Collection, Product, ProductColor } from "@/types/product";
 import { useCart } from "./CartContext";
 import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
@@ -181,7 +180,6 @@ function AccordionItem({ title, children, defaultOpen }: { title: string; childr
 }
 
 export default function ProductDetail({ product, relatedProducts = [], collections }: { product: Product; relatedProducts?: Product[]; collections?: Collection[] }) {
-  const router = useRouter();
   const { addItem, subtotal } = useCart();
   const sortedColors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>(sortedColors[0]);
@@ -311,9 +309,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
 
   return (
     <>
-    <main className="section-shell py-8 sm:py-12">
-      <button onClick={() => router.back()} className="mb-7 inline-flex items-center gap-2 font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-ink/55 transition-colors hover:text-brand-gold"><ArrowLeft size={14} /> Voltar para a coleção</button>
-
+    <main className="section-shell bg-brand-paper py-8 sm:py-12">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div>
           <button
@@ -324,7 +320,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
             <Glasses size={15} /> Experimente agora
           </button>
           <div
-            className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-brand-sage/60 sm:aspect-[1.08]"
+            className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-brand-paper sm:aspect-[1.08]"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
@@ -355,13 +351,11 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
               </>
             )}
           </div>
-          {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-sage/40 transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
-          {selectedGallery.length > 0 && <p className="mt-3 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-ink/40">{selectedColor?.name ? `Galeria da cor ${selectedColor.name}` : "Galeria do produto"} · {selectedGallery.length} {selectedGallery.length === 1 ? "foto" : "fotos"}</p>}
+          {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-paper transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-5 border-t border-brand-ink/10 pt-5 lg:hidden" />}
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">
-          <p className="eyebrow">{product.category || "Eyewear"} · {genderLabel(product.gender)}</p>
           <p className="mt-3 font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-6 flex flex-col items-start font-body">{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}<span className="mt-1 flex items-baseline gap-2"><span className={`text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{discountPercent !== null && <span className="text-[13px] font-bold text-red-600">{discountPercent}% OFF</span>}</span>{installmentTotal !== null && product.installments && <span className="mt-2 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>

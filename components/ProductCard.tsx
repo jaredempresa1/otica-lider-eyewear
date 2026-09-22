@@ -21,15 +21,14 @@ export default function ProductCard({ product, collections }: { product: Product
   const selectedColor: ProductColor | undefined = colors[selectedColorIndex];
   const selectedColorImages = selectedColor?.images?.filter(Boolean) ?? [];
   const mainImage = selectedColorImages[0] || selectedColor?.image_url || product.images?.[0];
+  const secondaryImage = selectedColorImages[1] || (selectedColorImages.length === 0 ? product.images?.[1] : undefined);
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
   const discountPercent = calculateDiscountPercent(product.price, product.compare_at_price);
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const madeToOrder = Boolean(product.made_to_order);
-  const installmentTotal = product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0
-    ? product.installments.count * product.installments.amount
-    : null;
   const displayBrand = product.brand?.trim() || product.name;
+  const displayModel = product.brand?.trim() ? product.model?.trim() : "";
   // Casa a marca do produto com uma coleção de mesmo nome cadastrada em
   // "Marcas e coleções" no admin, e usa a imagem dela como logo ao lado do
   // nome. Se não existir coleção correspondente, some sem quebrar o layout.
@@ -64,6 +63,7 @@ export default function ProductCard({ product, collections }: { product: Product
                 sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
                 onError={() => setImageStatus((current) => (current === "loading" ? "retry-unoptimized" : "failed"))}
               />
+              {secondaryImage && <Image src={secondaryImage} alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}, segunda foto`} fill unoptimized className="pointer-events-none absolute inset-0 object-contain opacity-0 transition-opacity duration-300 lg:group-hover:opacity-100" sizes="(max-width: 1024px) 30vw, 22vw" />}
             </div>
           </div>
         ) : (
@@ -89,6 +89,7 @@ export default function ProductCard({ product, collections }: { product: Product
             )}
             <h3 className="truncate font-heading text-[17px] font-semibold tracking-[-0.02em] text-brand-ink sm:text-[19px]">{displayBrand}</h3>
           </div>
+          {displayModel && <p className="mt-1 truncate font-body text-[12px] font-medium uppercase tracking-[0.1em] text-brand-ink/55 sm:text-[13px]">{displayModel}</p>}
           <div className="mt-3 flex flex-wrap items-end justify-between gap-x-3 gap-y-1 font-body">
             <div>
               {hasDiscount && <span className="block text-[11px] text-brand-ink/40 line-through sm:text-[12px]">{formatBRL(product.compare_at_price as number)}</span>}
@@ -96,7 +97,7 @@ export default function ProductCard({ product, collections }: { product: Product
                 <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
                 {discountPercent !== null && <span className="text-[11px] font-bold text-red-600 sm:text-[12px]">{discountPercent}% OFF</span>}
               </span>
-              {installmentTotal !== null && product.installments && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="hidden text-[11px] text-brand-ink/65 sm:block">Total parcelado: {formatBRL(installmentTotal)}</span></span>}
+              {product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0 && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span>}
             </div>
           </div>
         </div>
