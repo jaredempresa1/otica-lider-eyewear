@@ -256,7 +256,14 @@ export default function ScratchOfferPopup() {
             <div className="order-2 flex flex-col px-6 py-8 text-center sm:order-1 sm:px-10 sm:py-10">
               {screen === "scratch" && (
                 <>
-                  <p className="font-heading text-2xl font-semibold tracking-[-0.01em] text-brand-ink">Tente a sorte</p>
+                  <Image
+                    src="/logo.png"
+                    alt="Ótica Líder Brasil"
+                    width={496}
+                    height={198}
+                    className="mx-auto h-9 w-auto object-contain sm:h-11"
+                  />
+                  <p className="mt-4 font-heading text-2xl font-semibold tracking-[-0.01em] text-brand-ink">Tente a sorte</p>
                   <p className="mt-1 font-body text-sm text-brand-ink/60">
                     {scratchRevealed ? "Veja o que você ganhou" : "Raspe abaixo para descobrir seu prêmio"}
                   </p>
