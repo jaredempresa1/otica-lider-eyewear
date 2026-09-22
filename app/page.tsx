@@ -15,19 +15,18 @@ import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filter
 
 export const revalidate = 60;
 
-type ShelfProps = { eyebrow: string; title: string; products: Product[]; collections: Collection[] };
+type ShelfProps = { title: string; products: Product[]; collections: Collection[] };
 
-function HomeShelf({ eyebrow, title, products, collections }: ShelfProps) {
+function HomeShelf({ title, products, collections }: ShelfProps) {
   if (products.length === 0) return null;
   return (
     <section className="section-shell pb-7 pt-10 sm:pb-10 sm:pt-14">
-      <div className="mb-5 flex items-end justify-between gap-4 sm:mb-7">
+      <div className="mb-5 flex flex-col items-start gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <p className="eyebrow">{eyebrow}</p>
-          <h2 className="section-title">{title}</h2>
+          <h2 className="section-title whitespace-nowrap text-[26px] sm:text-4xl">{title}</h2>
         </div>
         <Link href="/produtos" className="text-link shrink-0 text-[11px] sm:text-[13px]">
-          Ver todos <span aria-hidden="true">›</span>
+          Ver tudo <span aria-hidden="true">›</span>
         </Link>
       </div>
       <ProductGrid products={products} scroll collections={collections} limit={{ mobile: 5, desktop: 3 }} />
@@ -59,11 +58,12 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
     heroSlides = (heroSlideData as HeroSlide[]) ?? [];
   }
 
-  const featuredProducts = products.filter((product) => product.featured);
-  const sportVisionProducts = products.filter((product) => product.sportivo);
-  const feminineProducts = products.filter((product) => !product.gender || product.gender === "feminino" || product.gender === "unissex");
-  const masculineProducts = products.filter((product) => !product.gender || product.gender === "masculino" || product.gender === "unissex");
-  const childrenProducts = products.filter((product) => product.gender === "infantil");
+  const isLegacyProduct = (product: Product) => product.home_section === undefined;
+  const featuredProducts = products.filter((product) => isLegacyProduct(product) ? product.featured : product.home_section === "destaque");
+  const sportVisionProducts = products.filter((product) => isLegacyProduct(product) ? product.sportivo : product.home_section === "sport-vision");
+  const feminineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "feminino" || product.gender === "unissex") : product.home_section === "feminino");
+  const masculineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "masculino" || product.gender === "unissex") : product.home_section === "masculino");
+  const childrenProducts = products.filter((product) => isLegacyProduct(product) ? product.gender === "infantil" : product.home_section === "infantil");
 
   const filterState = parseFilterState(searchParams ?? {});
   const hasActiveFilters = filterState.busca.length > 0 || filterState.genero.length > 0 || filterState.marca.length > 0 || filterState.cor.length > 0 || filterState.formato.length > 0 || filterState.ia || filterState.esportivo || filterState.precoMin !== null || filterState.precoMax !== null;
@@ -78,18 +78,14 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
         </section>
       )}
 
-      <HomeShelf eyebrow="Seleção da casa" title="Óculos em destaque" products={featuredProducts} collections={collections} />
-      <HomeShelf eyebrow="Performance e movimento" title="Óculos Sport Vision" products={sportVisionProducts} collections={collections} />
-      <HomeShelf eyebrow="Para ela" title="Óculos de sol feminino" products={feminineProducts} collections={collections} />
+      <HomeShelf title="Óculos em destaque" products={featuredProducts} collections={collections} />
+      <HomeShelf title="Óculos Sport Vision" products={sportVisionProducts} collections={collections} />
+      <HomeShelf title="Óculos de sol feminino" products={feminineProducts} collections={collections} />
       <div className="section-shell py-2 sm:py-4"><PromoBanner banner={promoBanner} /></div>
-      <HomeShelf eyebrow="Para ele" title="Óculos de sol masculino" products={masculineProducts} collections={collections} />
-      <HomeShelf eyebrow="Para os pequenos" title="Óculos de sol infantil" products={childrenProducts} collections={collections} />
+      <HomeShelf title="Óculos de sol masculino" products={masculineProducts} collections={collections} />
+      <HomeShelf title="Óculos de sol infantil" products={childrenProducts} collections={collections} />
 
       <section id="catalogo" className="section-shell border-t border-brand-ink/10 pb-12 pt-10 sm:pb-16 sm:pt-14">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-          <div><p className="eyebrow">Catálogo completo</p><h2 className="section-title">Encontre seu próximo óculos de sol</h2></div>
-          <Link href="/produtos" className="text-link hidden sm:inline-flex">Ver todos <span aria-hidden="true">↗</span></Link>
-        </div>
         <div className="mb-7 flex min-w-0 items-center gap-3 overflow-hidden">
           <Suspense fallback={<div className="h-10 w-24 rounded-full bg-brand-paper" />}><FilterDrawer products={products} collections={collections} anchor="catalogo" /></Suspense>
           <Suspense fallback={null}><QuickFilters anchor="catalogo" /></Suspense>

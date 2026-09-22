@@ -49,10 +49,10 @@ export default function ProductCard({ product, collections }: { product: Product
 
   return (
     <article className="group min-w-0">
-      <div className="relative aspect-[0.9] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
+      <div className="relative aspect-[0.86] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
         <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
         {mainImage && imageStatus !== "failed" ? (
-          <div className="absolute inset-0 p-6 sm:p-7">
+          <div className="absolute inset-0 p-4 sm:p-7">
             <div className="relative h-full w-full">
               <Image
                 key={`${mainImage}-${imageStatus}`}
@@ -72,22 +72,6 @@ export default function ProductCard({ product, collections }: { product: Product
         {productSoldOut && !madeToOrder && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
             <span className="-rotate-12 rounded-lg border-2 border-brand-ink/70 bg-brand-paper/90 px-4 py-1.5 font-body text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink/80 shadow-card backdrop-blur-sm">Esgotado</span>
-          </div>
-        )}
-        <div className="absolute inset-x-2 top-2 z-20 flex flex-wrap items-start gap-1.5">
-          <div className="flex max-w-full flex-wrap items-start gap-1.5">
-            {!madeToOrder && !productSoldOut && product.stock === 1 && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Última peça</span>}
-            {product.more_sold && <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-paper/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-ink shadow-card backdrop-blur-sm">Mais vendido</span>}
-            {madeToOrder ? (
-              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Sob encomenda</span>
-            ) : colorSoldOut && !productSoldOut ? (
-              <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-ink/90 px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card">Cor esgotada</span>
-            ) : null}
-          </div>
-        </div>
-        {hasDiscount && (
-          <div className="absolute bottom-2 left-2 z-20">
-            <span style={{ whiteSpace: "nowrap" }} className="shrink-0 whitespace-nowrap rounded-full bg-brand-gold px-3 py-1.5 font-body text-[10px] font-semibold uppercase tracking-[0.08em] text-brand-paper shadow-card backdrop-blur-sm">Oferta</span>
           </div>
         )}
       </div>
@@ -112,7 +96,7 @@ export default function ProductCard({ product, collections }: { product: Product
                 <span className={`block text-base font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>
                 {discountPercent !== null && <span className="text-[11px] font-bold text-red-600 sm:text-[12px]">{discountPercent}% OFF</span>}
               </span>
-              {installmentTotal !== null && product.installments && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[11px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}
+              {installmentTotal !== null && product.installments && <span className="mt-1 block text-[12px] font-medium leading-5 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="hidden text-[11px] text-brand-ink/65 sm:block">Total parcelado: {formatBRL(installmentTotal)}</span></span>}
             </div>
           </div>
         </div>
@@ -128,7 +112,7 @@ export default function ProductCard({ product, collections }: { product: Product
               title={color.sold_out ? `${color.name} · Esgotada` : `Ver ${color.name}`}
               aria-label={color.sold_out ? `${product.name} na cor ${color.name} está esgotada` : `Ver ${product.name} na cor ${color.name}`}
               aria-pressed={selectedColorIndex === index}
-              className={`relative flex h-7 w-7 items-center justify-center rounded-full transition-transform active:scale-90 ${selectedColorIndex === index ? "scale-110 ring-2 ring-brand-gold ring-offset-2 ring-offset-brand-cream" : "hover:scale-110"} ${color.sold_out ? "opacity-50" : ""}`}
+              className={`relative flex h-7 w-7 items-center justify-center rounded-full transition-transform active:scale-90 ${selectedColorIndex === index ? "ring-2 ring-brand-ink ring-offset-1 ring-offset-brand-paper" : "hover:scale-110"} ${color.sold_out ? "opacity-50" : ""}`}
             >
               <span className="relative block h-5 w-5 overflow-hidden rounded-full border border-brand-paper shadow-[0_0_0_1px_rgba(30,33,29,0.2)]">
                 <span className="absolute inset-0" style={{ backgroundColor: color.hex }} />

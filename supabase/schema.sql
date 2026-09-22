@@ -73,6 +73,12 @@ alter table products add column if not exists gender text not null default 'unis
 alter table products drop constraint if exists products_gender_check;
 alter table products add constraint products_gender_check check (gender in ('masculino', 'feminino', 'unissex', 'infantil'));
 
+-- Seção principal em que o produto aparece na home. Em branco mantém o produto
+-- disponível no catálogo sem forçá-lo para uma vitrine específica.
+alter table products add column if not exists home_section text default '';
+alter table products drop constraint if exists products_home_section_check;
+alter table products add constraint products_home_section_check check (home_section in ('', 'destaque', 'sport-vision', 'feminino', 'masculino', 'infantil'));
+
 -- Segurança: qualquer visitante pode LER os produtos (catálogo público).
 -- Só usuários autenticados (você, logado no /admin) podem criar/editar/apagar.
 alter table products enable row level security;

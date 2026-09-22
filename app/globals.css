@@ -86,6 +86,24 @@ select:focus-visible {
   display: none;
 }
 
+.shelf-scroll {
+  scrollbar-color: #1e211d transparent;
+  scrollbar-width: thin;
+}
+
+.shelf-scroll::-webkit-scrollbar {
+  height: 3px;
+}
+
+.shelf-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.shelf-scroll::-webkit-scrollbar-thumb {
+  background: #1e211d;
+  border-radius: 999px;
+}
+
 .testimonial-enter {
   animation: testimonial-enter 280ms var(--ease-premium) both;
   transform-origin: center;

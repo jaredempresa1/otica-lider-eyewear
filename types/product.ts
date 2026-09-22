@@ -22,6 +22,8 @@ export type ProductInstallments = {
 
 export type ProductGender = "masculino" | "feminino" | "unissex" | "infantil";
 
+export type HomeSection = "destaque" | "sport-vision" | "feminino" | "masculino" | "infantil" | "";
+
 export type ProductSpecifications = {
   material?: string;
   format?: string;
@@ -42,6 +44,7 @@ export type Product = {
   installments?: ProductInstallments | null;
   category: string;
   gender?: ProductGender;
+  home_section?: HomeSection;
   specifications?: ProductSpecifications | null;
   images: string[];
   colors: ProductColor[];
