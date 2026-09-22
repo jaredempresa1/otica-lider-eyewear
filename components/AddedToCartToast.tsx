@@ -45,7 +45,7 @@ export default function AddedToCartToast() {
         <div className="flex items-start gap-3">
           {lastAddedItem.image ? (
             <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-brand-sage/20">
-              <Image src={lastAddedItem.image} alt={lastAddedItem.name} fill className="object-cover" sizes="56px" />
+              <Image src={lastAddedItem.image} alt={lastAddedItem.name} fill className="object-contain p-1" sizes="56px" />
             </div>
           ) : null}
           <div className="min-w-0 flex-1 pt-0.5">

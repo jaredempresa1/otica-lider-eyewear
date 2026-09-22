@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type TouchEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const STATS_TARGET = 22000;
 const STATS_LABEL = "clientes satisfeitos desde 2001";
@@ -52,9 +52,7 @@ function useCountUp(target: number, active: boolean, duration = 2200) {
 export default function SocialProof() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [statActive, setStatActive] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
   const count = useCountUp(STATS_TARGET, statActive);
-  const touchStartX = useRef<number | null>(null);
 
   // Dispara o contador só quando a seção entra na tela pela primeira vez.
   useEffect(() => {
@@ -73,61 +71,25 @@ export default function SocialProof() {
     return () => observer.disconnect();
   }, []);
 
-  function goTo(index: number) {
-    setActiveIndex((index + CARDS.length) % CARDS.length);
-  }
-
-  function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
-    touchStartX.current = event.touches[0]?.clientX ?? null;
-  }
-
-  function handleTouchEnd(event: TouchEvent<HTMLDivElement>) {
-    if (touchStartX.current === null) return;
-    const touchEndX = event.changedTouches[0]?.clientX;
-    if (touchEndX === undefined) return;
-    const distance = touchEndX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(distance) < 40) return;
-    goTo(activeIndex + (distance < 0 ? 1 : -1));
-  }
-
   return (
-    <section ref={sectionRef} className="bg-brand-ink px-5 py-10 sm:py-14">
+    <section ref={sectionRef} className="bg-[#38040E] px-5 py-6 sm:py-8">
       <div className="mx-auto w-full max-w-3xl">
-        {/* Número: fica parado, não faz parte do carrossel */}
         <div className="text-center">
-          <p className="font-heading text-[clamp(2.75rem,12vw,4.5rem)] font-bold leading-none tracking-[-0.03em] text-brand-paper">+ de {count.toLocaleString("pt-BR")}</p>
-          <p className="mt-2 font-body text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold sm:text-sm">{STATS_LABEL}</p>
+          <p className="font-body text-[clamp(2.25rem,10vw,3.5rem)] font-extrabold leading-none tracking-[-0.02em] text-brand-paper">+ de {count.toLocaleString("pt-BR")}</p>
+          <p className="mt-1.5 font-body text-sm font-bold text-brand-paper/90 sm:text-base">Clientes Satisfeitos</p>
         </div>
 
-        {/* Carrossel horizontal: arrasta/swipe pra trocar entre os 3 temas */}
-        <div className="relative mt-7 touch-pan-y overflow-hidden rounded-[1.25rem] sm:mt-9" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-          <div className="flex transition-transform duration-500 ease-out motion-reduce:transition-none" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
-            {CARDS.map((card) => (
-              <div key={card.key} className="flex w-full shrink-0 flex-col sm:flex-row">
-                <div className="h-[32vh] w-full overflow-hidden sm:h-[38vh] sm:w-1/2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={card.image} alt={card.title} className="h-full w-full object-cover object-top" />
-                </div>
-                <div className="flex flex-1 flex-col justify-center bg-brand-ink px-1 py-4 sm:px-8">
-                  <h3 className="font-heading text-xl font-semibold text-brand-paper sm:text-2xl">{card.title}</h3>
-                  <p className="mt-2 font-body text-sm leading-6 text-brand-paper/70 sm:text-[15px]">{card.text}</p>
-                </div>
+        {/* Fileira horizontal: mostra 2 cards por vez, com um pedaço do próximo visível na borda, igual a um carrossel de produto comum. */}
+        <div className="no-scrollbar -mx-5 mt-4 flex gap-3 overflow-x-auto px-5 sm:mt-5">
+          {CARDS.map((card) => (
+            <div key={card.key} className="w-[46%] shrink-0 sm:w-[30%]">
+              <div className="aspect-[3/4] w-full overflow-hidden rounded-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={card.image} alt={card.title} className="h-full w-full object-cover object-top" />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Indicadores de bolinha, iguais ao carrossel de produtos que já existe no site */}
-        <div className="mt-4 flex justify-center gap-2">
-          {CARDS.map((card, index) => (
-            <button
-              key={card.key}
-              type="button"
-              onClick={() => goTo(index)}
-              aria-label={`Ver tema ${card.title}`}
-              className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${index === activeIndex ? "w-6 bg-brand-gold" : "w-1.5 bg-brand-paper/25"}`}
-            />
+              <h3 className="mt-2 font-body text-base font-extrabold text-brand-paper sm:text-lg">{card.title}</h3>
+              <p className="mt-1 line-clamp-4 font-body text-[12px] leading-5 text-brand-paper/75 sm:text-[13px]">{card.text}</p>
+            </div>
           ))}
         </div>
       </div>
