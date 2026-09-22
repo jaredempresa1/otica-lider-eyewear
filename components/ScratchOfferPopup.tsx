@@ -229,6 +229,9 @@ export default function ScratchOfferPopup() {
           className="fixed bottom-5 left-5 z-[90] flex h-14 w-14 items-center justify-center rounded-full bg-brand-gold text-white shadow-2xl transition-transform hover:scale-105"
         >
           <Gift size={24} strokeWidth={1.8} />
+          <span aria-hidden="true" className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-brand-ink/10 bg-white text-brand-ink shadow-sm">
+            <X size={12} strokeWidth={2.2} />
+          </span>
         </button>
       )}
 
