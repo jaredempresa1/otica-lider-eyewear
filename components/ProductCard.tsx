@@ -1,17 +1,13 @@
 "use client";
 
-/** Direção visual: reforçar a legibilidade de preço, público e parcelamento sem alterar a composição do card. */
+/** Direção visual: card com fundo branco (as fotos dos óculos não têm fundo), sem CTA — o clique inteiro do card leva para a página do produto, onde o cliente escolhe cor e adiciona ao carrinho. */
 import Image from "next/image";
 import Link from "next/link";
-import { Check, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Collection, Product, ProductColor } from "@/types/product";
 import { findBrandLogo } from "@/lib/brandLogo";
-import { useCart } from "./CartContext";
 import { isProductSoldOut } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
-import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
-import PaymentMethodModal from "./PaymentMethodModal";
 import { trackProductClick } from "@/lib/productAnalytics";
 
 function formatBRL(value: number): string {
@@ -19,10 +15,7 @@ function formatBRL(value: number): string {
 }
 
 export default function ProductCard({ product, collections }: { product: Product; collections?: Collection[] }) {
-  const { addItem } = useCart();
-  const [added, setAdded] = useState(false);
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [imageStatus, setImageStatus] = useState<"loading" | "retry-unoptimized" | "failed">("loading");
   const colors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
   const selectedColor: ProductColor | undefined = colors[selectedColorIndex];
@@ -33,7 +26,6 @@ export default function ProductCard({ product, collections }: { product: Product
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const madeToOrder = Boolean(product.made_to_order);
-  const canBuy = !productSoldOut && !colorSoldOut && !madeToOrder;
   const installmentTotal = product.installments?.enabled && product.installments.count > 0 && product.installments.amount > 0
     ? product.installments.count * product.installments.amount
     : null;
@@ -43,12 +35,6 @@ export default function ProductCard({ product, collections }: { product: Product
   // nome. Se não existir coleção correspondente, some sem quebrar o layout.
   const brandLogo = findBrandLogo(product, collections);
   const productLabel = `${product.brand?.trim() ? `${product.brand.trim()} ` : ""}${product.model?.trim() || product.name}`.trim();
-
-  useEffect(() => {
-    if (!added) return;
-    const timeout = window.setTimeout(() => setAdded(false), 2200);
-    return () => window.clearTimeout(timeout);
-  }, [added]);
 
   // Reseta o estado da imagem sempre que o produto troca de cor (nova foto).
   useEffect(() => {
@@ -61,64 +47,25 @@ export default function ProductCard({ product, collections }: { product: Product
     setSelectedColorIndex(index);
   }
 
-  function handleQuickAdd(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    if (!canBuy) return;
-
-    addItem({
-      productId: product.id,
-      slug: product.slug,
-      name: productLabel,
-      price: product.price,
-      compareAtPrice: product.compare_at_price,
-      image: mainImage || "",
-      colorName: selectedColor?.name || "Único",
-      quantity: 1,
-    });
-    setAdded(true);
-  }
-
-  function handleQuickInquiry(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    event.stopPropagation();
-    // Sob encomenda: pergunta a forma de pagamento antes de abrir o WhatsApp,
-    // pra mensagem já sair pronta com o que o cliente escolheu.
-    if (madeToOrder) {
-      setShowPaymentModal(true);
-      return;
-    }
-    const message = buildWhatsAppInquiryMessage(
-      { brand: product.brand, model: product.model, name: product.name, price: product.price },
-      { colorName: !productSoldOut ? selectedColor?.name : undefined, wholeProductSoldOut: productSoldOut }
-    );
-    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
-  }
-
-  function handleMadeToOrderPaymentConfirm(payment: PaymentSelection) {
-    const message = buildWhatsAppMadeToOrderMessage(
-      { brand: product.brand, model: product.model, name: product.name, price: product.price },
-      { colorName: selectedColor?.name, leadTime: product.made_to_order_note, payment, cardTotal: installmentTotal ?? product.price }
-    );
-    window.open(buildWhatsAppLink(message), "_blank", "noopener,noreferrer");
-    setShowPaymentModal(false);
-  }
-
   return (
     <article className="group min-w-0">
-      <div className="relative aspect-[0.9] w-full overflow-hidden rounded-[1.25rem] bg-brand-sage/60">
+      <div className="relative aspect-[0.9] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
         <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
         {mainImage && imageStatus !== "failed" ? (
-          <Image
-            key={`${mainImage}-${imageStatus}`}
-            src={mainImage}
-            alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
-            fill
-            unoptimized={imageStatus === "retry-unoptimized"}
-            className={`object-cover transition-opacity duration-300`}
-            sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
-            onError={() => setImageStatus((current) => (current === "loading" ? "retry-unoptimized" : "failed"))}
-          />
+          <div className="absolute inset-0 p-6 sm:p-7">
+            <div className="relative h-full w-full">
+              <Image
+                key={`${mainImage}-${imageStatus}`}
+                src={mainImage}
+                alt={`${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`}
+                fill
+                unoptimized={imageStatus === "retry-unoptimized"}
+                className="object-contain transition-opacity duration-300"
+                sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
+                onError={() => setImageStatus((current) => (current === "loading" ? "retry-unoptimized" : "failed"))}
+              />
+            </div>
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>
         )}
@@ -192,39 +139,6 @@ export default function ProductCard({ product, collections }: { product: Product
           {colors.length > 6 && <span className="ml-1 font-body text-[11px] text-brand-ink/45">+{colors.length - 6}</span>}
           {selectedColor?.name && <span className="ml-1 truncate font-body text-[11px] text-brand-ink/50">{selectedColor.name}{colorSoldOut ? " · Esgotada" : ""}</span>}
         </div>
-      )}
-
-      <button
-        type="button"
-        onClick={canBuy ? handleQuickAdd : handleQuickInquiry}
-        className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.12em] shadow-card transition-colors duration-200 active:scale-[0.98] sm:text-[12px] ${
-          added ? "bg-brand-moss text-brand-paper" : "bg-brand-ink text-brand-paper hover:bg-brand-gold"
-        }`}
-        aria-label={canBuy ? `Adicionar ${product.name}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""} ao carrinho` : madeToOrder ? `Fazer pedido sob encomenda de ${product.name}` : `Pedir informações no WhatsApp sobre ${product.name}${selectedColor?.name && !productSoldOut ? ` na cor ${selectedColor.name}` : ""}`}
-        title={canBuy ? "Adicionar ao carrinho" : madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}
-      >
-        {added ? (
-          <>
-            <Check size={15} strokeWidth={2} /> Adicionado
-          </>
-        ) : canBuy ? (
-          "Adicionar ao carrinho"
-        ) : (
-          <>
-            <MessageCircle size={14} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir"}
-          </>
-        )}
-      </button>
-
-      {showPaymentModal && (
-        <PaymentMethodModal
-          productName={productLabel}
-          cashPrice={product.price}
-          cardTotal={installmentTotal ?? product.price}
-          maxInstallments={product.installments?.enabled && product.installments.count > 0 ? product.installments.count : 1}
-          onConfirm={handleMadeToOrderPaymentConfirm}
-          onClose={() => setShowPaymentModal(false)}
-        />
       )}
     </article>
   );
