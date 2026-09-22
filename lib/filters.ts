@@ -96,6 +96,14 @@ const SEARCH_FILTER_SUGGESTIONS: FilterSuggestion[] = [
   { label: "Em destaque", href: "/produtos?ordenar=destaques", keywords: ["destaque", "destaques", "novidade", "novidades", "lancamento"] },
 ];
 
+const SEARCH_SECTION_SUGGESTIONS: FilterSuggestion[] = [
+  { label: "Óculos em destaque", href: "/produtos?secao=destaque", keywords: ["destaque", "destaques", "oculos em destaque", "featured"] },
+  { label: "Óculos Sport Vision", href: "/produtos?secao=sport-vision", keywords: ["sport vision", "sport", "esportivo", "oculos sport vision"] },
+  { label: "Óculos de sol feminino", href: "/produtos?secao=feminino", keywords: ["feminino", "feminina", "mulher", "solar feminino", "sol feminino", "oculos de sol feminino"] },
+  { label: "Óculos de sol masculino", href: "/produtos?secao=masculino", keywords: ["masculino", "masculina", "homem", "solar masculino", "sol masculino", "oculos de sol masculino"] },
+  { label: "Óculos de sol infantil", href: "/produtos?secao=infantil", keywords: ["infantil", "crianca", "kids", "solar infantil", "sol infantil", "oculos de sol infantil"] },
+];
+
 // Atalhos de filtro prontos para "ao clicar, levar para" (usado no destino do
 // destaque promocional e dos slides do carrossel principal). Mesmas URLs que
 // o filtro da vitrine já entende, então é só uma lista amigável pro admin.
@@ -120,6 +128,20 @@ export function matchFilterSuggestions(query: string): { label: string; href: st
   const queryWords = normalizedQuery.split(" ").filter(Boolean);
 
   return SEARCH_FILTER_SUGGESTIONS.filter((suggestion) =>
+    suggestion.keywords.some((keyword) => {
+      const normalizedKeyword = normalizeSearchText(keyword);
+      if (normalizedKeyword.includes(normalizedQuery) || normalizedQuery.includes(normalizedKeyword)) return true;
+      const keywordWords = normalizedKeyword.split(" ").filter(Boolean);
+      return queryWords.some((queryWord) => keywordWords.some((keywordWord) => wordsApproximatelyMatch(queryWord, keywordWord)));
+    })
+  ).map(({ label, href }) => ({ label, href }));
+}
+
+export function matchSectionSuggestions(query: string): { label: string; href: string }[] {
+  const normalizedQuery = normalizeSearchText(query);
+  if (normalizedQuery.length < 2) return [];
+  const queryWords = normalizedQuery.split(" ").filter(Boolean);
+  return SEARCH_SECTION_SUGGESTIONS.filter((suggestion) =>
     suggestion.keywords.some((keyword) => {
       const normalizedKeyword = normalizeSearchText(keyword);
       if (normalizedKeyword.includes(normalizedQuery) || normalizedQuery.includes(normalizedKeyword)) return true;

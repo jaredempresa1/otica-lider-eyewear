@@ -189,7 +189,7 @@ export default function Header() {
           <button
             type="button"
             onClick={() => setSearchOpen((value) => !value)}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink transition-colors hover:border-brand-gold sm:h-12 sm:w-12"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink outline-none transition-colors hover:border-brand-gold focus:border-brand-ink/10 focus:outline-none focus:ring-0 sm:h-12 sm:w-12"
             aria-label={searchOpen ? "Fechar pesquisa" : "Pesquisar óculos"}
             aria-expanded={searchOpen}
           >
@@ -230,7 +230,7 @@ export default function Header() {
                 onChange={(event) => setSearchValue(event.target.value)}
                 placeholder={SEARCH_PLACEHOLDER}
                 aria-label="Pesquisar óculos"
-                className="input-premium h-11 w-full rounded-full py-2.5 pl-11 pr-4 text-sm"
+                className="input-premium h-11 w-full rounded-full py-2.5 pl-11 pr-4 text-sm focus:border-brand-ink/15 focus:outline-none focus:ring-0"
               />
             </div>
             <button type="submit" className="btn-brand shrink-0 px-5 py-2.5 text-[11px]">

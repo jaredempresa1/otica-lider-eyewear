@@ -48,11 +48,11 @@ export default function ProductCard({ product, collections }: { product: Product
 
   return (
     <article className="group min-w-0">
-      <div className="relative aspect-[1.18] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
+      <div className="relative aspect-[1.3] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
         <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
         {mainImage && imageStatus !== "failed" ? (
           <div className="absolute inset-0 p-2 sm:p-3">
-            <div className="relative h-full w-full">
+            <div className="relative h-full w-full scale-[1.1]">
               <Image
                 key={`${mainImage}-${imageStatus}`}
                 src={mainImage}
