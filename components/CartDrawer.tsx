@@ -157,7 +157,7 @@ function CartDrawer({ isVisible, onClose }: { isVisible: boolean; onClose: () =>
                   />
                   {item.image && (
                     <div className="pointer-events-none relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-brand-sage/20">
-                      <Image src={item.image} alt={item.name} fill className="object-contain p-1" sizes="80px" />
+                      <Image src={item.image} alt={item.name} fill className="object-cover" sizes="80px" />
                     </div>
                   )}
                   <div className="pointer-events-none relative z-10 flex flex-1 flex-col gap-1.5">
