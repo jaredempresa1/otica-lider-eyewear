@@ -35,7 +35,7 @@ export default async function ProdutosPage({
   }
 
   const sectionScopedProducts = secao ? products.filter((product) => {
-    if (product.home_section !== undefined) return product.home_section === secao;
+    if (product.home_section) return product.home_section === secao;
     if (secao === "destaque") return product.featured;
     if (secao === "sport-vision") return Boolean(product.sportivo);
     if (secao === "feminino") return !product.gender || product.gender === "feminino" || product.gender === "unissex";
