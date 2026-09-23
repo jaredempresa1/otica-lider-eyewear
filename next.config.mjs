@@ -11,6 +11,14 @@ const nextConfig = {
         hostname: "**.sunglasshut.com",
       },
     ],
+    // Desligado por completo: a otimização de imagem da Vercel (gerar variações de
+    // tamanho sob demanda) é um recurso pago à parte — mesmo reduzindo os tamanhos
+    // gerados, um catálogo que cresce (9 → ~150 produtos) tende a estourar a cota
+    // gratuita de novo. Como as fotos já são comprimidas no navegador antes do
+    // upload (ver lib/imageCompression.ts, máx. 1600px), servir a imagem original
+    // direto do Supabase, sem essa otimização extra, custa zero pra sempre — não
+    // volta a dar erro 402 independente de quantos produtos o site tiver.
+    unoptimized: true,
   },
   // Cabeçalhos de segurança padrão de mercado — não mudam nada visual nem
   // de comportamento do site, só instruem o navegador a se proteger contra

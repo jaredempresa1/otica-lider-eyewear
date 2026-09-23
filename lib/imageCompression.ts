@@ -13,9 +13,9 @@
  * bloqueia o upload por causa disso.
  */
 
-const MAX_DIMENSION = 1600; // px no lado maior — mais que suficiente pra web
-const JPEG_QUALITY = 0.8; // 0 a 1, 0.8 é um bom equilíbrio qualidade/tamanho
-const WEBP_QUALITY = 0.85; // WebP com transparência aguenta qualidade um pouco maior sem pesar
+const MAX_DIMENSION = 1200; // px no lado maior — reduzido de 1600 pra caber mais fotos no 1 GB grátis do Supabase e pesar menos pro cliente carregar
+const JPEG_QUALITY = 0.75; // 0 a 1, levemente reduzido (era 0.8) — corta mais peso do arquivo sem perda visível
+const WEBP_QUALITY = 0.8; // WebP com transparência aguenta qualidade um pouco maior sem pesar (era 0.85)
 
 /**
  * Verifica se a imagem desenhada no canvas tem algum pixel translúcido/
