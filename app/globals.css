@@ -96,6 +96,13 @@ select:focus-visible {
   display: none;
 }
 
+/* Defesa extra: alguns navegadores (Safari/iOS) detectam números como "22.000" como telefone
+   e os reestilizam como link (azul/roxo), ignorando a cor definida no componente. */
+a[x-apple-data-detectors] {
+  color: inherit !important;
+  text-decoration: inherit !important;
+}
+
 .reveal-on-scroll {
   opacity: 0;
   transform: translateY(18px);

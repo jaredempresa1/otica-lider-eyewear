@@ -75,8 +75,13 @@ export default function SocialProof() {
     <section ref={sectionRef} className="bg-[#38040E] px-5 py-6 sm:py-8">
       <div className="mx-auto w-full max-w-3xl">
         <div className="text-center">
-          <p className="font-body text-[clamp(2.25rem,10vw,3.5rem)] font-extrabold leading-none tracking-[-0.02em] text-brand-paper">+ de {count.toLocaleString("pt-BR")}</p>
-          <p className="mt-1.5 font-body text-sm font-bold text-brand-paper/90 sm:text-base">Clientes Satisfeitos</p>
+          <p
+            className="font-body text-[clamp(2.25rem,10vw,3.5rem)] font-extrabold leading-none tracking-[-0.02em] text-[#9A7B4D]"
+            style={{ color: "#9A7B4D" }}
+          >
+            + de {count.toLocaleString("pt-BR")}
+          </p>
+          <p className="mt-1.5 font-body text-sm font-bold text-brand-paper/90 sm:text-base">Clientes satisfeitos desde 2001</p>
         </div>
 
         {/* Fileira horizontal: mostra 2 cards por vez, com um pedaço do próximo visível na borda, igual a um carrossel de produto comum. */}
