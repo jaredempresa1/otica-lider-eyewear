@@ -14,7 +14,8 @@ function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export default function ProductCard({ product, collections }: { product: Product; collections?: Collection[] }) {
+/** `preview`: usado na prévia do admin — links desativados e sem registrar clique. */
+export default function ProductCard({ product, collections, preview = false }: { product: Product; collections?: Collection[]; preview?: boolean }) {
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [imageStatus, setImageStatus] = useState<"loading" | "retry-unoptimized" | "failed">("loading");
   const colors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
@@ -40,6 +41,10 @@ export default function ProductCard({ product, collections }: { product: Product
     setImageStatus("loading");
   }, [mainImage]);
 
+  const linkProps = preview
+    ? { onClick: (event: React.MouseEvent) => event.preventDefault(), tabIndex: -1, "aria-disabled": true as const }
+    : { onClick: () => trackProductClick(product) };
+
   function selectColor(event: React.MouseEvent<HTMLButtonElement>, index: number) {
     event.preventDefault();
     event.stopPropagation();
@@ -49,7 +54,7 @@ export default function ProductCard({ product, collections }: { product: Product
   return (
     <article className="group min-w-0">
       <div className="relative aspect-[1.3] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
-        <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
+        <Link href={`/produtos/${product.slug}`} {...linkProps} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
         {mainImage && imageStatus !== "failed" ? (
           <div className="absolute inset-0 p-2 sm:p-3">
             <div className="relative h-full w-full scale-[1.1]">
@@ -76,7 +81,7 @@ export default function ProductCard({ product, collections }: { product: Product
         )}
       </div>
 
-      <Link href={`/produtos/${product.slug}`} onClick={() => trackProductClick(product)} className="mt-4 block">
+      <Link href={`/produtos/${product.slug}`} {...linkProps} className="mt-4 block">
         <div className="min-w-0">
           <div className="flex min-w-0 items-center gap-1.5">
             {brandLogo && (

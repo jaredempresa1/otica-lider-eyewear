@@ -44,6 +44,7 @@ export type Product = {
   installments?: ProductInstallments | null;
   category: string;
   gender?: ProductGender;
+  /** LEGADO: não é mais usado. As vitrines vêm de gender + featured + sportivo (ver lib/shelves.ts). */
   home_section?: HomeSection;
   specifications?: ProductSpecifications | null;
   images: string[];
@@ -51,6 +52,8 @@ export type Product = {
   downloads?: ProductDownload[];
   stock: number;
   sold_out?: boolean;
+  /** Rascunho / oculto: não aparece na loja (home, listagens, busca, página do produto), mas continua no admin. */
+  hidden?: boolean;
   made_to_order?: boolean;
   made_to_order_note?: string;
   featured: boolean;

@@ -10,6 +10,7 @@ import Testimonials from "@/components/Testimonials";
 import SocialProof from "@/components/SocialProof";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import ScrollReveal from "@/components/ScrollReveal";
+import { productInShelf } from "@/lib/shelves";
 
 export const revalidate = 60;
 
@@ -48,7 +49,8 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
       supabase.from("promo_banner").select("image_url, href, alt_text").eq("id", 1).maybeSingle(),
       supabase.from("hero_slides").select("*").eq("active", true).order("sort_order", { ascending: true }),
     ]);
-    products = (productData as Product[]) ?? [];
+    // Produtos ocultos (rascunho) nunca aparecem na loja.
+    products = ((productData as Product[]) ?? []).filter((product) => !product.hidden);
     testimonials = testimonialData ?? [];
     testimonialCount = testimonialTotal ?? testimonials.length;
     collections = (collectionData as Collection[]) ?? [];
@@ -56,12 +58,13 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
     heroSlides = (heroSlideData as HeroSlide[]) ?? [];
   }
 
-  const isLegacyProduct = (product: Product) => !product.home_section;
-  const featuredProducts = products.filter((product) => isLegacyProduct(product) ? product.featured : product.home_section === "destaque");
-  const sportVisionProducts = products.filter((product) => isLegacyProduct(product) ? product.sportivo : product.home_section === "sport-vision");
-  const feminineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "feminino" || product.gender === "unissex") : product.home_section === "feminino");
-  const masculineProducts = products.filter((product) => isLegacyProduct(product) ? (!product.gender || product.gender === "masculino" || product.gender === "unissex") : product.home_section === "masculino");
-  const childrenProducts = products.filter((product) => isLegacyProduct(product) ? product.gender === "infantil" : product.home_section === "infantil");
+  // Vitrines automáticas: Público + Destaque + Esportivo (ver lib/shelves.ts).
+  // Um produto pode aparecer em várias vitrines ao mesmo tempo.
+  const featuredProducts = products.filter((product) => productInShelf(product, "destaque"));
+  const sportVisionProducts = products.filter((product) => productInShelf(product, "sport-vision"));
+  const feminineProducts = products.filter((product) => productInShelf(product, "feminino"));
+  const masculineProducts = products.filter((product) => productInShelf(product, "masculino"));
+  const childrenProducts = products.filter((product) => productInShelf(product, "infantil"));
 
   return (
     <main>

@@ -6,6 +6,7 @@ import ProductGrid from "@/components/ProductGrid";
 import FilterDrawer from "@/components/FilterDrawer";
 import QuickFilters from "@/components/QuickFilters";
 import { applyQuickFilter, filterProducts, parseFilterState } from "@/lib/filters";
+import { isShelfKey, productInShelf } from "@/lib/shelves";
 
 export const revalidate = 60;
 
@@ -29,20 +30,12 @@ export default async function ProdutosPage({
       supabase.from("collections").select("*").order("sort_order", { ascending: true }),
       colecao ? supabase.from("collections").select("*").eq("slug", colecao).maybeSingle() : Promise.resolve({ data: null }),
     ]);
-    products = (data as Product[]) ?? [];
+    products = ((data as Product[]) ?? []).filter((product) => !product.hidden);
     collections = (collectionData as Collection[]) ?? [];
     activeCollection = (collectionResult?.data as Collection | null) ?? null;
   }
 
-  const sectionScopedProducts = secao ? products.filter((product) => {
-    if (product.home_section) return product.home_section === secao;
-    if (secao === "destaque") return product.featured;
-    if (secao === "sport-vision") return Boolean(product.sportivo);
-    if (secao === "feminino") return !product.gender || product.gender === "feminino" || product.gender === "unissex";
-    if (secao === "masculino") return !product.gender || product.gender === "masculino" || product.gender === "unissex";
-    if (secao === "infantil") return product.gender === "infantil";
-    return true;
-  }) : products;
+  const sectionScopedProducts = secao && isShelfKey(secao) ? products.filter((product) => productInShelf(product, secao)) : products;
   const collectionScopedProducts = colecao ? sectionScopedProducts.filter((product) => (product.collection_slugs ?? []).includes(colecao)) : sectionScopedProducts;
   const fixedGender = secao === "feminino" || secao === "masculino" || secao === "infantil" ? secao : undefined;
 

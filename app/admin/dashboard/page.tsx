@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Collection, HeroSlide, HomeSection, Product, ProductColor, ProductDownload, Testimonial } from "@/types/product";
+import { Collection, HeroSlide, Product, ProductColor, ProductDownload, Testimonial } from "@/types/product";
 import { isProductSoldOut } from "@/lib/productStatus";
 import { FILTER_DESTINATIONS, FORMAT_OPTIONS } from "@/lib/filters";
 import { calculateDiscountPercent } from "@/lib/pricing";
+import { shelvesOfProduct, SHELF_LABELS } from "@/lib/shelves";
+import ProductCard from "@/components/ProductCard";
 import { compressImageFile, compressImageFiles } from "@/lib/imageCompression";
 import {
   ArrowDown,
   ArrowUp,
   Check,
+  Eye,
+  EyeOff,
   FileText,
   Film,
   ImageIcon,
@@ -102,7 +106,7 @@ type FormState = {
   installmentAmount: string;
   category: string;
   gender: string;
-  home_section: HomeSection;
+  hidden: boolean;
   specMaterial: string;
   specFormat: string;
   specWarranty: string;
@@ -135,11 +139,11 @@ const EMPTY_FORM: FormState = {
   installmentAmount: "",
   category: "Óculos de Sol",
   gender: "unissex",
-  home_section: "destaque",
+  hidden: false,
   specMaterial: "",
   specFormat: "",
   specWarranty: "6 meses",
-  specLensType: "",
+  specLensType: "Proteção UV400",
   specPackageContents: "Óculos, Flanela, Estojo",
   stock: "1",
   sold_out: false,
@@ -203,6 +207,7 @@ export default function AdminDashboardPage() {
   const [uploadError, setUploadError] = useState("");
   const [saveError, setSaveError] = useState("");
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+  const saveAsHiddenRef = useRef<boolean | null>(null);
   const [dragTarget, setDragTarget] = useState<"images" | "downloads" | "color" | "collection" | null>(null);
 
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -673,11 +678,11 @@ export default function AdminDashboardPage() {
       installmentAmount: product.installments?.amount ? String(product.installments.amount) : "",
       category: product.category ?? "Óculos de Sol",
       gender: product.gender ?? "unissex",
-      home_section: product.home_section || (product.featured ? "destaque" : product.sportivo ? "sport-vision" : product.gender === "masculino" ? "masculino" : product.gender === "infantil" ? "infantil" : "feminino"),
+      hidden: Boolean(product.hidden),
       specMaterial: product.specifications?.material ?? "",
       specFormat: product.specifications?.format ?? "",
-      specWarranty: product.specifications?.warranty ?? "6 meses",
-      specLensType: product.specifications?.lens_type ?? "",
+      specWarranty: product.specifications?.warranty || "6 meses",
+      specLensType: product.specifications?.lens_type || "Proteção UV400",
       specPackageContents: product.specifications?.package_contents ?? "Óculos, Flanela, Estojo",
       stock: String(product.stock ?? 0),
       sold_out: Boolean(product.sold_out),
@@ -839,6 +844,9 @@ export default function AdminDashboardPage() {
     setSaving(true);
     setSaveError("");
 
+    // Botões do rodapé definem se salva como rascunho (oculto) ou publicado.
+    const hidden = saveAsHiddenRef.current ?? form.hidden;
+    saveAsHiddenRef.current = null;
     const price = parseNumber(form.price);
     const compareAtPrice = form.compare_at_price ? parseNumber(form.compare_at_price) : null;
     const payload = {
@@ -852,7 +860,7 @@ export default function AdminDashboardPage() {
       model: form.model.trim(),
       category: form.category,
       gender: form.gender,
-      home_section: form.home_section,
+      hidden,
       specifications: {
         material: form.specMaterial.trim(),
         format: form.specFormat.trim(),
@@ -903,6 +911,70 @@ export default function AdminDashboardPage() {
       alert(`Não foi possível atualizar: ${error.message}`);
       await loadProducts();
     }
+  }
+
+  async function toggleProductHidden(product: Product) {
+    const next = !product.hidden;
+    setProducts((current) => current.map((item) => (item.id === product.id ? { ...item, hidden: next } : item)));
+    const { error } = await supabase.from("products").update({ hidden: next }).eq("id", product.id);
+    if (error) {
+      alert(`Não foi possível atualizar: ${error.message}`);
+      await loadProducts();
+    }
+  }
+
+  // Prévia ao vivo: monta um "produto" a partir do formulário e usa o MESMO card da loja.
+  const previewProduct = useMemo<Product>(() => {
+    const safe = (value: string) => { const n = parseNumber(value); return Number.isFinite(n) ? n : 0; };
+    const price = safe(form.price);
+    const compare = safe(form.compare_at_price);
+    const installmentAmount = safe(form.installmentAmount);
+    const brand = form.brand.trim();
+    const model = form.model.trim();
+    return {
+      id: "preview",
+      slug: "preview",
+      name: model || brand || "Novo produto",
+      brand,
+      model,
+      description: form.description,
+      price,
+      compare_at_price: compare > 0 ? compare : null,
+      installments: form.installmentsEnabled && installmentAmount > 0 ? { enabled: true, count: Number.parseInt(form.installmentCount, 10) || 10, amount: installmentAmount } : null,
+      category: form.category,
+      gender: form.gender,
+      images: form.imagesText.split("\n").map((line) => line.trim()).filter(Boolean),
+      colors: form.colors.filter((color) => color.name.trim()),
+      stock: Number.parseInt(form.stock, 10) || 0,
+      sold_out: form.sold_out,
+      made_to_order: form.made_to_order,
+      featured: form.featured,
+      more_sold: form.more_sold,
+      sportivo: form.sportivo,
+    } as unknown as Product;
+  }, [form]);
+  const previewShelves = useMemo(() => shelvesOfProduct({ featured: form.featured, sportivo: form.sportivo, gender: form.gender } as Product), [form.featured, form.sportivo, form.gender]);
+
+  function renderPreview() {
+    return (
+      <div className="rounded-[1.25rem] border border-brand-ink/10 bg-brand-paper p-4">
+        <p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-gold">Prévia na vitrine</p>
+        <div className="mt-3 pointer-events-none select-none [&_button]:pointer-events-auto" aria-hidden="true">
+          <ProductCard product={previewProduct} collections={collections} preview />
+        </div>
+        <div className="mt-4 border-t border-brand-ink/10 pt-3">
+          <p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Vai aparecer em</p>
+          {form.hidden ? (
+            <p className="mt-2 font-body text-xs leading-5 text-brand-ink/60">Oculto: não aparece em nenhuma vitrine até você publicar.</p>
+          ) : (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {previewShelves.map((shelf) => <span key={shelf} className="rounded-full bg-brand-gold/15 px-2.5 py-1 font-body text-[11px] font-medium text-brand-gold">{SHELF_LABELS[shelf]}</span>)}
+              <span className="rounded-full bg-brand-ink/5 px-2.5 py-1 font-body text-[11px] font-medium text-brand-ink/60">Coleção completa</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const discountPreview = useMemo(
@@ -1222,7 +1294,7 @@ export default function AdminDashboardPage() {
 
       {activeTab === "produtos" && (
       <div className="overflow-hidden rounded-[1.5rem] bg-brand-paper shadow-card">
-        <div className="hidden grid-cols-[1fr_140px_110px_180px_120px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
+        <div className="hidden grid-cols-[1fr_140px_110px_180px_150px] gap-4 border-b border-brand-ink/10 px-6 py-4 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/45 sm:grid">
           <span>Produto</span><span>Preço</span><span>Estoque</span><span>Badges</span><span />
         </div>
         {products.length === 0 ? (
@@ -1230,15 +1302,16 @@ export default function AdminDashboardPage() {
         ) : sortedProducts.map((product) => {
           const soldOut = isProductSoldOut(product);
           return (
-          <div key={product.id} className={`grid gap-4 border-b border-brand-ink/10 px-5 py-5 last:border-0 sm:grid-cols-[1fr_140px_110px_180px_120px] sm:items-center sm:gap-4 sm:px-6 ${soldOut ? "bg-red-50/40" : ""}`}>
-            <div className="flex min-w-0 items-center gap-3">
+          <div key={product.id} className={`grid gap-4 border-b border-brand-ink/10 px-5 py-5 last:border-0 sm:grid-cols-[1fr_140px_110px_180px_150px] sm:items-center sm:gap-4 sm:px-6 ${soldOut ? "bg-red-50/40" : ""} ${product.hidden ? "bg-brand-ink/[0.04]" : ""}`}>
+            <div className={`flex min-w-0 items-center gap-3 ${product.hidden ? "opacity-55" : ""}`}>
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-brand-sage/60">{product.images?.[0] && <img src={product.images[0]} alt="" className={`h-full w-full object-contain p-2 mix-blend-multiply ${soldOut ? "grayscale opacity-60" : ""}`} />}</div>
               <div className="min-w-0"><p className="truncate font-heading text-lg font-semibold text-brand-ink">{product.name}</p><p className="font-body text-xs text-brand-ink/50">{product.category}{product.gender ? ` · ${product.gender === "masculino" ? "Masculino" : product.gender === "feminino" ? "Feminino" : product.gender === "infantil" ? "Infantil" : "Unissex"}` : ""}</p></div>
             </div>
             <div className="font-body text-sm font-semibold text-brand-ink">{formatBRL(product.price)}{product.compare_at_price && <span className="ml-2 text-[11px] font-normal text-brand-ink/35 line-through">{formatBRL(product.compare_at_price)}</span>}</div>
             <div className="font-body text-sm text-brand-ink/70">{product.stock} un.</div>
-            <div className="flex flex-wrap gap-2 font-body text-[9px] font-semibold uppercase tracking-[0.12em]">{soldOut && !product.made_to_order && <span className="rounded-full bg-red-600 px-2.5 py-1.5 text-white">Esgotado</span>}{product.made_to_order && <span className="rounded-full bg-brand-gold px-2.5 py-1.5 text-brand-paper">Sob encomenda</span>}{product.more_sold && <span className="rounded-full bg-brand-ink px-2.5 py-1.5 text-brand-paper">Mais vendido</span>}{product.featured && <span className="rounded-full bg-brand-gold/15 px-2.5 py-1.5 text-brand-gold">Destaque</span>}</div>
+            <div className="flex flex-wrap gap-2 font-body text-[9px] font-semibold uppercase tracking-[0.12em]">{product.hidden && <span className="rounded-full border border-brand-ink/25 px-2.5 py-1.5 text-brand-ink/70">Oculto</span>}{soldOut && !product.made_to_order && <span className="rounded-full bg-red-600 px-2.5 py-1.5 text-white">Esgotado</span>}{product.made_to_order && <span className="rounded-full bg-brand-gold px-2.5 py-1.5 text-brand-paper">Sob encomenda</span>}{product.more_sold && <span className="rounded-full bg-brand-ink px-2.5 py-1.5 text-brand-paper">Mais vendido</span>}{product.featured && <span className="rounded-full bg-brand-gold/15 px-2.5 py-1.5 text-brand-gold">Destaque</span>}</div>
             <div className="flex gap-4 sm:justify-end">
+              <button onClick={() => toggleProductHidden(product)} className={`transition-colors ${product.hidden ? "text-brand-gold hover:text-brand-ink" : "text-brand-ink/55 hover:text-brand-gold"}`} aria-label={product.hidden ? `Publicar ${product.name} na loja` : `Ocultar ${product.name} da loja`} title={product.hidden ? "Oculto · clique para publicar" : "Ocultar da loja (vira rascunho)"}>{product.hidden ? <EyeOff size={17} /> : <Eye size={17} />}</button>
               <button onClick={() => toggleProductSoldOut(product)} className={`transition-colors ${product.sold_out ? "text-red-600 hover:text-brand-moss" : "text-brand-ink/55 hover:text-red-600"}`} aria-label={product.sold_out ? `Marcar ${product.name} como disponível de novo` : `Marcar ${product.name} como já vendido / esgotado`} title={product.sold_out ? "Já vendeu · clique para reativar" : "Marcar como já vendeu / esgotado"}>{product.sold_out ? <PackageCheck size={17} /> : <PackageX size={17} />}</button>
               <button onClick={() => openEditForm(product)} className="text-brand-ink/55 transition-colors hover:text-brand-gold" aria-label={`Editar ${product.name}`}><Pencil size={17} /></button>
               <button onClick={() => handleDelete(product.id)} className="text-brand-ink/40 transition-colors hover:text-red-600" aria-label={`Apagar ${product.name}`}><Trash2 size={17} /></button>
@@ -1324,26 +1397,19 @@ export default function AdminDashboardPage() {
 
       {showForm && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-brand-ink/55 px-4 py-5 backdrop-blur-sm sm:py-10">
-          <form onSubmit={handleSave} className="mx-auto max-w-3xl overflow-hidden rounded-[1.5rem] bg-brand-cream shadow-soft">
-            <div className="flex items-start justify-between border-b border-brand-ink/10 px-6 py-5 sm:px-8"><div><p className="eyebrow">Catálogo</p><h2 className="mt-1 font-heading text-2xl font-semibold text-brand-ink">{form.id ? "Editar produto" : "Novo produto"}</h2></div><button type="button" onClick={() => setShowForm(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-ink/10" aria-label="Fechar"><X size={16} /></button></div>
+          <form onSubmit={handleSave} className="mx-auto max-w-3xl overflow-clip rounded-[1.5rem] bg-brand-cream shadow-soft lg:max-w-6xl">
+            <div className="flex items-start justify-between border-b border-brand-ink/10 px-6 py-5 sm:px-8"><div><p className="eyebrow">Catálogo</p><h2 className="mt-1 font-heading text-2xl font-semibold text-brand-ink">{form.id ? "Editar produto" : "Novo produto"}{form.hidden && <span className="ml-3 rounded-full border border-brand-ink/25 px-2.5 py-1 align-middle font-body text-[10px] font-semibold uppercase tracking-[0.12em] text-brand-ink/60">Oculto</span>}</h2></div><button type="button" onClick={() => setShowForm(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-brand-ink/10" aria-label="Fechar"><X size={16} /></button></div>
 
-            <div className="space-y-8 px-6 py-7 sm:px-8">
+            <div className="px-6 py-7 sm:px-8 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-10">
+            <div className="min-w-0 space-y-8">
+              <details className="rounded-2xl border border-brand-ink/10 bg-brand-paper p-4 lg:hidden">
+                <summary className="cursor-pointer font-body text-sm font-semibold text-brand-ink">Ver prévia do card</summary>
+                <div className="mx-auto mt-4 max-w-[320px]">{renderPreview()}</div>
+              </details>
               <section className="space-y-4"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-gold">01 · Identidade</p><p className="mt-1 font-body text-xs leading-5 text-brand-ink/50">A marca aparece maior e o modelo fica logo abaixo na vitrine.</p></div><div className="grid gap-3 sm:grid-cols-2"><div><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Marca</label><input required placeholder="Ex.: Ray-Ban" value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} className="input-premium" /></div><div><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Modelo</label><input required placeholder="Ex.: RB3025" value={form.model} onChange={(event) => setForm({ ...form, model: event.target.value, name: event.target.value })} className="input-premium" /></div></div><div className="grid gap-3 sm:grid-cols-3"><input placeholder="URL amigável (opcional)" value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} className="input-premium" /><select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })} className="input-premium"><option>Óculos de Sol</option><option>Óculos de Grau</option><option>Armações</option><option>Acessórios</option></select><select value={form.gender} onChange={(event) => setForm({ ...form, gender: event.target.value })} className="input-premium" aria-label="Público"><option value="unissex">Unisex — masculino e feminino</option><option value="masculino">Masculino</option><option value="feminino">Feminino</option><option value="infantil">Infantil</option></select></div><textarea placeholder="Descrição do produto" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} className="input-premium min-h-28 resize-y" /></section>
 
               <section className="space-y-4"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-gold">02 · Preço e presença</p><p className="mt-1 font-body text-xs text-brand-ink/50">O preço promocional aparece junto ao preço anterior riscado.</p></div><div className="grid gap-3 sm:grid-cols-2"><div><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Preço atual/promocional</label><input required type="text" inputMode="decimal" placeholder="Ex.: 189,90" value={form.price} onChange={(event) => setForm({ ...form, price: event.target.value })} className="input-premium" /></div><div><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Preço anterior (opcional)</label><input type="text" inputMode="decimal" placeholder="Ex.: 249,90" value={form.compare_at_price} onChange={(event) => setForm({ ...form, compare_at_price: event.target.value })} className="input-premium" /></div></div>{discountPreview && <p className="rounded-xl bg-brand-gold/10 px-4 py-3 font-body text-xs text-brand-gold">Oferta de aproximadamente <strong>{discountPreview}% OFF</strong>.</p>}<div className="rounded-2xl border border-brand-ink/10 bg-brand-paper p-4"><label className="flex cursor-pointer items-start gap-3"><input type="checkbox" checked={form.installmentsEnabled} onChange={(event) => setForm({ ...form, installmentsEnabled: event.target.checked })} className="mt-0.5 accent-brand-gold" /><span><strong className="block font-body text-sm text-brand-ink">Exibir parcelamento</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Opcional. Aparece logo abaixo do preço na vitrine.</small></span></label>{form.installmentsEnabled && <div className="mt-4 grid gap-3 sm:grid-cols-2"><div><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Número de parcelas</label><input type="number" min="1" max="24" value={form.installmentCount} onChange={(event) => setForm({ ...form, installmentCount: event.target.value })} className="input-premium" /></div><div><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Valor de cada parcela</label><input type="text" inputMode="decimal" placeholder="Ex.: 99,90" value={form.installmentAmount} onChange={(event) => setForm({ ...form, installmentAmount: event.target.value })} className="input-premium" /></div></div>}{form.installmentsEnabled && parseNumber(form.installmentAmount) > 0 && <p className="mt-3 rounded-xl bg-brand-gold/10 px-4 py-3 font-body text-xs text-brand-gold">Prévia: <strong>{form.installmentCount || "1"}x de {formatBRL(parseNumber(form.installmentAmount))}</strong></p>}</div><input type="number" min="0" placeholder="Quantidade em estoque" value={form.stock} onChange={(event) => setForm({ ...form, stock: event.target.value })} className="input-premium" /><div className="grid gap-3 sm:grid-cols-2"><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-brand-ink/10 bg-brand-paper p-4"><input type="checkbox" checked={form.featured} onChange={(event) => setForm({ ...form, featured: event.target.checked })} className="mt-0.5 accent-brand-gold" /><span><strong className="block font-body text-sm text-brand-ink">Destaque</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Exibe também na faixa de curadoria da home.</small></span></label><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-brand-ink/10 bg-brand-paper p-4"><input type="checkbox" checked={form.more_sold} onChange={(event) => setForm({ ...form, more_sold: event.target.checked })} className="mt-0.5 accent-brand-gold" /><span><strong className="block font-body text-sm text-brand-ink">Mais vendido</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Mostra um selo no topo do card e do produto.</small></span></label><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-brand-ink/10 bg-brand-paper p-4"><input type="checkbox" checked={form.ai_tryon} onChange={(event) => setForm({ ...form, ai_tryon: event.target.checked })} className="mt-0.5 accent-brand-gold" /><span><strong className="block font-body text-sm text-brand-ink">Óculos com IA</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Inclui este produto no filtro "Óculos com IA" da vitrine.</small></span></label><label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-brand-ink/10 bg-brand-paper p-4"><input type="checkbox" checked={form.sportivo} onChange={(event) => setForm({ ...form, sportivo: event.target.checked })} className="mt-0.5 accent-brand-gold" /><span><strong className="block font-body text-sm text-brand-ink">Óculos esportivo</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Inclui este produto no filtro "Óculos esportivo" — ele continua aparecendo normalmente nos demais filtros também.</small></span></label></div><label className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${form.sold_out ? "border-red-200 bg-red-50" : "border-brand-ink/10 bg-brand-paper"}`}><input type="checkbox" checked={form.sold_out} onChange={(event) => setForm({ ...form, sold_out: event.target.checked })} className="mt-0.5 accent-red-600" /><span><strong className={`block font-body text-sm ${form.sold_out ? "text-red-700" : "text-brand-ink"}`}>Já vendeu tudo / esgotado</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Some da vitrine como disponível, mas o cliente ainda consegue abrir o produto e pedir pelo WhatsApp. Quando repor, é só desmarcar — nada é apagado.</small></span></label><div className={`rounded-2xl border p-4 transition-colors ${form.made_to_order ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/10 bg-brand-paper"}`}><label className="flex cursor-pointer items-start gap-3"><input type="checkbox" checked={form.made_to_order} onChange={(event) => setForm({ ...form, made_to_order: event.target.checked })} className="mt-0.5 accent-brand-gold" /><span><strong className="block font-body text-sm text-brand-ink">Pedido especial (fazer sob encomenda)</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Para modelos de pouco giro que só são comprados depois que o cliente pede (ex.: Ray-Ban Meta). Em vez de ir para o carrinho, o cliente vê "Fazer pedido" e cai direto numa mensagem pronta no WhatsApp avisando o prazo abaixo.</small></span></label>{form.made_to_order && <div className="mt-4"><label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Prazo médio de entrega</label><input placeholder="Ex.: 2 meses" value={form.made_to_order_note} onChange={(event) => setForm({ ...form, made_to_order_note: event.target.value })} className="input-premium" /><p className="mt-1.5 font-body text-[11px] leading-4 text-brand-ink/40">Aparece na página do produto e já entra pronto na mensagem do WhatsApp.</p></div>}</div></section>
 
-              <section className="rounded-2xl border border-brand-ink/10 bg-brand-paper p-4">
-                <label className="mb-1.5 block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Seção da página inicial</label>
-                <select value={form.home_section} onChange={(event) => setForm({ ...form, home_section: event.target.value as HomeSection })} className="input-premium">
-                  <option value="">Não exibir em uma vitrine específica</option>
-                  <option value="destaque">Óculos em destaque</option>
-                  <option value="sport-vision">Óculos Sport Vision</option>
-                  <option value="feminino">Óculos de sol feminino</option>
-                  <option value="masculino">Óculos de sol masculino</option>
-                  <option value="infantil">Óculos de sol infantil</option>
-                </select>
-                <p className="mt-1.5 font-body text-[11px] leading-5 text-brand-ink/45">Escolha em qual vitrine da home este produto deve aparecer.</p>
-              </section>
               <section className="space-y-4"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-gold">03 · Fotos do produto</p><p className="mt-1 font-body text-xs text-brand-ink/50">Arraste as imagens para cá ou escolha os arquivos no celular/computador.</p></div><div onDragOver={(event) => { event.preventDefault(); setDragTarget("images"); }} onDragLeave={() => setDragTarget(null)} onDrop={(event) => handleDrop(event, "images")} className={`rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${dragTarget === "images" ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/15 bg-brand-paper"}`}><UploadCloud className="mx-auto text-brand-gold" size={26} strokeWidth={1.5} /><p className="mt-3 font-body text-sm font-semibold text-brand-ink">Solte suas fotos aqui</p><p className="mt-1 font-body text-xs text-brand-ink/45">JPG, PNG ou WebP · várias imagens permitidas</p><label className="btn-brand mt-4 cursor-pointer">Escolher imagens<input type="file" accept="image/*" multiple className="sr-only" onChange={(event) => { if (event.target.files) void uploadFiles(event.target.files, "images"); }} /></label></div><textarea value={form.imagesText} onChange={(event) => setForm({ ...form, imagesText: event.target.value })} className="input-premium min-h-24 resize-y text-xs" placeholder="Ou cole URLs públicas, uma por linha" />{form.imagesText && <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">{form.imagesText.split("\n").filter(Boolean).map((url) => <div key={url} className="aspect-square overflow-hidden rounded-xl bg-brand-sage/50"><img src={url} alt="Prévia" className="h-full w-full object-contain p-2 mix-blend-multiply" /></div>)}</div>}</section>
 
               <section className="space-y-4"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.16em] text-brand-gold">04 · Cores e variações</p><p className="mt-1 font-body text-xs leading-5 text-brand-ink/50">Cada bolinha é uma opção que aparecerá no card da loja. Selecione uma cor, informe o nome, escolha o tom e cole a foto específica daquele modelo.</p></div><div className="flex flex-wrap gap-2">{form.colors.map((color, index) => <button key={`${color.name}-${index}`} type="button" onClick={() => setSelectedColorIndex(index)} className={`flex items-center gap-2 rounded-full border px-3 py-2 font-body text-xs transition-colors ${selectedColorIndex === index ? "border-brand-gold bg-brand-gold/10 text-brand-ink" : "border-brand-ink/10 bg-brand-paper text-brand-ink/60"} ${color.sold_out ? "opacity-60" : ""}`}><span className="relative block h-4 w-4 shrink-0 overflow-hidden rounded-full border border-brand-ink/10"><span className="absolute inset-0" style={{ backgroundColor: color.hex }} />{color.sold_out && <span className="absolute left-1/2 top-1/2 h-[150%] w-[1.5px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-white" />}</span>{color.name || "Sem nome"}{color.sold_out && <span className="rounded-full bg-brand-ink/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-brand-ink/50">Esgotada</span>}</button>)}<button type="button" onClick={addColorField} className="flex items-center gap-1 rounded-full border border-dashed border-brand-gold px-3 py-2 font-body text-xs font-semibold text-brand-gold"><Plus size={13} /> Adicionar cor</button></div>{form.colors.length > 0 && form.colors[selectedColorIndex] && <div className="rounded-2xl bg-brand-paper p-4"><div className="flex items-center justify-between"><p className="font-body text-xs font-semibold uppercase tracking-[0.14em] text-brand-ink/55">Editando cor {selectedColorIndex + 1}</p><button type="button" onClick={() => removeColorField(selectedColorIndex)} className="text-brand-ink/40 hover:text-red-600" aria-label="Remover cor permanentemente"><Trash2 size={15} /></button></div><label className={`mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition-colors ${form.colors[selectedColorIndex].sold_out ? "border-red-200 bg-red-50" : "border-brand-ink/10 bg-brand-cream"}`}><input type="checkbox" checked={Boolean(form.colors[selectedColorIndex].sold_out)} onChange={() => toggleColorSoldOut(selectedColorIndex)} className="mt-0.5 accent-red-600" /><span><strong className={`block font-body text-sm ${form.colors[selectedColorIndex].sold_out ? "text-red-700" : "text-brand-ink"}`}>Marcar esta cor como esgotada</strong><small className="mt-1 block font-body text-xs leading-5 text-brand-ink/50">Some da venda e vai para o final na vitrine, mas continua salva. Quando chegar mais estoque, é só desmarcar — não precisa cadastrar de novo.</small></span></label><div className="mt-4 grid gap-3 sm:grid-cols-[1fr_130px]"><input placeholder="Nome (ex.: Tartaruga)" value={form.colors[selectedColorIndex].name} onChange={(event) => updateColorField(selectedColorIndex, "name", event.target.value)} className="input-premium" /><label className="flex items-center gap-3 rounded-2xl border border-brand-ink/10 px-3 py-2"><span className="h-8 w-8 rounded-full border border-brand-ink/10" style={{ backgroundColor: form.colors[selectedColorIndex].hex }} /><input type="color" value={form.colors[selectedColorIndex].hex} onChange={(event) => updateColorField(selectedColorIndex, "hex", event.target.value)} className="h-8 w-10 cursor-pointer border-0 bg-transparent" /><span className="font-body text-xs text-brand-ink/50">Tom</span></label></div><div className="mt-4 grid gap-3 sm:grid-cols-2"><label className="block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Armação<input placeholder="Ex.: Preto" value={form.colors[selectedColorIndex].frame_color || ""} onChange={(event) => updateColorField(selectedColorIndex, "frame_color", event.target.value)} className="input-premium mt-2 text-sm normal-case tracking-normal" /></label><label className="block font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Lentes<input placeholder="Ex.: Verde" value={form.colors[selectedColorIndex].lens_color || ""} onChange={(event) => updateColorField(selectedColorIndex, "lens_color", event.target.value)} className="input-premium mt-2 text-sm normal-case tracking-normal" /></label></div><div className="mt-5 rounded-2xl border border-brand-ink/10 bg-brand-sage/30 p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/60">Galeria desta variação</p><p className="mt-1 max-w-md font-body text-xs leading-5 text-brand-ink/50">Cadastre todos os ângulos desta cor. Essa galeria aparecerá quando o cliente tocar nesta bolinha.</p></div><span className="shrink-0 rounded-full bg-brand-paper px-2.5 py-1 font-body text-[10px] font-semibold text-brand-ink/55">{(form.colors[selectedColorIndex].images ?? []).filter((url) => url.trim()).length} fotos</span></div><div onDragOver={(event) => { event.preventDefault(); setDragTarget("color"); }} onDragLeave={() => setDragTarget(null)} onDrop={(event) => handleColorDrop(event, selectedColorIndex)} className={`mt-4 flex flex-col items-center gap-3 rounded-xl border-2 border-dashed p-4 text-center transition-colors sm:flex-row sm:text-left ${dragTarget === "color" ? "border-brand-gold bg-brand-gold/10" : "border-brand-ink/15 bg-brand-paper/60"}`}><UploadCloud className="shrink-0 text-brand-gold" size={22} /><div className="min-w-0 flex-1"><p className="font-body text-xs font-semibold text-brand-ink">Arraste vários ângulos desta cor</p><p className="mt-1 font-body text-[11px] leading-4 text-brand-ink/45">Frente, lateral, haste, detalhe e embalagem.</p></div><label className="btn-brand shrink-0 cursor-pointer px-4 py-2 text-[10px]">Adicionar fotos<input type="file" accept="image/*" multiple className="sr-only" onChange={(event) => { if (event.target.files) void uploadColorImages(event.target.files, selectedColorIndex); }} /></label></div><textarea value={(form.colors[selectedColorIndex].images ?? []).join("\n")} onChange={(event) => updateColorImagesText(selectedColorIndex, event.target.value)} className="input-premium mt-3 min-h-24 resize-y text-xs" placeholder="Ou cole várias URLs públicas, uma por linha" />{(form.colors[selectedColorIndex].images ?? []).filter((url) => url.trim()).length > 0 && <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6">{(form.colors[selectedColorIndex].images ?? []).map((url, imageIndex) => url.trim() && <div key={`${url}-${imageIndex}`} className="group relative aspect-square overflow-hidden rounded-xl bg-brand-paper"><img src={url} alt={`Ângulo ${imageIndex + 1}`} className="h-full w-full object-contain p-1 mix-blend-multiply" /><button type="button" onClick={() => removeColorImage(selectedColorIndex, imageIndex)} className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-ink/80 text-[11px] text-brand-paper opacity-0 transition-opacity group-hover:opacity-100" aria-label={`Remover ângulo ${imageIndex + 1}`}>×</button></div>)}</div>}<p className="mt-3 font-body text-[11px] leading-5 text-brand-ink/45">Exemplo: a cor preta pode ter 4 fotos do óculos preto. Ao escolher dourado, o cliente verá somente a galeria dourada.</p></div></div>}</section>
@@ -1356,8 +1422,18 @@ export default function AdminDashboardPage() {
 
               {uploading && <p className="flex items-center gap-2 rounded-xl bg-brand-gold/10 px-4 py-3 font-body text-xs text-brand-gold"><UploadCloud size={15} /> Enviando arquivos para o Storage…</p>}{uploadError && <p className="rounded-xl bg-red-50 px-4 py-3 font-body text-xs leading-5 text-red-700">{uploadError}</p>}{saveError && <p className="rounded-xl bg-red-50 px-4 py-3 font-body text-xs leading-5 text-red-700">Não foi possível salvar: {saveError}</p>}
             </div>
+            <aside className="hidden lg:block"><div className="sticky top-6">{renderPreview()}</div></aside>
+            </div>
 
-            <div className="flex flex-col-reverse gap-3 border-t border-brand-ink/10 bg-brand-paper px-6 py-5 sm:flex-row sm:justify-end sm:px-8"><button type="button" onClick={() => setShowForm(false)} className="btn-brand-outline">Cancelar</button><button type="submit" disabled={saving || uploading} className="btn-brand"><Check size={15} className="mr-2" />{saving ? "Salvando…" : "Salvar produto"}</button></div>
+            <div className="flex flex-col-reverse gap-3 border-t border-brand-ink/10 bg-brand-paper px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+              <button type="button" onClick={() => setShowForm(false)} className="btn-brand-outline">Cancelar</button>
+              <button type="submit" disabled={saving || uploading} onClick={() => { saveAsHiddenRef.current = true; }} className="btn-brand-outline">
+                <EyeOff size={15} className="mr-2" />{form.id ? (form.hidden ? "Salvar oculto" : "Salvar e ocultar") : "Salvar como rascunho"}
+              </button>
+              <button type="submit" disabled={saving || uploading} onClick={() => { saveAsHiddenRef.current = false; }} className="btn-brand">
+                <Check size={15} className="mr-2" />{saving ? "Salvando…" : form.id && !form.hidden ? "Salvar produto" : "Salvar e publicar"}
+              </button>
+            </div>
           </form>
         </div>
       )}

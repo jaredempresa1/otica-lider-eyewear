@@ -27,3 +27,16 @@ export function isProductSoldOut(product: Pick<Product, "sold_out" | "stock" | "
 export function isColorSoldOut(color?: ProductColor): boolean {
   return Boolean(color?.sold_out);
 }
+
+/**
+ * Esgotado "de verdade" para fins de vitrine: produto sob encomenda nunca conta
+ * como esgotado (ele sempre pode ser pedido), mesmo com estoque zerado.
+ */
+export function isSoldOutForShelf(product: Pick<Product, "sold_out" | "stock" | "colors" | "made_to_order">): boolean {
+  return !product.made_to_order && isProductSoldOut(product);
+}
+
+/** Joga os esgotados para o fim da lista, mantendo a ordem original dentro de cada grupo. */
+export function sortSoldOutLast<T extends Pick<Product, "sold_out" | "stock" | "colors" | "made_to_order">>(products: T[]): T[] {
+  return [...products].sort((a, b) => Number(isSoldOutForShelf(a)) - Number(isSoldOutForShelf(b)));
+}

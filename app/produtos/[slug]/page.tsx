@@ -16,7 +16,8 @@ export default async function ProdutoPage({
     .eq("slug", params.slug)
     .single();
 
-  if (!product) return notFound();
+  // Produto oculto (rascunho) não tem página pública.
+  if (!product || (product as Product).hidden) return notFound();
 
   // Usadas pra casar a marca do produto com o logo cadastrado em "Marcas e coleções" no admin.
   const { data: collectionData } = await supabase.from("collections").select("*");
@@ -39,6 +40,7 @@ export default async function ProdutoPage({
 
     relatedProducts = ((candidateProducts as Product[]) ?? [])
       .filter((candidate) => {
+        if (candidate.hidden) return false;
         const format = candidate.specifications?.format?.trim().toLocaleLowerCase("pt-BR") ?? "";
         if (format !== currentFormat) return false;
         const gender = candidate.gender || "unissex";
