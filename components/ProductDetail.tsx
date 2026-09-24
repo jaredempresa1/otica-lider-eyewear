@@ -331,26 +331,6 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
                 <span className="-rotate-12 rounded-xl border-2 border-brand-ink/70 bg-brand-paper/90 px-6 py-2.5 font-body text-sm font-bold uppercase tracking-[0.22em] text-brand-ink/85 shadow-card backdrop-blur-sm">Esgotado</span>
               </div>
             )}
-            {selectedGallery.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => goToGalleryImage(-1)}
-                  className="absolute left-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-transform hover:scale-105"
-                  aria-label="Ver foto anterior"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => goToGalleryImage(1)}
-                  className="absolute right-3 top-1/2 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-paper/90 text-brand-ink shadow-card backdrop-blur-sm transition-transform hover:scale-105"
-                  aria-label="Ver próxima foto"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </>
-            )}
           </div>
           {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-paper transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-5 border-t border-brand-ink/10 pt-5 lg:hidden" />}
