@@ -16,6 +16,7 @@ import PaymentMethodModal from "./PaymentMethodModal";
 import ProductGrid from "./ProductGrid";
 import NewsletterSignup from "./NewsletterSignup";
 import FreeShippingBar from "./FreeShippingBar";
+import { addRecentlyViewed, getRecentlyViewed } from "@/lib/recentlyViewed";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -154,17 +155,17 @@ function ColorPicker({ colors, selectedColor, onSelect, className = "" }: { colo
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between gap-3"><p className="font-body text-[11px] font-semibold uppercase tracking-[0.15em] text-brand-ink/55">Cor selecionada</p><span className="font-body text-[15px] font-medium text-brand-ink">{selectedColor?.name || "Único"}{colorSoldOut ? " · Esgotada" : ""}</span></div>
+      <div className="flex items-center gap-3"><span className="font-body text-[15px] font-medium text-brand-ink">{selectedColor?.name || "Único"}{colorSoldOut ? " · Esgotada" : ""}</span></div>
       <div className="mt-4 flex flex-wrap gap-3">{colors.map((color) => <button key={`${color.name}-${color.hex}`} onClick={() => onSelect(color)} title={color.sold_out ? `${color.name} · Esgotada` : `Ver galeria ${color.name}`} aria-label={color.sold_out ? `${color.name} está esgotada` : `Ver fotos do óculos na cor ${color.name}`} className={`relative h-11 w-11 rounded-full border-2 transition-transform duration-200 hover:scale-105 ${selectedColor?.name === color.name ? "border-brand-gold p-1" : "border-transparent"} ${color.sold_out ? "opacity-50" : ""}`}><span className="relative block h-full w-full overflow-hidden rounded-full border border-brand-ink/10"><span className="absolute inset-0" style={{ backgroundColor: color.hex }} />{color.sold_out && <span className="absolute left-1/2 top-1/2 h-[150%] w-[2px] -translate-x-1/2 -translate-y-1/2 rotate-45 bg-white" />}</span></button>)}</div>
       {colorSoldOut && <p className="mt-3 font-body text-[12px] leading-5 text-brand-ink/45">Essa cor está esgotada no momento. Escolha outra opção disponível ou avise que quer ser avisado quando voltar.</p>}
     </div>
   );
 }
 
-function AccordionItem({ title, children, defaultOpen }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function AccordionItem({ title, children, defaultOpen, hideDivider }: { title: string; children: React.ReactNode; defaultOpen?: boolean; hideDivider?: boolean }) {
   const [open, setOpen] = useState(Boolean(defaultOpen));
   return (
-    <div className="border-b border-brand-ink/10">
+    <div className={hideDivider ? "" : "border-b border-brand-ink/10"}>
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
@@ -193,6 +194,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
   const [cep, setCep] = useState("");
   const [shipping, setShipping] = useState<ShippingResult | null>(null);
   const [checkingShipping, setCheckingShipping] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const hasDiscount = Boolean(product.compare_at_price && product.compare_at_price > product.price);
   const discountPercent = calculateDiscountPercent(product.price, product.compare_at_price);
   const selectedGallery = getColorImages(product, selectedColor);
@@ -234,6 +236,13 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
       window.clearTimeout(timer);
     };
   }, [cep, product.id, product.price, product.slug, productLabel, selectedColor?.name, selectedGalleryKey, shippingImage]);
+
+  useEffect(() => {
+    // Mostra os óculos vistos antes deste (guardados no navegador do cliente)
+    // e só depois registra o atual, senão ele apareceria na própria lista.
+    setRecentlyViewed(getRecentlyViewed().filter((item) => item.id !== product.id));
+    addRecentlyViewed(product);
+  }, [product.id]);
 
   function openLightbox(image: string) {
     const index = Math.max(0, selectedGallery.indexOf(image));
@@ -343,13 +352,12 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
           <div className="mt-3 flex items-center gap-3"><p className="font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>{brandLogo && <img src={brandLogo} alt={`Logo da marca ${displayBrand}`} className="h-11 w-11 shrink-0 object-contain" />}</div>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-4 flex flex-col items-start font-body"><div className="flex items-baseline gap-3 whitespace-nowrap"><span className={`text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}{discountPercent !== null && <span className="text-[13px] font-bold text-red-600">{discountPercent}% OFF</span>}</div>{installmentTotal !== null && product.installments && <span className="mt-0.5 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>
-          {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-3 hidden border-t border-brand-ink/10 pt-3 lg:block" />}
+          {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-1 hidden border-t border-brand-ink/10 pt-3 lg:block" />}
           <div className="mt-5 max-w-sm"><FreeShippingBar subtotal={subtotal} /></div>
           {!madeToOrder && !productSoldOut && product.stock > 0 && product.stock <= 3 && <p className="mt-3 inline-flex rounded-full bg-brand-gold/15 px-3 py-1.5 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink">Só restam {product.stock} {product.stock === 1 ? "unidade" : "unidades"}</p>}
           <div className="lg:hidden">{canBuy ? <button onClick={handleAddToCart} className="btn-brand mt-5 w-full gap-3"><ShoppingCart size={18} strokeWidth={1.8} /> {addedToCart ? "Adicionado ao carrinho" : "Adicionar ao carrinho"}</button> : <div className="mt-5 space-y-2"><button onClick={handleWhatsAppInquiry} className="btn-brand w-full gap-3 bg-brand-ink hover:bg-brand-gold"><MessageCircle size={18} strokeWidth={1.8} /> {madeToOrder ? "Fazer pedido" : "Pedir no WhatsApp"}</button><p className="text-center font-body text-[12px] leading-5 text-brand-ink/45">{madeToOrder ? `Sob encomenda${product.made_to_order_note?.trim() ? ` — prazo médio: ${product.made_to_order_note.trim()}` : ""}. O pedido é fechado direto no WhatsApp.` : productSoldOut ? "Esse modelo está esgotado, mas você pode encomendar e a gente avisa assim que chegar." : "Essa cor está esgotada no momento — fale com a gente para saber sobre reposição ou outra cor."}</p></div>}</div>
 
-          <div className="mt-7 flex items-center justify-between border-y border-brand-ink/10 py-4 font-body text-[11px] uppercase tracking-[0.12em] text-brand-ink/55"><span>{madeToOrder ? "Sob encomenda" : productSoldOut ? "Esgotado" : colorSoldOut ? "Cor esgotada" : product.stock > 1 ? `${product.stock} unidades disponíveis` : product.stock === 1 ? "Última unidade" : "Fora de estoque"}</span><span>Proteção UV</span></div>
-          <div className="mt-4 rounded-2xl bg-brand-paper p-4">
+          <div className="mt-7 rounded-2xl bg-brand-paper p-4">
             <label htmlFor="product-cep" className="block font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink/60">Consulte o prazo de entrega</label>
             <div className="mt-2 flex gap-2">
               <input id="product-cep" type="text" inputMode="numeric" placeholder="Digite seu CEP" value={cep} onChange={(event) => setCep(event.target.value)} className="min-w-0 flex-1 rounded-xl border border-brand-ink/15 bg-brand-cream px-3 py-2.5 font-body text-[14px] text-brand-ink outline-none placeholder:text-brand-ink/40 focus:border-brand-gold" />
@@ -382,7 +390,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
           )}
           {/* Sempre mostra a UV400 (é padrão em todos os óculos); garantia e o restante só aparecem se preenchidos no cadastro. */}
           {(
-            <AccordionItem title="Especificações">
+            <AccordionItem title="Especificações" hideDivider>
               <div className="flex flex-col gap-2.5">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
@@ -418,10 +426,18 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
       )}
     </main>
 
+      {recentlyViewed.length > 0 && (
+        <section className="section-shell border-t border-brand-ink/10 py-10 sm:py-14">
+          <div className="mb-6">
+            <h2 className="section-title">Vistos recentemente</h2>
+          </div>
+          <ProductGrid products={recentlyViewed} scroll collections={collections} />
+        </section>
+      )}
+
       {relatedProducts.length > 0 && (
         <section className="section-shell border-t border-brand-ink/10 py-10 sm:py-14">
           <div className="mb-6">
-            <p className="eyebrow">Você também pode gostar</p>
             <h2 className="section-title">Mais modelos como esse:</h2>
           </div>
           <ProductGrid products={relatedProducts} scroll collections={collections} />

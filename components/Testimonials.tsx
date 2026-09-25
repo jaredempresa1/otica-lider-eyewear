@@ -73,8 +73,7 @@ export default function Testimonials({ testimonials, totalCount = testimonials.l
       <div className="mx-auto max-w-6xl">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Experiências reais</p>
-            <h2 className="mt-2 whitespace-nowrap font-heading text-[clamp(1.65rem,8vw,2.25rem)] font-semibold tracking-[-0.04em] text-brand-ink sm:text-4xl">Avaliações de clientes</h2>
+            <h2 className="whitespace-nowrap font-heading text-[clamp(1.65rem,8vw,2.25rem)] font-semibold tracking-[-0.04em] text-brand-ink sm:text-4xl">Avaliações de clientes</h2>
             <p className="mt-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-brand-moss">{totalCount} {totalCount === 1 ? "avaliação publicada" : "avaliações publicadas"}</p>
           </div>
           {canMove && <div className="hidden gap-2 md:flex"><button type="button" onClick={() => move(-1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Avaliação anterior"><ChevronLeft size={18} /></button><button type="button" onClick={() => move(1)} className="flex h-10 w-10 items-center justify-center rounded-full border border-brand-ink/15 text-brand-ink transition-colors hover:bg-brand-ink hover:text-brand-paper" aria-label="Próxima avaliação"><ChevronRight size={18} /></button></div>}
