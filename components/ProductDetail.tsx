@@ -383,28 +383,22 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
           {/* Sempre mostra a UV400 (é padrão em todos os óculos); garantia e o restante só aparecem se preenchidos no cadastro. */}
           {(
             <AccordionItem title="Especificações">
-              <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-x-8">
-                {warrantyText && (
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
-                    <span className="text-brand-ink/85">{warrantyText}</span>
-                  </div>
-                )}
+              <div className="flex flex-col gap-2.5">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
+                  <span className="text-brand-ink/85">{warrantyText}</span>
+                </div>
                 <div className="flex items-center gap-2">
                   <Sun size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
                   <span className="text-brand-ink/85">Proteção - UV 400</span>
                 </div>
+                {specRows.map((row) => (
+                  <div key={row.label} className="flex items-center gap-2">
+                    <row.icon size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
+                    <span className="text-brand-ink/85"><span className="font-semibold">{row.label}:</span> {row.value}</span>
+                  </div>
+                ))}
               </div>
-              {specRows.length > 0 && (
-                <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-                  {specRows.map((row) => (
-                    <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-brand-ink/5 py-1.5 sm:justify-start sm:gap-2">
-                      <dt className="flex shrink-0 items-center gap-2 font-semibold text-brand-ink/85"><row.icon size={16} className="shrink-0 text-brand-ink/50" strokeWidth={1.8} />{row.label}:</dt>
-                      <dd className="text-right text-brand-ink/70 sm:text-left">{row.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
             </AccordionItem>
           )}
         </div>
