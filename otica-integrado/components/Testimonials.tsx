@@ -73,7 +73,7 @@ export default function Testimonials({ testimonials, totalCount = testimonials.l
       <div className="mx-auto max-w-6xl">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Experiências reais</p>
+            <p className="eyebrow"></p>
             <h2 className="mt-2 whitespace-nowrap font-heading text-[clamp(1.65rem,8vw,2.25rem)] font-semibold tracking-[-0.04em] text-brand-ink sm:text-4xl">Avaliações de clientes</h2>
             <p className="mt-3 font-body text-xs font-semibold uppercase tracking-[0.12em] text-brand-moss">{totalCount} {totalCount === 1 ? "avaliação publicada" : "avaliações publicadas"}</p>
           </div>
