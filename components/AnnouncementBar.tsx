@@ -51,7 +51,7 @@ export default function AnnouncementBar() {
     <div
       role="region"
       aria-label="Avisos da loja"
-      className="w-full overflow-hidden bg-brand-gold py-2.5 font-body text-[9.5px] font-semibold uppercase tracking-[0.06em] text-brand-paper sm:py-3 sm:text-sm sm:tracking-[0.16em]"
+      className="w-full overflow-hidden bg-black py-2.5 font-body text-[9.5px] font-semibold uppercase tracking-[0.06em] text-white sm:py-2 sm:text-[11px] sm:tracking-[0.16em]"
     >
       {/* Leitores de tela leem os avisos uma vez só; a trilha animada é decorativa. */}
       <span className="sr-only">{MESSAGES.join(". ")}</span>
@@ -61,7 +61,7 @@ export default function AnnouncementBar() {
             {Array.from({ length: COPIES_PER_BLOCK }).flatMap((_, copy) =>
               MESSAGES.map((message, index) => (
                 <span key={`${block}-${copy}-${index}`} className="flex items-center">
-                  <span className="px-5 sm:px-8">{message}</span>
+                  <span className="px-5 sm:px-14">{message}</span>
                   <span className="text-[0.7em] opacity-70">•</span>
                 </span>
               ))

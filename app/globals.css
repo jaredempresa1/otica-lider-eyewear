@@ -63,11 +63,11 @@ select:focus-visible {
   }
 
   .shelf-link {
-    @apply inline-flex items-center gap-2 font-body text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition-colors hover:text-brand-gold sm:text-[13px];
+    @apply inline-flex items-center gap-2 font-body text-[13px] font-semibold uppercase tracking-[0.12em] text-brand-ink transition-colors hover:text-brand-gold sm:text-[15px];
   }
 
   .shelf-link-arrow {
-    @apply flex h-6 w-6 items-center justify-center rounded-full bg-brand-ink/10 pb-[2px] text-[17px] leading-none text-brand-ink transition-colors;
+    @apply flex h-7 w-7 items-center justify-center rounded-full bg-brand-ink/10 pb-[2px] text-[19px] leading-none text-brand-ink transition-colors sm:h-8 sm:w-8 sm:text-[21px];
   }
 
   .text-link {

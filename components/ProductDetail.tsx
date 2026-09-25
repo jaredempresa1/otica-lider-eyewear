@@ -3,11 +3,11 @@
 /** Direção visual: no mobile, escolha de cor e ação de compra ficam próximas da galeria e do preço para reduzir fricção. */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, X, ZoomIn, ZoomOut } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, Sun, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Collection, Product, ProductColor } from "@/types/product";
 import { findBrandLogo } from "@/lib/brandLogo";
 import { useCart } from "./CartContext";
-import { isProductSoldOut, genderLabel } from "@/lib/productStatus";
+import { isProductSoldOut, genderLabel, formatPackageContents } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
 import { checkShipping, isValidCep, ShippingResult } from "@/lib/shipping";
 import { buildWhatsAppInquiryMessage, buildWhatsAppMadeToOrderMessage, buildWhatsAppLink, PaymentSelection } from "@/lib/whatsapp";
@@ -303,10 +303,11 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
     { label: "Material", value: product.specifications?.material?.trim() || "" },
     { label: "Formato", value: product.specifications?.format?.trim() || "" },
     { label: "Gênero", value: genderLabel(product.gender) },
-    { label: "Garantia", value: product.specifications?.warranty?.trim() || "" },
-    { label: "Tipo de lente", value: product.specifications?.lens_type?.trim() || "" },
-    { label: "Conteúdo da embalagem", value: product.specifications?.package_contents?.trim() || "" },
+    { label: "Conteúdo da embalagem", value: formatPackageContents(product.specifications?.package_contents) },
   ].filter((row) => row.value);
+  // Garantia sempre exibe a frase completa (o cadastro guarda só o prazo, ex. "6 meses").
+  const warrantyRaw = product.specifications?.warranty?.trim() || "";
+  const warrantyText = warrantyRaw ? (/contra defeitos/i.test(warrantyRaw) ? warrantyRaw : `${warrantyRaw} contra defeitos de fábrica`) : "";
 
   return (
     <>
@@ -370,23 +371,38 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
         </div>
       </div>
 
-      {(product.description || specRows.length > 0) && (
+      {(
         <div className="mx-auto mt-10 max-w-3xl border-t border-brand-ink/10 lg:mt-14">
           {product.description && (
             <AccordionItem title="Descrição do produto">
               <p className="whitespace-pre-line">{product.description}</p>
             </AccordionItem>
           )}
-          {specRows.length > 0 && (
+          {/* Sempre mostra a UV400 (é padrão em todos os óculos); garantia e o restante só aparecem se preenchidos no cadastro. */}
+          {(
             <AccordionItem title="Especificações">
-              <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-                {specRows.map((row) => (
-                  <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-brand-ink/5 py-1.5 sm:justify-start sm:gap-2">
-                    <dt className="shrink-0 font-semibold text-brand-ink/85">{row.label}:</dt>
-                    <dd className="text-right text-brand-ink/70 sm:text-left">{row.value}</dd>
+              <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-x-8">
+                {warrantyText && (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
+                    <span className="text-brand-ink/85">{warrantyText}</span>
                   </div>
-                ))}
-              </dl>
+                )}
+                <div className="flex items-center gap-2">
+                  <Sun size={18} className="shrink-0 text-brand-gold" strokeWidth={2} />
+                  <span className="text-brand-ink/85">Proteção - UV 400</span>
+                </div>
+              </div>
+              {specRows.length > 0 && (
+                <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                  {specRows.map((row) => (
+                    <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-brand-ink/5 py-1.5 sm:justify-start sm:gap-2">
+                      <dt className="shrink-0 font-semibold text-brand-ink/85">{row.label}:</dt>
+                      <dd className="text-right text-brand-ink/70 sm:text-left">{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
             </AccordionItem>
           )}
         </div>

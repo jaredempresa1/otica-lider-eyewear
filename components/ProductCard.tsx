@@ -4,6 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Tag } from "lucide-react";
 import { Collection, Product, ProductColor } from "@/types/product";
 import { findBrandLogo } from "@/lib/brandLogo";
 import { isProductSoldOut } from "@/lib/productStatus";
@@ -73,6 +74,11 @@ export default function ProductCard({ product, collections, preview = false }: {
           </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center font-body text-xs uppercase tracking-[0.12em] text-brand-ink/35">Sem foto</div>
+        )}
+        {discountPercent !== null && !productSoldOut && (
+          <span className="absolute left-2.5 top-2.5 z-20 flex items-center gap-1 rounded-full bg-emerald-600 px-2 py-1 font-body text-[10px] font-bold text-white shadow-sm sm:left-3 sm:top-3">
+            <Tag size={10} strokeWidth={2.5} /> {discountPercent}% OFF
+          </span>
         )}
         {productSoldOut && !madeToOrder && (
           <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
