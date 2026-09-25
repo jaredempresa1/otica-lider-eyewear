@@ -3,7 +3,7 @@
 /** Direção visual: no mobile, escolha de cor e ação de compra ficam próximas da galeria e do preço para reduzir fricção. */
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, MessageCircle, RotateCcw, ShoppingCart, Sun, X, ZoomIn, ZoomOut } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Download, Glasses, Layers, MessageCircle, Package, RotateCcw, Shapes, ShoppingCart, Sun, UsersRound, X, ZoomIn, ZoomOut } from "lucide-react";
 import { Collection, Product, ProductColor } from "@/types/product";
 import { findBrandLogo } from "@/lib/brandLogo";
 import { useCart } from "./CartContext";
@@ -299,15 +299,17 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
     setShowPaymentModal(false);
   }
 
-  const specRows: { label: string; value: string }[] = [
-    { label: "Material", value: product.specifications?.material?.trim() || "" },
-    { label: "Formato", value: product.specifications?.format?.trim() || "" },
-    { label: "Gênero", value: genderLabel(product.gender) },
-    { label: "Conteúdo da embalagem", value: formatPackageContents(product.specifications?.package_contents) },
+  // Um ícone por linha, na mesma ordem em que aparecem — deixa a lista mais fácil de escanear.
+  const specRows: { label: string; value: string; icon: typeof Layers }[] = [
+    { label: "Material", value: product.specifications?.material?.trim() || "", icon: Layers },
+    { label: "Formato", value: product.specifications?.format?.trim() || "", icon: Shapes },
+    { label: "Gênero", value: genderLabel(product.gender), icon: UsersRound },
+    { label: "Conteúdo", value: formatPackageContents(product.specifications?.package_contents) || "Óculos + Flanela + case", icon: Package },
   ].filter((row) => row.value);
-  // Garantia sempre exibe a frase completa (o cadastro guarda só o prazo, ex. "6 meses").
+  // Garantia e proteção UV são padrão em todos os óculos, então sempre aparecem —
+  // mesmo que o cadastro do produto não tenha preenchido nada.
   const warrantyRaw = product.specifications?.warranty?.trim() || "";
-  const warrantyText = warrantyRaw ? (/contra defeitos/i.test(warrantyRaw) ? warrantyRaw : `${warrantyRaw} contra defeitos de fábrica`) : "";
+  const warrantyText = warrantyRaw && /contra defeitos/i.test(warrantyRaw) ? warrantyRaw : `${warrantyRaw || "6 meses"} contra defeitos de fábrica`;
 
   return (
     <>
@@ -397,7 +399,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
                 <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
                   {specRows.map((row) => (
                     <div key={row.label} className="flex items-baseline justify-between gap-4 border-b border-brand-ink/5 py-1.5 sm:justify-start sm:gap-2">
-                      <dt className="shrink-0 font-semibold text-brand-ink/85">{row.label}:</dt>
+                      <dt className="flex shrink-0 items-center gap-2 font-semibold text-brand-ink/85"><row.icon size={16} className="shrink-0 text-brand-ink/50" strokeWidth={1.8} />{row.label}:</dt>
                       <dd className="text-right text-brand-ink/70 sm:text-left">{row.value}</dd>
                     </div>
                   ))}
