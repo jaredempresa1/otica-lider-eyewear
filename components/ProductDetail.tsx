@@ -413,7 +413,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
       )}
 
       {lightboxOpen && <ProductLightbox images={selectedGallery} initialIndex={lightboxIndex} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} onClose={() => setLightboxOpen(false)} />}
-      {tryOnOpen && <TryOnModal productImage={selectedGallery[2] || selectedGallery[1] || selectedGallery[0] || activeImage || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
+      {tryOnOpen && <TryOnModal productImage={selectedGallery[0] || activeImage || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
       {showPaymentModal && (
         <PaymentMethodModal
           productName={productLabel}
