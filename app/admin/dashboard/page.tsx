@@ -120,6 +120,7 @@ type FormState = {
   more_sold: boolean;
   ai_tryon: boolean;
   sportivo: boolean;
+  shelf_order: Record<string, string>;
   imagesText: string;
   colors: ProductColor[];
   downloads: ProductDownload[];
@@ -153,6 +154,7 @@ const EMPTY_FORM: FormState = {
   more_sold: false,
   ai_tryon: false,
   sportivo: false,
+  shelf_order: {},
   imagesText: "",
   colors: [],
   downloads: [],
@@ -692,6 +694,7 @@ export default function AdminDashboardPage() {
       more_sold: product.more_sold ?? false,
       ai_tryon: product.ai_tryon ?? false,
       sportivo: product.sportivo ?? false,
+      shelf_order: Object.fromEntries(Object.entries(product.shelf_order ?? {}).map(([key, value]) => [key, String(value)])),
       imagesText: (product.images ?? []).join("\n"),
       colors: (product.colors ?? []).map((color) => ({ ...color, images: color.images?.length ? color.images : color.image_url ? [color.image_url] : [] })),
       downloads: product.downloads ?? [],
@@ -876,6 +879,11 @@ export default function AdminDashboardPage() {
       more_sold: form.more_sold,
       ai_tryon: form.ai_tryon,
       sportivo: form.sportivo,
+      shelf_order: Object.fromEntries(
+        shelvesOfProduct({ featured: form.featured, sportivo: form.sportivo, gender: form.gender } as Product)
+          .map((shelf) => [shelf, Number.parseInt(form.shelf_order[shelf] ?? "", 10)] as const)
+          .filter(([, position]) => Number.isFinite(position) && position > 0)
+      ),
       images: form.imagesText.split("\n").map((value) => value.trim()).filter(Boolean),
       colors: form.colors.filter((color) => color.name.trim()).map((color) => { const images = (color.images?.length ? color.images : color.image_url ? [color.image_url] : []).map((image) => image.trim()).filter(Boolean); return { ...color, images, image_url: images[0] || undefined }; }),
       downloads: form.downloads.filter((download) => download.name.trim() && download.url.trim()),
@@ -973,6 +981,28 @@ export default function AdminDashboardPage() {
             </div>
           )}
         </div>
+        {!form.hidden && previewShelves.length > 0 && (
+          <div className="mt-4 border-t border-brand-ink/10 pt-3">
+            <p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Posição na página inicial</p>
+            <p className="mt-1 font-body text-[11px] leading-4 text-brand-ink/45">Mobile mostra as posições 1 a 5; desktop, 1 a 3. Deixe vazio para ordem automática (mais recentes).</p>
+            <div className="mt-2 space-y-2">
+              {previewShelves.map((shelf) => (
+                <label key={shelf} className="flex items-center justify-between gap-3">
+                  <span className="font-body text-xs text-brand-ink/70">{SHELF_LABELS[shelf]}</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="99"
+                    placeholder="Auto"
+                    value={form.shelf_order[shelf] ?? ""}
+                    onChange={(event) => setForm({ ...form, shelf_order: { ...form.shelf_order, [shelf]: event.target.value } })}
+                    className="input-premium h-9 w-20 text-center text-[13px]"
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }

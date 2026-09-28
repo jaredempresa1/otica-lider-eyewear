@@ -38,6 +38,9 @@ function ProductImagePreview({ src, alt, priority, sizes, onOpen }: { src?: stri
   );
 }
 
+// Marcador da "foto 1" da galeria: em vez de uma imagem, é o provador virtual.
+const TRYON_SLIDE = "__provador-virtual__";
+
 const ZOOM_SCALE = 2.2;
 
 function ProductLightbox({ images, initialIndex, alt, onClose }: { images: string[]; initialIndex: number; alt: string; onClose: () => void }) {
@@ -185,7 +188,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
   const sortedColors = [...(product.colors ?? [])].sort((a, b) => Number(Boolean(a.sold_out)) - Number(Boolean(b.sold_out)));
   const [selectedColor, setSelectedColor] = useState<ProductColor | undefined>(sortedColors[0]);
   const initialGallery = getColorImages(product, sortedColors[0]);
-  const [activeImage, setActiveImage] = useState(initialGallery[0]);
+  const [activeImage, setActiveImage] = useState<string>(TRYON_SLIDE);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [tryOnOpen, setTryOnOpen] = useState(false);
@@ -199,7 +202,10 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
   const discountPercent = calculateDiscountPercent(product.price, product.compare_at_price);
   const selectedGallery = getColorImages(product, selectedColor);
   const selectedGalleryKey = selectedGallery.join("|");
-  const shippingImage = activeImage || selectedGallery[0] || "";
+  // Foto "real" em exibição (quando o provador é o item ativo, usa a primeira foto do óculos).
+  const currentPhoto = activeImage === TRYON_SLIDE ? selectedGallery[0] || "" : activeImage;
+  const galleryItems = [TRYON_SLIDE, ...selectedGallery];
+  const shippingImage = currentPhoto;
   const colorSoldOut = Boolean(selectedColor?.sold_out);
   const productSoldOut = isProductSoldOut(product);
   const madeToOrder = Boolean(product.made_to_order);
@@ -251,10 +257,10 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
   }
 
   function goToGalleryImage(direction: number) {
-    if (selectedGallery.length < 2) return;
-    const currentIndex = Math.max(0, selectedGallery.indexOf(activeImage));
-    const nextIndex = (currentIndex + direction + selectedGallery.length) % selectedGallery.length;
-    setActiveImage(selectedGallery[nextIndex]);
+    if (galleryItems.length < 2) return;
+    const currentIndex = Math.max(0, galleryItems.indexOf(activeImage));
+    const nextIndex = (currentIndex + direction + galleryItems.length) % galleryItems.length;
+    setActiveImage(galleryItems[nextIndex]);
   }
 
   const touchStartX = useRef<number | null>(null);
@@ -280,7 +286,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
 
   function handleAddToCart() {
     if (!canBuy) return;
-    addItem({ productId: product.id, slug: product.slug, name: productLabel, price: product.price, compareAtPrice: product.compare_at_price, image: activeImage || selectedGallery[0] || "", colorName: selectedColor?.name || "Único", quantity: 1 });
+    addItem({ productId: product.id, slug: product.slug, name: productLabel, price: product.price, compareAtPrice: product.compare_at_price, image: currentPhoto || selectedGallery[0] || "", colorName: selectedColor?.name || "Único", quantity: 1 });
     setAddedToCart(true);
     window.setTimeout(() => setAddedToCart(false), 2400);
   }
@@ -325,26 +331,26 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
     <main className="section-shell bg-brand-paper py-8 sm:py-12">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         <div>
-          <button
-            type="button"
-            onClick={() => setTryOnOpen(true)}
-            className="relative z-10 mb-3 inline-flex items-center gap-2 rounded-full bg-brand-paper px-4 py-2.5 font-body text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink shadow-card transition-colors hover:bg-brand-gold hover:text-brand-paper"
-          >
-            <Glasses size={15} /> Experimente agora
-          </button>
           <div
             className="relative aspect-square w-full overflow-hidden rounded-[1.5rem] bg-brand-paper sm:aspect-[1.08]"
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
           >
-            <ProductImagePreview src={activeImage} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} priority sizes="(max-width: 1024px) 100vw, 55vw" onOpen={() => openLightbox(activeImage || selectedGallery[0] || "")} />
+            {activeImage === TRYON_SLIDE ? (
+              <button type="button" onClick={() => setTryOnOpen(true)} className="relative h-full w-full overflow-hidden select-none" aria-label="Abrir o provador virtual">
+                {selectedGallery[0] && <Image src={selectedGallery[0]} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} fill priority sizes="(max-width: 1024px) 100vw, 55vw" className="object-contain p-3 mix-blend-multiply sm:p-7" />}
+                <span className="pointer-events-none absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full bg-brand-ink px-5 py-3 font-body text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-paper shadow-card"><Glasses size={16} /> Provador virtual · Experimente agora</span>
+              </button>
+            ) : (
+              <ProductImagePreview src={activeImage} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} priority sizes="(max-width: 1024px) 100vw, 55vw" onOpen={() => openLightbox(activeImage || selectedGallery[0] || "")} />
+            )}
             {productSoldOut && !madeToOrder && (
               <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-brand-cream/10">
                 <span className="-rotate-12 rounded-xl border-2 border-brand-ink/70 bg-brand-paper/90 px-6 py-2.5 font-body text-sm font-bold uppercase tracking-[0.22em] text-brand-ink/85 shadow-card backdrop-blur-sm">Esgotado</span>
               </div>
             )}
           </div>
-          {selectedGallery.length > 1 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6">{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-paper transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
+          {selectedGallery.length > 0 && <div className="mt-3 grid grid-cols-5 gap-2 sm:grid-cols-6"><button onClick={() => setActiveImage(TRYON_SLIDE)} className={`relative flex aspect-square flex-col items-center justify-center gap-1 overflow-hidden rounded-xl border-2 bg-brand-ink text-brand-paper transition-colors ${activeImage === TRYON_SLIDE ? "border-brand-gold" : "border-transparent"}`} aria-label="Ver o provador virtual"><Glasses size={20} /><span className="font-body text-[8px] font-semibold uppercase tracking-[0.1em]">Provador</span></button>{selectedGallery.map((img, index) => <button key={`${img}-${index}`} onClick={() => setActiveImage(img)} className={`relative aspect-square overflow-hidden rounded-xl border-2 bg-brand-paper transition-colors ${activeImage === img ? "border-brand-gold" : "border-transparent"}`} aria-label={`Ver ângulo ${index + 1} de ${product.name}`}><Image src={img} alt={`Ângulo ${index + 1} de ${product.name}`} fill className="object-contain p-1 mix-blend-multiply" sizes="100px" /></button>)}</div>}
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-5 border-t border-brand-ink/10 pt-5 lg:hidden" />}
         </div>
 
@@ -413,7 +419,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
       )}
 
       {lightboxOpen && <ProductLightbox images={selectedGallery} initialIndex={lightboxIndex} alt={`${productLabel}${selectedColor?.name ? ` na cor ${selectedColor.name}` : ""}`} onClose={() => setLightboxOpen(false)} />}
-      {tryOnOpen && <TryOnModal productImage={selectedGallery[2] || selectedGallery[1] || selectedGallery[0] || activeImage || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
+      {tryOnOpen && <TryOnModal productImage={selectedGallery[2] || selectedGallery[1] || selectedGallery[0] || currentPhoto || ""} productName={productLabel} onClose={() => setTryOnOpen(false)} />}
       {showPaymentModal && (
         <PaymentMethodModal
           productName={productLabel}

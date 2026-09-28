@@ -62,6 +62,8 @@ export type Product = {
   ai_tryon?: boolean;
   /** Controla o filtro "Óculos esportivo". Marcado manualmente no admin; o produto continua aparecendo nos demais filtros normalmente. */
   sportivo?: boolean;
+  /** Posição fixa na vitrine da home, por vitrine (ex.: { destaque: 1, masculino: 3 }). Sem número = ordem automática (mais recentes). Mobile mostra as posições 1–5, desktop 1–3. */
+  shelf_order?: Record<string, number> | null;
   collection_slugs?: string[];
   created_at?: string;
 };

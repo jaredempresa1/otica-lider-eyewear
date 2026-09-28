@@ -65,6 +65,46 @@ function wordsApproximatelyMatch(queryWord: string, productWord: string): boolea
   return levenshteinDistance(queryWord, productWord) <= tolerance;
 }
 
+/** Menor distância de edição entre `pattern` e QUALQUER trecho de `text` (algoritmo de Sellers).
+ * Serve para achar "raiban" dentro de "rayban" mesmo com uma letra trocada. */
+function approxSubstringDistance(pattern: string, text: string): number {
+  if (!pattern) return 0;
+  let previous = new Array(text.length + 1).fill(0);
+  for (let i = 1; i <= pattern.length; i++) {
+    const current = new Array(text.length + 1);
+    current[0] = i;
+    for (let j = 1; j <= text.length; j++) {
+      current[j] = Math.min(previous[j - 1] + (pattern[i - 1] === text[j - 1] ? 0 : 1), previous[j] + 1, current[j - 1] + 1);
+    }
+    previous = current;
+  }
+  return Math.min(...previous);
+}
+
+/** Pontuação de quanto a busca combina com os textos (marca, modelo, nome, coleção...).
+ * 0 = não combina · 1 = combina de forma aproximada (erro de digitação, "ray ban" x "Ray-Ban")
+ * 2 = está contida · 3 = começa igual · 4 = igual. Ignora acento, maiúscula, hífen e espaço. */
+export function searchMatchScore(query: string, fields: (string | null | undefined)[]): number {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return 0;
+  const collapsedQuery = normalizedQuery.replace(/ /g, "");
+  const cleanFields = fields.filter((field): field is string => Boolean(field)).map(normalizeSearchText).filter(Boolean);
+  if (cleanFields.length === 0) return 0;
+
+  const collapsedFields = cleanFields.map((field) => field.replace(/ /g, ""));
+  if (collapsedFields.some((field) => field === collapsedQuery)) return 4;
+  if (collapsedFields.some((field) => field.startsWith(collapsedQuery))) return 3;
+  const joined = cleanFields.join(" ");
+  if (joined.replace(/ /g, "").includes(collapsedQuery)) return 2;
+
+  const productWords = joined.split(" ").filter(Boolean);
+  const queryWords = normalizedQuery.split(" ").filter(Boolean);
+  if (queryWords.every((queryWord) => productWords.some((productWord) => wordsApproximatelyMatch(queryWord, productWord)))) return 1;
+
+  const tolerance = maxTypoDistance(collapsedQuery.length);
+  if (tolerance > 0 && collapsedQuery.length >= 4 && collapsedFields.some((field) => approxSubstringDistance(collapsedQuery, field) <= tolerance)) return 1;
+  return 0;
+}
 
 /** Única lista de formatos do site: usada no filtro da vitrine E no campo "Formato" do admin,
  * pra nunca ficarem fora de sincronia (um formato digitado livremente no admin que não bata

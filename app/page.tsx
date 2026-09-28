@@ -10,7 +10,7 @@ import Testimonials from "@/components/Testimonials";
 import SocialProof from "@/components/SocialProof";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import ScrollReveal from "@/components/ScrollReveal";
-import { productInShelf } from "@/lib/shelves";
+import { productInShelf, sortShelfProducts } from "@/lib/shelves";
 
 export const revalidate = 60;
 
@@ -60,11 +60,11 @@ export default async function HomePage({ searchParams }: { searchParams?: { q?: 
 
   // Vitrines automáticas: Público + Destaque + Esportivo (ver lib/shelves.ts).
   // Um produto pode aparecer em várias vitrines ao mesmo tempo.
-  const featuredProducts = products.filter((product) => productInShelf(product, "destaque"));
-  const sportVisionProducts = products.filter((product) => productInShelf(product, "sport-vision"));
-  const feminineProducts = products.filter((product) => productInShelf(product, "feminino"));
-  const masculineProducts = products.filter((product) => productInShelf(product, "masculino"));
-  const childrenProducts = products.filter((product) => productInShelf(product, "infantil"));
+  const featuredProducts = sortShelfProducts(products.filter((product) => productInShelf(product, "destaque")), "destaque");
+  const sportVisionProducts = sortShelfProducts(products.filter((product) => productInShelf(product, "sport-vision")), "sport-vision");
+  const feminineProducts = sortShelfProducts(products.filter((product) => productInShelf(product, "feminino")), "feminino");
+  const masculineProducts = sortShelfProducts(products.filter((product) => productInShelf(product, "masculino")), "masculino");
+  const childrenProducts = sortShelfProducts(products.filter((product) => productInShelf(product, "infantil")), "infantil");
 
   return (
     <main>

@@ -49,3 +49,20 @@ export function productInShelf(product: ShelfInput, shelf: ShelfKey): boolean {
 export function shelvesOfProduct(product: ShelfInput): ShelfKey[] {
   return SHELF_KEYS.filter((shelf) => productInShelf(product, shelf));
 }
+
+/**
+ * Ordem dos óculos dentro de cada vitrine da HOME. Quem tem posição fixa
+ * (campo "Posição na home" no admin, por vitrine) vem primeiro, na ordem
+ * 1, 2, 3...; os demais vêm depois na ordem original (mais recentes primeiro).
+ * A home mostra os 5 primeiros no mobile e os 3 primeiros no desktop.
+ */
+export function sortShelfProducts<T extends Pick<Product, "shelf_order">>(products: T[], shelf: ShelfKey): T[] {
+  const positionOf = (product: T): number => {
+    const value = Number(product.shelf_order?.[shelf]);
+    return Number.isFinite(value) && value > 0 ? value : Number.POSITIVE_INFINITY;
+  };
+  return products
+    .map((product, index) => ({ product, index, position: positionOf(product) }))
+    .sort((a, b) => (a.position === b.position ? a.index - b.index : a.position - b.position))
+    .map((entry) => entry.product);
+}

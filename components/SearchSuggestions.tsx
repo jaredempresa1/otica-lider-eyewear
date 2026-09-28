@@ -9,9 +9,9 @@
  */
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase, hasSupabaseConfig } from "@/lib/supabaseClient";
-import { matchFilterSuggestions, matchSectionSuggestions } from "@/lib/filters";
+import { matchFilterSuggestions, matchSectionSuggestions, searchMatchScore } from "@/lib/filters";
 import { Collection, Product } from "@/types/product";
 
 function formatBRL(value: number): string {
@@ -20,43 +20,76 @@ function formatBRL(value: number): string {
 
 type SuggestionTerm = { label: string; href: string };
 
+// Catálogo leve (marcas + produtos) carregado UMA vez e reaproveitado em cada
+// digitação: a comparação é feita aqui no navegador, ignorando acento,
+// maiúscula, hífen e espaço e tolerando erro de digitação (ex.: "rayban",
+// "ray ban", "raiban" e "Ray-Ban" acham a mesma coisa).
+type SearchCatalog = { collections: Collection[]; products: Product[] };
+let catalogPromise: Promise<SearchCatalog> | null = null;
+
+function loadSearchCatalog(): Promise<SearchCatalog> {
+  if (!catalogPromise) {
+    catalogPromise = Promise.all([
+      supabase.from("collections").select("*").order("sort_order", { ascending: true }),
+      supabase.from("products").select("id,slug,name,brand,model,images,price,compare_at_price,gender,more_sold,featured,collection_slugs,hidden"),
+    ])
+      .then(([{ data: collectionData }, { data: productData }]) => ({
+        collections: (collectionData as Collection[]) ?? [],
+        products: ((productData as Product[]) ?? []).filter((product) => !product.hidden),
+      }))
+      .catch(() => {
+        catalogPromise = null;
+        return { collections: [], products: [] };
+      });
+  }
+  return catalogPromise;
+}
+
 export default function SearchSuggestions({ query, onNavigate }: { query: string; onNavigate?: () => void }) {
-  const [collections, setCollections] = useState<Collection[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [catalog, setCatalog] = useState<SearchCatalog | null>(null);
 
   const trimmed = query.trim();
 
   useEffect(() => {
-    if (!hasSupabaseConfig || trimmed.length < 2) {
-      setCollections([]);
-      setProducts([]);
-      return;
-    }
-
+    if (!hasSupabaseConfig || trimmed.length < 2 || catalog) return;
     let cancelled = false;
-    setLoading(true);
-    const timer = window.setTimeout(async () => {
-      const like = `%${trimmed}%`;
-      const [{ data: collectionData }, { data: productData }] = await Promise.all([
-        supabase.from("collections").select("*").ilike("name", like).order("sort_order", { ascending: true }).limit(5),
-        supabase
-          .from("products")
-          .select("id,slug,name,brand,model,images,price,compare_at_price,gender,more_sold,featured,collection_slugs")
-          .or(`name.ilike.${like},brand.ilike.${like},model.ilike.${like}`)
-          .limit(30),
-      ]);
-      if (cancelled) return;
-      setCollections((collectionData as Collection[]) ?? []);
-      setProducts((productData as Product[]) ?? []);
-      setLoading(false);
-    }, 250);
-
+    loadSearchCatalog().then((loaded) => {
+      if (!cancelled) setCatalog(loaded);
+    });
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
     };
-  }, [trimmed]);
+  }, [trimmed.length >= 2, catalog]);
+
+  const loading = hasSupabaseConfig && trimmed.length >= 2 && !catalog;
+
+  const { collections, products } = useMemo(() => {
+    if (!catalog || trimmed.length < 2) return { collections: [] as Collection[], products: [] as Product[] };
+
+    // Marcas/coleções que combinam com o texto, as mais parecidas primeiro.
+    const matchedCollections = catalog.collections
+      .map((collection) => ({ collection, score: searchMatchScore(trimmed, [collection.name, collection.slug]) }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map((entry) => entry.collection);
+    const matchedSlugs = new Set(matchedCollections.map((collection) => collection.slug));
+
+    // Produtos cujo nome/marca/modelo combinam OU que pertencem à marca encontrada
+    // (assim "rayban" traz todos os "Ray-Ban", mesmo que o cadastro escreva diferente).
+    const matchedProducts = catalog.products
+      .map((product) => {
+        const textScore = searchMatchScore(trimmed, [product.name, product.brand, product.model]);
+        const inCollection = (product.collection_slugs ?? []).some((slug) => matchedSlugs.has(slug));
+        return { product, score: Math.max(textScore, inCollection ? 1 : 0) };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 30)
+      .map((entry) => entry.product);
+
+    return { collections: matchedCollections, products: matchedProducts };
+  }, [catalog, trimmed]);
 
   // Atalhos de gênero/ofertas/etc. que batem com o texto digitado (ex.: "masc", "promo"),
   // independem do Supabase e aparecem mesmo enquanto os produtos ainda carregam.
