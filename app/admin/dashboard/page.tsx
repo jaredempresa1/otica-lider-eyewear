@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Collection, HeroSlide, Product, ProductColor, ProductDownload, Testimonial } from "@/types/product";
-import { isProductSoldOut } from "@/lib/productStatus";
+import { isProductSoldOut, sortSoldOutLast } from "@/lib/productStatus";
 import { FILTER_DESTINATIONS, FORMAT_OPTIONS } from "@/lib/filters";
 import { calculateDiscountPercent } from "@/lib/pricing";
-import { shelvesOfProduct, SHELF_LABELS } from "@/lib/shelves";
+import { shelvesOfProduct, SHELF_LABELS, productInShelf, sortShelfProducts, type ShelfKey } from "@/lib/shelves";
 import ProductCard from "@/components/ProductCard";
 import { compressImageFile, compressImageFiles } from "@/lib/imageCompression";
 import {
@@ -850,6 +850,23 @@ export default function AdminDashboardPage() {
     // Botões do rodapé definem se salva como rascunho (oculto) ou publicado.
     const hidden = saveAsHiddenRef.current ?? form.hidden;
     saveAsHiddenRef.current = null;
+
+    // Impede dois óculos na mesma posição da mesma seção da home.
+    if (!hidden) {
+      const conflictMessages: string[] = [];
+      shelvesOfProduct({ featured: form.featured, sportivo: form.sportivo, gender: form.gender } as Product).forEach((shelf) => {
+        const wanted = Number.parseInt(form.shelf_order[shelf] ?? "", 10);
+        if (!Number.isFinite(wanted) || wanted <= 0) return;
+        const taken = products.filter((item) => !item.hidden && item.id !== form.id && productInShelf(item, shelf) && Number(item.shelf_order?.[shelf]) === wanted);
+        if (taken.length > 0) conflictMessages.push(`Seção "${SHELF_LABELS[shelf]}": a posição ${wanted} já está ocupada por ${taken.map((item) => item.name).join(", ")}.`);
+      });
+      if (conflictMessages.length > 0) {
+        setSaveError(`${conflictMessages.join(" ")} Escolha outra posição ou deixe vazio.`);
+        setSaving(false);
+        return;
+      }
+    }
+
     const price = parseNumber(form.price);
     const compareAtPrice = form.compare_at_price ? parseNumber(form.compare_at_price) : null;
     const payload = {
@@ -963,6 +980,26 @@ export default function AdminDashboardPage() {
   }, [form]);
   const previewShelves = useMemo(() => shelvesOfProduct({ featured: form.featured, sportivo: form.sportivo, gender: form.gender } as Product), [form.featured, form.sportivo, form.gender]);
 
+  // Quem está nas primeiras posições de cada seção da home (sem contar o óculos que está sendo editado).
+  const shelfOccupancy = useMemo(() => {
+    const result: Partial<Record<ShelfKey, { displayed: { product: Product; fixed: number | null; soldOut: boolean }[]; taken: Record<number, Product[]> }>> = {};
+    previewShelves.forEach((shelf) => {
+      const others = products.filter((item) => !item.hidden && item.id !== form.id && productInShelf(item, shelf));
+      const fixedOf = (item: Product): number | null => {
+        const value = Number(item.shelf_order?.[shelf]);
+        return Number.isFinite(value) && value > 0 ? value : null;
+      };
+      const displayed = sortSoldOutLast(sortShelfProducts(others, shelf)).slice(0, 5).map((item) => ({ product: item, fixed: fixedOf(item), soldOut: !item.made_to_order && isProductSoldOut(item) }));
+      const taken: Record<number, Product[]> = {};
+      others.forEach((item) => {
+        const position = fixedOf(item);
+        if (position !== null) taken[position] = [...(taken[position] ?? []), item];
+      });
+      result[shelf] = { displayed, taken };
+    });
+    return result;
+  }, [products, previewShelves, form.id]);
+
   function renderPreview() {
     return (
       <div className="rounded-[1.25rem] border border-brand-ink/10 bg-brand-paper p-4">
@@ -985,21 +1022,49 @@ export default function AdminDashboardPage() {
           <div className="mt-4 border-t border-brand-ink/10 pt-3">
             <p className="font-body text-[10px] font-semibold uppercase tracking-[0.13em] text-brand-ink/55">Posição na página inicial</p>
             <p className="mt-1 font-body text-[11px] leading-4 text-brand-ink/45">Mobile mostra as posições 1 a 5; desktop, 1 a 3. Deixe vazio para ordem automática (mais recentes).</p>
-            <div className="mt-2 space-y-2">
-              {previewShelves.map((shelf) => (
-                <label key={shelf} className="flex items-center justify-between gap-3">
-                  <span className="font-body text-xs text-brand-ink/70">{SHELF_LABELS[shelf]}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="99"
-                    placeholder="Auto"
-                    value={form.shelf_order[shelf] ?? ""}
-                    onChange={(event) => setForm({ ...form, shelf_order: { ...form.shelf_order, [shelf]: event.target.value } })}
-                    className="input-premium h-9 w-20 text-center text-[13px]"
-                  />
-                </label>
-              ))}
+            <div className="mt-2 space-y-4">
+              {previewShelves.map((shelf) => {
+                const occupancy = shelfOccupancy[shelf];
+                const wanted = Number.parseInt(form.shelf_order[shelf] ?? "", 10);
+                const conflict = Number.isFinite(wanted) && wanted > 0 ? occupancy?.taken[wanted] : undefined;
+                return (
+                  <div key={shelf}>
+                    <label className="flex items-center justify-between gap-3">
+                      <span className="font-body text-xs text-brand-ink/70">{SHELF_LABELS[shelf]}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="99"
+                        placeholder="Auto"
+                        value={form.shelf_order[shelf] ?? ""}
+                        onChange={(event) => setForm({ ...form, shelf_order: { ...form.shelf_order, [shelf]: event.target.value } })}
+                        className={`input-premium h-9 w-20 text-center text-[13px] ${conflict && conflict.length > 0 ? "border-red-400" : ""}`}
+                      />
+                    </label>
+                    {conflict && conflict.length > 0 && (
+                      <p className="mt-1 rounded-lg bg-red-50 px-2.5 py-1.5 font-body text-[11px] leading-4 text-red-700">
+                        Já existe óculos na posição {wanted} desta seção: {conflict.map((item) => item.name).join(", ")}. Escolha outra posição ou deixe vazio.
+                      </p>
+                    )}
+                    <div className="mt-1.5 rounded-lg bg-brand-ink/[0.03] px-2.5 py-2">
+                      <p className="font-body text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-ink/45">Hoje nas primeiras posições</p>
+                      {occupancy && occupancy.displayed.length > 0 ? (
+                        <ol className="mt-1 space-y-0.5">
+                          {occupancy.displayed.map((entry, index) => (
+                            <li key={entry.product.id} className="flex items-baseline gap-1.5 font-body text-[11px] leading-4 text-brand-ink/70">
+                              <span className="w-3 shrink-0 font-semibold text-brand-ink/55">{index + 1}</span>
+                              <span className="min-w-0 flex-1 truncate">{entry.product.name}</span>
+                              <span className="shrink-0 text-[10px] text-brand-ink/45">{entry.fixed !== null ? `fixo (${entry.fixed})` : "auto"}{entry.soldOut ? " · esgotado" : ""}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <p className="mt-1 font-body text-[11px] leading-4 text-brand-ink/45">Nenhum outro óculos nesta seção.</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
