@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const STATS_TARGET = 22000;
+const STATS_TARGET = 55000;
 const STATS_LABEL = "clientes satisfeitos desde 2001";
 
 const CARDS = [

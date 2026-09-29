@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Piazzolla } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
+import { WishlistProvider } from "@/components/WishlistContext";
 import { AuthModalProvider } from "@/components/AuthModal";
 import { CartDrawerProvider } from "@/components/CartDrawer";
 import AddedToCartToast from "@/components/AddedToCartToast";
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-body">
         <AuthModalProvider>
           <CartProvider>
+          <WishlistProvider>
             <SideMenuProvider>
               <CartDrawerProvider>
                 <div className="sticky top-0 z-50">
@@ -79,6 +81,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ScratchOfferPopup />
               </CartDrawerProvider>
             </SideMenuProvider>
+          </WishlistProvider>
           </CartProvider>
         </AuthModalProvider>
       </body>

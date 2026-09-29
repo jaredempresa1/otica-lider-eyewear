@@ -17,6 +17,7 @@ import ProductGrid from "./ProductGrid";
 import NewsletterSignup from "./NewsletterSignup";
 import FreeShippingBar from "./FreeShippingBar";
 import { addRecentlyViewed, getRecentlyViewed } from "@/lib/recentlyViewed";
+import WishlistButton from "@/components/WishlistButton";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -349,7 +350,7 @@ export default function ProductDetail({ product, relatedProducts = [], collectio
         </div>
 
         <div className="flex flex-col justify-center lg:py-8">
-          <div className="mt-3 flex items-center gap-3"><p className="font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>{brandLogo && <img src={brandLogo} alt={`Logo da marca ${displayBrand}`} className="h-11 w-11 shrink-0 object-contain" />}</div>
+          <div className="mt-3 flex items-center gap-3"><p className="font-heading text-2xl font-semibold leading-tight tracking-[-0.03em] text-brand-ink sm:text-3xl">{displayBrand}</p>{brandLogo && <img src={brandLogo} alt={`Logo da marca ${displayBrand}`} className="h-11 w-11 shrink-0 object-contain" />}<WishlistButton productId={product.id} size={20} className="ml-auto h-10 w-10 shrink-0" /></div>
           <h1 className="mt-1 font-body text-xs font-semibold uppercase tracking-[0.16em] text-brand-ink/55 sm:text-sm">{displayModel || "Modelo"}</h1>
           <div className="mt-4 flex flex-col items-start font-body"><div className="flex items-baseline gap-3 whitespace-nowrap"><span className={`text-[27px] font-semibold ${hasDiscount ? "text-brand-gold" : "text-brand-ink"}`}>{formatBRL(product.price)}</span>{hasDiscount && <span className="text-[15px] text-brand-ink/40 line-through">{formatBRL(product.compare_at_price as number)}</span>}{discountPercent !== null && <span className="text-[13px] font-bold text-red-600">{discountPercent}% OFF</span>}</div>{installmentTotal !== null && product.installments && <span className="mt-0.5 text-[15px] font-medium leading-6 text-brand-ink"><span className="block">ou até {product.installments.count}x de {formatBRL(product.installments.amount)}</span><span className="block text-[13px] text-brand-ink/65">Total parcelado: {formatBRL(installmentTotal)}</span></span>}</div>
           {sortedColors.length > 0 && <ColorPicker colors={sortedColors} selectedColor={selectedColor} onSelect={handleColorSelect} className="mt-1 hidden border-t border-brand-ink/10 pt-3 lg:block" />}

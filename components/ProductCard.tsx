@@ -10,6 +10,7 @@ import { findBrandLogo } from "@/lib/brandLogo";
 import { isProductSoldOut } from "@/lib/productStatus";
 import { calculateDiscountPercent } from "@/lib/pricing";
 import { trackProductClick } from "@/lib/productAnalytics";
+import WishlistButton from "@/components/WishlistButton";
 
 function formatBRL(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -56,6 +57,7 @@ export default function ProductCard({ product, collections, preview = false }: {
     <article className="group min-w-0">
       <div className="relative aspect-[1.3] w-full overflow-hidden rounded-[1.25rem] bg-brand-paper">
         <Link href={`/produtos/${product.slug}`} {...linkProps} className="absolute inset-0 z-10" aria-label={`Ver detalhes de ${productLabel}`} />
+        {!preview && <WishlistButton productId={product.id} size={16} className="absolute right-2 top-2 z-20 h-8 w-8" />}
         {mainImage && imageStatus !== "failed" ? (
           <div className="absolute inset-0 p-2 sm:p-3">
             <div className="relative h-full w-full scale-[1.1]">
