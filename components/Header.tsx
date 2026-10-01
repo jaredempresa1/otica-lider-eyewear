@@ -364,9 +364,6 @@ export default function Header() {
                 <button type="button" onClick={goToReviews} className="py-2.5 text-left transition-colors hover:text-brand-gold">
                   Avaliações
                 </button>
-                <Link href="/guia-de-rostos" onClick={closeMenu} className="py-2.5 transition-colors hover:text-brand-gold">
-                  Guia de Rostos
-                </Link>
                 <Link href="/favoritos" onClick={closeMenu} className="py-2.5 transition-colors hover:text-brand-gold">
                   Meus favoritos
                 </Link>

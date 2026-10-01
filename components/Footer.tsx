@@ -47,11 +47,6 @@ export default function Footer() {
                 <ChevronRight size={13} className="shrink-0" /> Política de Privacidade
               </Link>
             </li>
-            <li>
-              <Link href="/guia-de-rostos" className="inline-flex items-center gap-1 underline decoration-brand-paper/25 underline-offset-4 transition-colors hover:text-brand-gold hover:decoration-brand-gold">
-                <ChevronRight size={13} className="shrink-0" /> Guia de Rostos
-              </Link>
-            </li>
           </ul>
         </div>
         <div>
